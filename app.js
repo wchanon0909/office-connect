@@ -9,7 +9,7 @@ function changeHistory(from,to){if(!from.length)return;to.push(clone());map=JSON
 function newDesk(){let id='D-'+String(map.nextId++).padStart(3,'0');return{type:'desk',rotation,id,label:id,name:'',status:'offline'};}
 function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
 function setCell(key){const old=map.cells[key];if(tool==='erase'){if(!old)return;delete map.cells[key];}else{if(old?.type===tool){if(old.rotation===rotation)return;old.rotation=rotation;}else{map.cells[key]=tool==='desk'?newDesk():{type:tool,rotation};}}if(selected===key&&map.cells[key]?.type!=='desk')selected=null;drawCell(key);}
-function drawCell(key){const b=document.getElementById('c'+key);if(!b)return;const c=map.cells[key];b.className='cell '+(c?.type||'')+(selected===key?' selected':'');b.replaceChildren();b.title=c?.type==='desk'?`${c.label} ${c.name}`:c?.type||'Empty';b.setAttribute('aria-label',`${key}: ${b.title}`);if(c?.type==='desk'){const f=el('div','furniture');f.style.setProperty('--rotation',`${c.rotation}deg`);f.append(el('div','desk-top'),el('div','monitor'),el('div','keyboard'),el('div','chair'+(c.name&&c.status!=='offline'?' occupied':'')));b.append(f,el('span','desk-id',c.label),el('i','dot '+(c.name?c.status:'offline')));}}
+function drawCell(key){const b=document.getElementById('c'+key);if(!b)return;const c=map.cells[key];b.className='cell '+(c?.type||'')+(selected===key?' selected':'');b.replaceChildren();b.title=c?.type==='desk'?`${c.label} ${c.name}`:c?.type||'Empty';b.setAttribute('aria-label',`${key}: ${b.title}`);if(c?.type==='desk'){const f=el('div','furniture');f.style.setProperty('--rotation',`${c.rotation}deg`);f.append(el('div','desk-top'),el('div','desk-drawer'),el('div','monitor'),el('div','keyboard'),el('div','mouse'),el('div','notebook'),el('div','mug'),el('div','chair'+(c.name&&c.status!=='offline'?' occupied':'')));if(c.name&&c.status!=='offline')f.append(el('div','worker '+c.status));b.append(f,el('span','desk-id',c.label),el('i','dot '+(c.name?c.status:'offline')));}}
 function render(){const g=$('grid');g.className=editing?'editing':'';g.style.gridTemplateColumns=`repeat(${map.cols},var(--cell))`;g.replaceChildren();const frag=document.createDocumentFragment();for(let y=0;y<map.rows;y++)for(let x=0;x<map.cols;x++){const k=`${x},${y}`,b=el('button','cell');b.id='c'+k;b.dataset.key=k;b.type='button';frag.append(b);}g.append(frag);Object.keys(map.cells).forEach(drawCell);if(selected)drawCell(selected);$('cols').value=map.cols;$('rows').value=map.rows;$('toolbar').hidden=!editing;$('edit').textContent=editing?'Exit editor':'Edit floor plan';$('subtitle').textContent=editing?'Design your workspace one grid cell at a time.':'Select a desk to connect with a colleague.';setZoom(zoom);renderPeople();renderDetails();refreshTools();}
 function setZoom(z){zoom=Math.max(.25,Math.min(2.5,z));$('grid').style.setProperty('--cell',`${Math.round(54*zoom)}px`);$('zoomValue').textContent=Math.round(zoom*100)+'%';}
 function fit(){setZoom(Math.min(1,($('viewport').clientWidth-50)/(map.cols*54),($('viewport').clientHeight-50)/(map.rows*54)));}
@@ -25,34 +25,20 @@ $('edit').onclick=()=>{editing=!editing;render();};$('save').onclick=()=>{editin
 $('resize').onclick=()=>{const cols=Number($('cols').value),rows=Number($('rows').value);if(!Number.isInteger(cols)||cols<4||cols>80||!Number.isInteger(rows)||rows<4||rows>50){$('status').textContent='Grid size must be 4–80 columns and 4–50 rows';return;}const outside=Object.keys(map.cells).filter(k=>{const [x,y]=k.split(',').map(Number);return x>=cols||y>=rows;});if(outside.length&&!confirm('Resize will remove '+outside.length+' objects. Continue?'))return;checkpoint();outside.forEach(k=>delete map.cells[k]);map.cols=cols;map.rows=rows;selected=null;render();fit();persist();};
 $('clear').onclick=()=>{if(!confirm('Clear all objects? You can undo this action.'))return;checkpoint();map.cells={};selected=null;render();persist();};
 function officeSample(){
-map={version:1,cols:11,rows:18,nextId:1,cells:{}};
-const desk=(x,y,rotation=0,name='',status='offline')=>{const c=newDesk();c.rotation=rotation;c.name=name;c.status=name?status:'offline';map.cells[`${x},${y}`]=c;};
-const fill=(type,positions)=>positions.forEach(([x,y,r=0])=>map.cells[`${x},${y}`]={type,rotation:r});
-fill('meeting',[[0,1],[1,1],[2,1],[3,1],[4,1]]);
-fill('wall',[[5,1],[5,2],[0,3],[1,3],[2,3],[3,3],[5,3],[6,3],[8,3],[9,3],[10,3]]);
-fill('door',[[4,3],[7,3]]);
-fill('plant',[[4,4],[7,4],[7,5],[4,6],[7,6],[4,8],[7,8],[4,10],[7,10],[4,11],[7,11],[4,13],[7,13],[4,14],[7,14],[4,16],[7,16]]);
-for(let y=4;y<18;y++)for(const x of [5,6])map.cells[`${x},${y}`]={type:'aisle',rotation:0};
-
-desk(7,0,180,'Support 01','online');
-desk(8,1,90,'Support 02','online');
-desk(10,0,180,'Support 03','away');
-desk(10,2,90,'Support 04','offline');
-
-desk(0,4,90,'Desk 01','online');desk(1,4,90,'Desk 02','online');desk(2,4,90,'Desk 03','away');
-desk(8,4,270,'Desk 04','online');desk(9,4,270,'Desk 05','offline');desk(10,4,270,'Desk 06','online');
-
-const leftCols=[0,1,2,3],rightCols=[8,9,10],deskRows=[5,6,9,12,15];
-let n=7;
-for(const y of deskRows){
-for(const x of leftCols){const name=`Desk ${String(n).padStart(2,'0')}`;const status=n%5===0?'away':n%3===0?'offline':'online';desk(x,y,90,name,status);n++;}
-for(const x of rightCols){const name=`Desk ${String(n).padStart(2,'0')}`;const status=n%4===0?'away':n%2===0?'online':'offline';desk(x,y,270,name,status);n++;}}
-if(map.cells['2,5']){map.cells['2,5'].name='Nina';map.cells['2,5'].status='online';}
-if(map.cells['3,5']){map.cells['3,5'].name='Beam';map.cells['3,5'].status='online';}
-if(map.cells['1,9']){map.cells['1,9'].name='Mint';map.cells['1,9'].status='away';}
-if(map.cells['8,11']){map.cells['8,11'].name='Top';map.cells['8,11'].status='online';}
+map={version:1,cols:10,rows:20,nextId:1,cells:{}};
+const place=(x,y,type,rotation=0)=>{if(x<1)return;const k=`${x-1},${y}`;if(type==='desk'){const c=newDesk();c.rotation=rotation;map.cells[k]=c;}else map.cells[k]={type,rotation};};
+for(let x=1;x<=6;x++)place(x,1,'meeting');
+for(let y=0;y<3;y++)place(7,y,'wall');
+for(let x=0;x<11;x++)place(x,3,[5,8].includes(x)?'door':'wall');
+for(const [x,y,r] of [[6,0,180],[8,0,180],[8,1,0],[10,0,270],[10,2,270]])place(x,y,'desk',r);
+for(let y=5;y<20;y++)for(const x of [5,6])place(x,y,'aisle');
+for(const x of [0,1,2,9,10])place(x,4,'desk',0);
+for(const x of [4,7])place(x,4,'plant');
+for(const y of [6,9,12,15,18]){for(const x of [0,1,2,3,8,9,10]){place(x,y,'desk',180);place(x,y+1,'desk',0);}place(4,y,'plant');place(4,y+1,'plant');place(7,y,'plant');place(7,y+1,'plant');}
+// Extra desk at the end of the first left-hand bank, as in the supplied reference.
+place(4,6,'desk',180);
 }
 $('sample').onclick=()=>{if(Object.keys(map.cells).length&&!confirm('Replace the current plan with a sample based on your office?'))return;checkpoint();officeSample();selected=null;render();fit();persist('Loaded office sample');};
 $('export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(map,null,2)],{type:'application/json'}));const a=el('a');a.href=url;a.download='office-floor-plan.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};$('import').onclick=()=>$('file').click();$('file').onchange=async()=>{const f=$('file').files[0];if(!f)return;try{if(f.size>2000000)throw Error('File too large');const next=validate(JSON.parse(await f.text()));if(Object.keys(map.cells).length&&!confirm('Replace current plan?'))return;checkpoint();map=next;selected=null;render();fit();persist('Imported and saved locally');}catch(e){$('status').textContent='Import failed: '+e.message;}finally{$('file').value='';}};
 $('cancel').onclick=()=>$('dialog').close();$('deskForm').onsubmit=e=>{e.preventDefault();const c=map.cells[selected];if(!c)return;checkpoint();c.label=$('deskLabel').value.trim()||c.id;c.name=$('personName').value.trim();c.status=c.name?$('personStatus').value:'offline';$('dialog').close();drawCell(selected);renderPeople();renderDetails();refreshTools();persist();};document.addEventListener('keydown',e=>{if(!editing||$('dialog').open||['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName))return;if(e.key.toLowerCase()==='r')$('rotate').click();if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();(e.shiftKey?$('redo'):$('undo')).click();}});
-render();fit();
+try{if(!localStorage.getItem(KEY)){officeSample();}}catch(e){officeSample();}render();fit();
