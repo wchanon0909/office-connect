@@ -1,22 +1,6 @@
-# Office Connect — Phase 1
+# Office Connect V2 — RPG Studio
+Open index.html directly or serve this directory with `python -m http.server 8000`. For GitHub Pages upload the contents to the repository root; enable Pages on main / root. No build or dependencies.
 
-Top-down office floor plan editor. Pure HTML/CSS/JavaScript, no build step or dependencies.
+The initial 10 x 20 layout is the supplied office-floor-plan-10x20.json, copied unchanged to layout.json and embedded in layout.js for offline use. Existing V1 browser data is not overwritten; V2 has a separate local storage key. Load office layout restores the supplied plan. Export before resetting. Desk IDs and rotations are preserved. Wall sprites infer horizontal/vertical orientation from neighbors; this affects rendering only.
 
-## Run locally
-Open `index.html` in a browser, or run `python -m http.server 8000` in this folder and visit http://localhost:8000.
-
-## Publish to GitHub Pages
-1. Create a repository named `office-connect` on GitHub.
-2. Upload the contents of this folder (index.html, style.css, app.js, README.md, .nojekyll) to its root and commit to main.
-3. Settings > Pages > Build and deployment > Deploy from a branch > main > /(root) > Save.
-4. Open the Pages URL shown in Settings > Pages.
-
-## Usage
-- Edit floor plan: resize the grid, select a tool and click or drag cells. Select tool opens desk details. Rotate R changes the orientation of desks; painting an existing desk with Desk changes its orientation without losing its identity.
-- Undo/Redo, Clear, and Sample your office are available. The sample layout is an approximate template based on the provided office image with the leftmost desk column removed. Save & exit returns to viewing mode. Edits are automatically saved locally as well.
-- Click a desk to edit its label, occupant name and simulated status. Search focuses the chosen desk.
-- Export JSON backs up the entire map; Import JSON restores it. Each browser has its own local map. Share the JSON manually for now.
-- Chat and poke are explicitly local previews, not messages sent to others. No login, shared database, group chat, or live presence in this phase. Do not enter confidential data.
-
-## Data model and next phase
-Map v1: `{version, cols, rows, nextId, cells}`; cells keyed by `x,y`. Desks have stable IDs, labels, names, demo status and rotation. IDs are unique within one map only. Future backend should namespace IDs by office and replace names/status with authenticated user assignments and connection presence. Suggested tables: offices, layouts, desks, profiles, desk_assignments, conversations, conversation_members, messages, pokes. Use Supabase Auth and row-level security; add private realtime channels. The current phase has no authentication or server-side authorization.
+Assets are original vector illustrations in assets/*.svg. The interactive renderer uses DOM grid cells with independent SVG sprites, not Phaser or a 3D engine. Edit, import/export, search, demo status/chat/poke remain local only. No authentication or shared backend.
