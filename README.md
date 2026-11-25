@@ -1,6 +1,9 @@
-# Office Connect V2 — RPG Studio
-Open index.html directly or serve this directory with `python -m http.server 8000`. For GitHub Pages upload the contents to the repository root; enable Pages on main / root. No build or dependencies.
+# Office Connect V3 — Orthographic 3D
 
-The initial 10 x 20 layout is the supplied office-floor-plan-10x20.json, copied unchanged to layout.json and embedded in layout.js for offline use. Existing V1 browser data is not overwritten; V2 has a separate local storage key. Load office layout restores the supplied plan. Export before resetting. Desk IDs and rotations are preserved. Wall sprites infer horizontal/vertical orientation from neighbors; this affects rendering only.
+Static site for GitHub Pages. Upload the contents of this directory to the repository root, commit, and enable Pages from main / root. Use HTTPS or local HTTP (not file://). Local preview: `python -m http.server 8000`, open http://localhost:8000. Requires an internet connection to load pinned Three.js 0.170.0 from jsDelivr and a WebGL2-capable browser. If unavailable, the existing 2D map remains accessible with an explicit warning.
 
-Assets are original vector illustrations in assets/*.svg. The interactive renderer uses DOM grid cells with independent SVG sprites, not Phaser or a 3D engine. Edit, import/export, search, demo status/chat/poke remain local only. No authentication or shared backend.
+- First visit: exact supplied 10 x 20 layout (72 desks); no changes to desk IDs, cell positions or rotations in JSON.
+- RPG view (55 degrees), top view (85 degrees), elevation, rotation, drag to pan, wheel or buttons to zoom, Fit, click workstation to inspect details.
+- Edit floor plan switches to the prior 2D editor; Save & exit rebuilds the 3D scene. Import/export JSON remains supported. Load office layout restores the supplied plan (with confirmation).
+- Model geometry is procedural, not third-party 3D assets. Wall direction is inferred from adjacency; perimeter has low decorative trim. Desk occupancy/status is simulated. Chat and poke are local previews only. No backend, real-time presence, shared layout or authentication yet. Local storage has a V3-specific key.
+- Keep layout.js and layout.json synchronized if replacing the default map. The application reads layout.js on startup; layout.json is also provided for manual import.
