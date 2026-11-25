@@ -13,7 +13,7 @@ Open `index.html` in a browser, or run `python -m http.server 8000` in this fold
 
 ## Usage
 - Edit floor plan: resize the grid, select a tool and click or drag cells. Select tool opens desk details. Rotate R changes the orientation of desks; painting an existing desk with Desk changes its orientation without losing its identity.
-- Undo/Redo, Clear, and Sample 40 desks are available. Save & exit returns to viewing mode. Edits are automatically saved locally as well.
+- Undo/Redo, Clear, and Sample your office are available. The sample layout is an approximate template based on the provided office image with the leftmost desk column removed. Save & exit returns to viewing mode. Edits are automatically saved locally as well.
 - Click a desk to edit its label, occupant name and simulated status. Search focuses the chosen desk.
 - Export JSON backs up the entire map; Import JSON restores it. Each browser has its own local map. Share the JSON manually for now.
 - Chat and poke are explicitly local previews, not messages sent to others. No login, shared database, group chat, or live presence in this phase. Do not enter confidential data.
