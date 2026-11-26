@@ -103,3 +103,6 @@ body:has(#chatPanel:not([hidden]).chat-minimized) #statusBubbles.status-visibili
 body:has(#chatPanel:not([hidden]):not(.chat-minimized)) #statusBubbles.status-visibility-toggle{right:calc(min(660px,100vw - 32px) + 28px)}
 @media(max-width:800px){body:has(#chatPanel:not([hidden]):not(.chat-minimized)) #statusBubbles.status-visibility-toggle{visibility:hidden}}
 @media(max-width:620px){#statusBubbles.status-visibility-toggle{bottom:10px;right:10px}body:has(#chatPanel:not([hidden]).chat-minimized) #statusBubbles.status-visibility-toggle{bottom:73px}}
+
+/* V6.1.1: separate character rotation from camera rotation. */
+#livingDock #faceLeft[hidden],#livingDock #faceRight[hidden]{display:none!important}#livingDock{max-width:calc(100% - 32px);flex-wrap:wrap}#livingDock #faceLeft,#livingDock #faceRight{background:#32465c;border-color:#637e9e} @media(max-width:600px){#livingDock{max-width:calc(100% - 18px)}#livingHint{top:105px}}

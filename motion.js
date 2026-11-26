@@ -3,7 +3,7 @@
  */
 'use strict';
 window.OC54_MOTION=(()=>{
- const CELL=1.82, STEP=850, RADIUS=.17, CORNER=.20, LANE=.23;
+ const CELL=1.82, STEP=850, RADIUS=.15, CORNER=.20, LANE=.23;
  const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
  const smooth=n=>{n=clamp(n);return n*n*(3-2*n);};
  const lerp=(a,b,t)=>a+(b-a)*t;
@@ -31,6 +31,7 @@ window.OC54_MOTION=(()=>{
     const [dx,dz]=plantOffset(plan,x,y);add(x+dx/CELL,y+dz/CELL,0,0,0,.83,.83);
    }else if(c.type==='meeting'){
     add(x,y,rot,0,0,1.5,.85);for(const z of [-.66,.66])add(x,y,rot,0,z,.48,.46);
+   }else if(['coffee','water','printer','fridge','cabinet','sofa','plants','books','window'].includes(c.type)){add(x,y,rot,0,0,c.type==='water'?.65:1.66,c.type==='window'?.20:1.08);
    }else if(c.type==='wall'||c.type==='door'){
     rot=near(x-1,y)||near(x+1,y)?0:Math.PI/2;
     if(c.type==='wall')add(x,y,rot,0,-.78,1.82,.20);

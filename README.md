@@ -1,10 +1,20 @@
-# Office Connect — V6.1
+# Office Connect — V6.1.1
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
 
-## What's new — V6.1: Living Environment & Idea Board
+## What's new — V6.1.1: Free Grid & Manual Layout
+
+- ไม่มีการวางเฟอร์นิเจอร์หรือหน้าต่างอัตโนมัติอีกต่อไป ผังจริงยังเป็นผังที่ Admin บันทึกไว้เดิม; ไม่ต้อง Import หรือ Reset Layout
+- Admin → Edit floor plan: เลือก Coffee machine, Water dispenser, Printer, Fridge, Cabinet, Sofa, Plant corner, Bookshelf หรือ Glass window แล้วคลิกช่องที่ต้องการ ใช้ Rotate R และ Save Online ตามเดิม; ไม่สามารถวางเฟอร์นิเจอร์ใหม่ทับโต๊ะโดยตรง ควรรักษาทางเดินและตำแหน่งกลุ่มกลางโถง
+- เดินเล่น: คลิกช่องกระเบื้องย่อย (3 × 3 ต่อหนึ่งช่อง Layout) ที่ว่างและเข้าถึงได้ ไม่บังคับนั่งประชุมจากการคลิกพื้น; ปุ่มห้องประชุมยังจองที่นั่งแบบเดิม ยืนค้างได้โดยไม่หมดอายุหลัง 10 นาทีขณะที่เชื่อมต่อ
+- ปุ่มหันซ้าย/หันขวา 90° ขณะยืน ส่งทิศทางจากฐานข้อมูลให้ทุก Browser เห็นตรงกัน ไม่ใช่การหมุนกล้อง; ไม่หมุนขณะเดินหรือนั่งโต๊ะ/นั่งประชุม
+- สะกิดเพื่อนที่ออนไลน์และอยู่โต๊ะจริงได้โดยเดินไปหาทุกสถานะ รวมถึงพักและห้ามรบกวน; หากเพื่อนไม่อยู่โต๊ะ ออฟไลน์ หรือผู้ส่งอยู่ในกิจกรรมที่ขัดกัน ใช้แจ้งเตือนตรงตามเดิม; กรณีผู้ส่งพักแล้วเลือกสะกิดแบบเดิน จะตื่นและเปลี่ยนเป็นว่างเมื่อเริ่มเดิน
+- การคลิกวัตถุที่ Admin วางแล้วจะเดินไปช่องว่างข้างวัตถุเมื่อมีทางไป แสงตามเวลา, เพลง และกระดานไอเดียจาก V6.1 ยังอยู่ครบ
+- ต้อง Run `20-free-grid-layout-check-only.txt` และ `20-free-grid-layout-install.txt` หลัง Migration 19 (Install) ก่อนอัปโหลดไฟล์เว็บ; ไม่แก้ข้อมูล Layout เดิม
+
+## What's new — V6.1: Living Environment & Idea Board (historical; fixed placement superseded by V6.1.1)
 
 - เพิ่มหน้าต่างกระจกและวิวเมืองแบบ low-poly ที่ขอบฉาก พร้อมแสงยามเช้า/กลางวัน/เย็น/กลางคืนตามเวลา Asia/Bangkok (ตรวจทุก 60 วินาทีและเมื่อกลับมาเปิดแท็บ)
 - เพิ่ม 8 จุดที่ริมผังเดิม: เครื่องชงกาแฟ ตู้น้ำ เครื่องปริ้น ตู้เย็น/ขนม ตู้เอกสาร มุมโซฟา มุมต้นไม้ และชั้นหนังสือ ไม่เปลี่ยนโต๊ะ 72 ตัว พื้นที่เดิน หรือฐานข้อมูล Layout; วัตถุอยู่นอกขอบ Grid และมีจุดยืนด้านในที่เข้าถึงได้ หากผังไม่ตรงหรือเส้นทางถูกแก้จะไม่วางจุดที่ใช้ไม่ได้
@@ -87,7 +97,9 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 
 ## Deployment / Upgrade
 
-**V6.1:** Run `setup/19-idea-board-check-only.txt` and verify `V6.1 CHECK PASSED - ROLLED BACK`, then `setup/19-idea-board-install.txt` and verify `V6.1 READY`. The dry run validates grants/RLS and, when enabled desk owners are available, posting, shared visibility, unauthorized deletion, idempotent retry and owner/admin deletion in a rolled-back transaction. Then upload the 8 files inside `site/` to repository root. Keep all V6.0 files including `productivity.js`, `productivity.css`, `motion.js`, `online-config.js`, `layout.js`, and `layout.json`. Hard refresh after deploy. Do not upload `setup/` or `qa/`.
+**V6.1.1:** Install SQL 19 first. Run `setup/20-free-grid-layout-check-only.txt` and verify `V6.1.1 CHECK PASSED - ROLLED BACK`; then run `setup/20-free-grid-layout-install.txt` and verify `V6.1.1 READY`, `walk_ready=true`, `rotate_ready=true`. Upload the patch files and the nine new SVGs under `assets/`. Keep existing `layout.js`, `layout.json` and `online-config.js`. No reset. Have all users refresh to V6.1.1 before publishing a layout containing new furniture types (older clients cannot validate them).
+
+**V6.1 (historical):** Run `setup/19-idea-board-check-only.txt` and verify `V6.1 CHECK PASSED - ROLLED BACK`, then `setup/19-idea-board-install.txt` and verify `V6.1 READY`. The dry run validates grants/RLS and, when enabled desk owners are available, posting, shared visibility, unauthorized deletion, idempotent retry and owner/admin deletion in a rolled-back transaction. Then upload the 8 files inside `site/` to repository root. Keep all V6.0 files including `productivity.js`, `productivity.css`, `motion.js`, `online-config.js`, `layout.js`, and `layout.json`. Hard refresh after deploy. Do not upload `setup/` or `qa/`.
 
 **V6.0:** Run `setup/18-productivity-check-only.txt` and verify `V6.0 CHECK PASSED - ROLLED BACK`, then `setup/18-productivity-install.txt` and verify `V6.0 READY`. Dry run includes RPC/privacy smoke tests when two enabled desk owners are available; if only one exists the RLS and permission checks still run. Then upload `site/` to repository root, retaining all earlier files (including `motion.js`). Do not replace `online-config.js`, `layout.js`, or `layout.json`. Hard refresh after GitHub Pages deploys.
 
@@ -134,11 +146,12 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 | V5.3.4 | Default head status, minute reconciliation, direct hall join request |
 | V5.4 | Articulated walking, rounded turns, local clearance-aware passing, sitting transitions |
 | V6.0 | All-status pokes, announcement board, private desk notes, read receipts |
-| **V6.1** | Living Environment, interactive props, Bangkok lighting, ambient audio, persistent idea board (migration 19) |
+| V6.1 | Living Environment, interactive props, Bangkok lighting, ambient audio, persistent idea board (migration 19) |
+| **V6.1.1** | Manual placement, persistent fine-grid standing, facing, physical desk visits (migration 20) |
 
 ## Roadmap — Virtual Social Office
 
-- V6.1 (current): Living Environment + Idea Board — บรรยากาศและสิ่งของให้เดินไปเล่น เก็บ Feedback จากสมาชิก
+- V6.1.1 (current): Living Environment + Idea Board + Manual Layout — ให้ Admin เลือกวางเอง; ปรับการเดินและสะกิด
 - V6.2: World Expansion — Café & Pantry, Rooftop Garden, Game Room และการเชื่อมต่อโซนพร้อมจำนวนคนออนไลน์
 - V6.3: Seasonal World — ธีมเทศกาล Christmas, Songkran, Halloween, Loy Krathong และ Theme Manager
 - V6.4: Social Experience — emotes เพิ่ม, interactive actions, ถ่ายภาพหมู่, สัตว์เลี้ยง
@@ -152,5 +165,5 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 - Chat notifications are in-app only. Inbox polling is approximately every 4 seconds when the page is active; browser throttling or offline devices may delay delivery.
 - Chat history is not end-to-end encrypted. Guest cannot read private conversations or member identities from the intended member-only snapshot.
 - Standing places are reserved by the backend. V5.4 reduces overlap in open corridors but does not guarantee collision-free walking, especially near doors, crowded groups, and shared goals. The original backend route and desk anchor are preserved; the full seat-to-aisle route is not simulated. Visual offsets may differ temporarily across clients with delayed snapshots. 2D fallback uses the original discrete markers.
-- V6.1 props have no dedicated seat/queue reservation; visiting the same point can overlap avatars. Props and vista are procedural visual assets, not new navigable rooms. The sofa is a standing lounge stop for now.
+- V6.1.1 manually placed props have no dedicated seat/queue reservation; visiting the same point can overlap avatars. The sofa is a standing lounge stop. Glass windows are placeable panels, not automatic city scenery. Fine-grid movement requires a reachable clear coarse-cell center and a clear final segment, not every physically empty sliver around furniture. Manual placement does not automatically guarantee every desk or meeting path remains reachable; avoid blocking aisles.
 - Test the deployed app against your own Supabase project before broad rollout. V6.1 was tested with Chromium, mock Supabase and Three.js API double; migration 19 needs the Supabase dry run and live install. Actual WebGL appearance and audio audibility have not been verified on the deployed site.

@@ -1,20 +1,13 @@
-/* V6.1 Living Environment: scene registry, fixed perimeter objects, Bangkok lighting, original ambient sound. */
+/* V6.1 Living Environment: scene registry, admin-placed furniture, Bangkok lighting, original ambient sound. */
 'use strict';
 window.OC61_WORLD=(()=>{
  const CELL=1.82;
  // New rooms can register their own layout and decoration in a later release.
  const scenes=Object.freeze({'main-office':Object.freeze({id:'main-office',title:'Main Office'})});
- const definitions=[
-  {id:'coffee',name:'เครื่องชงกาแฟ',action:'ไปชงกาแฟ',kind:'coffee',side:-1,row:7},
-  {id:'water',name:'ตู้น้ำ',action:'ไปดื่มน้ำ',kind:'water',side:1,row:7},
-  {id:'printer',name:'เครื่องปริ้น',action:'ไปที่เครื่องปริ้น',kind:'printer',side:-1,row:10},
-  {id:'fridge',name:'ตู้เย็นและขนม',action:'ไปหยิบขนม',kind:'fridge',side:1,row:10},
-  {id:'cabinet',name:'ตู้เก็บเอกสาร',action:'ไปที่ตู้เอกสาร',kind:'cabinet',side:-1,row:13},
-  {id:'lounge',name:'มุมโซฟา',action:'ไปยืนพักที่โซฟา',kind:'sofa',side:1,row:13},
-  {id:'plants',name:'มุมต้นไม้',action:'ไปดูต้นไม้',kind:'plants',side:-1,row:16},
-  {id:'books',name:'ชั้นหนังสือ',action:'ไปที่ชั้นหนังสือ',kind:'books',side:1,row:16}
- ];
- function objects(p){if(!p||p.cols!==10||p.rows!==19)return [];return definitions.filter(d=>{const x=d.side<0?0:p.cols-1;return [x,x-d.side,x-2*d.side,x-3*d.side,x-4*d.side].every(xx=>(p.cells[`${xx},${d.row}`]?.type||'aisle')==='aisle');}).map(d=>({...d,key:`${d.side<0?0:p.cols-1},${d.row}`,x:d.side*(p.cols*CELL/2+.56),z:(d.row-(p.rows-1)/2)*CELL,angle:d.side<0?Math.PI/2:-Math.PI/2}));}
+ const definitions=Object.freeze({
+  coffee:{name:'เครื่องชงกาแฟ',action:'ไปชงกาแฟ'},water:{name:'ตู้น้ำ',action:'ไปดื่มน้ำ'},printer:{name:'เครื่องปริ้น',action:'ไปที่เครื่องปริ้น'},fridge:{name:'ตู้เย็นและขนม',action:'ไปหยิบขนม'},cabinet:{name:'ตู้เก็บเอกสาร',action:'ไปที่ตู้เอกสาร'},sofa:{name:'มุมโซฟา',action:'ไปยืนพักที่โซฟา'},plants:{name:'มุมต้นไม้',action:'ไปดูต้นไม้'},books:{name:'ชั้นหนังสือ',action:'ไปที่ชั้นหนังสือ'},window:{name:'หน้าต่างกระจก',action:null}
+ });
+ function objects(p){if(!p?.cells)return [];return Object.entries(p.cells).filter(([,c])=>Object.hasOwn(definitions,c.type)).map(([key,c])=>{const [x,y]=key.split(',').map(Number),angle=-(c.rotation||0)*Math.PI/180;const front=[Math.round(Math.sin(angle)),Math.round(Math.cos(angle))],directions=[front,[front[1],-front[0]],[-front[1],front[0]],[-front[0],-front[1]]];const target=directions.map(([dx,dy])=>[x+dx,y+dy]).filter(([xx,yy])=>xx>=0&&yy>=0&&xx<p.cols&&yy<p.rows).map(([xx,yy])=>`${xx},${yy}`).find(k=>(p.cells[k]?.type||'aisle')==='aisle')||null;return {...definitions[c.type],id:key,kind:c.type,key,target:c.type==='window'?null:target,x:(x-(p.cols-1)/2)*CELL,z:(y-(p.rows-1)/2)*CELL,angle};});}
  function at(p,key){return objects(p).find(o=>o.key===key)||null;}
  function lighting(date=new Date()){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(date),h=Number(parts.find(x=>x.type==='hour').value)+Number(parts.find(x=>x.type==='minute').value)/60;
   if(h<6||h>=19)return {phase:'night',label:'กลางคืน',sky:0x17243e,hemi:1.65,sun:1.15,fill:1.15,sunColor:0xb0c6ff,glass:0x52729e,city:0x344564};
@@ -26,16 +19,11 @@ window.OC61_WORLD=(()=>{
   const cream=mat(0xe7e4dc), charcoal=mat(0x38434e), gray=mat(0x83919a), wood=mat(0xb79570), steel=mat(0xa6b5bc,.35,.4), blue=mat(0x74bddd), green=mat(0x6e9a67), soil=mat(0x6e5140), coral=mat(0xd79875), books=[mat(0x7d9fc0),mat(0xc19d65),mat(0x9a83b1),mat(0x789982)];
   const glass=new T.MeshStandardMaterial({color:0xa8d1e5,transparent:true,opacity:.32,roughness:.22,metalness:.1,depthWrite:false,side:T.DoubleSide});
   const cityMat=new T.MeshStandardMaterial({color:0x7894ab,roughness:1}), glow=new T.MeshStandardMaterial({color:0xf6dfad,emissive:0xffc477,emissiveIntensity:.1,roughness:.6});
-  // A cutaway window gallery outside the north perimeter, with skyline relief.
-  const vista=pivot(root,0,0,-D/2-.17);vista.userData.oc61Vista=true;
-  const n=Math.max(1,Math.floor(W/2.4));for(let i=0;i<n;i++){const x=(i-(n-1)/2)*2.4;
-   box(vista,cream,x,.25,0,2.34,.5,.17,false);box(vista,glass,x,1.37,0,2.16,1.72,.035,false);for(const dx of [-1.15,0,1.15])box(vista,charcoal,x+dx,1.37,0,.06,1.77,.10,false);for(const y of [.52,2.22])box(vista,charcoal,x,y,0,2.37,.075,.12,false);
-   const height=.7+((i*17+3)%5)*.24;box(vista,cityMat,x-.42,height/2+.25,-.6,1.0,height,.32,false);box(vista,cityMat,x+.48,(height*.73)/2+.25,-.75,.65,height*.73,.24,false);for(const dx of [-.65,-.33])for(let y=.55;y<height+.12;y+=.33)box(vista,glow,x+dx,y,-.43,.10,.11,.015,false);
-  }
+  // No default placement. Windows and props exist only when placed in the saved layout.
+  const vista=null;
   function pot(g,x,z,s=.8){round(g,soil,x,.18*s,z,.17*s,.36*s);for(let j=0;j<5;j++){const a=j*2.4;const leaf=ball(g,green,x+Math.cos(a)*.12*s,.48*s+(j%2)*.09*s,z+Math.sin(a)*.12*s,.13*s,.24*s,.085*s);leaf.rotation.z=Math.sin(a)*.5;}}
-  for(const o of objects(p)){const g=pivot(root,o.x,0,o.z);g.rotation.y=o.angle;g.userData.oc61Prop=o.id;g.userData.oc61Key=o.key;g.userData.oc61Label=o.name;out.push(g);
-   // Local +Z faces the office (away from the external edge). Every prop has a narrow external pad.
-   box(g,gray,0,-.035,0,1.66,.10,1.04,false);box(g,cream,0,.03,0,1.61,.035,1.0,false);
+  for(const o of objects(p)){const g=pivot(root,o.x,0,o.z);g.rotation.y=o.angle;g.userData.oc61Prop=o.id;g.userData.oc61Key=o.key;g.userData.oc61Label=o.name;if(o.action&&o.target)out.push(g);
+   if(o.kind==='window'){box(g,cream,0,.25,0,1.65,.50,.17,false);box(g,glass,0,1.37,0,1.52,1.72,.035,false);for(const dx of [-.81,0,.81])box(g,charcoal,dx,1.37,0,.06,1.77,.10,false);for(const yy of [.52,2.22])box(g,charcoal,0,yy,0,1.68,.075,.12,false);continue;}
    if(o.kind==='coffee'){box(g,wood,0,.43,-.05,1.42,.82,.76);box(g,cream,0,.86,-.05,1.47,.075,.79);box(g,charcoal,-.25,1.13,-.13,.57,.48,.48);box(g,steel,-.25,1.20,.12,.52,.29,.04);box(g,charcoal,-.25,.98,.18,.47,.10,.29);box(g,blue,-.25,1.29,.145,.21,.07,.025);round(g,cream,-.25,1.00,.22,.075,.14);for(let i=0;i<3;i++)round(g,cream,.18+i*.14,.95,.12,.055,.13);}
    else if(o.kind==='water'){box(g,cream,0,.54,-.02,.58,1.05,.50);box(g,charcoal,0,.79,.24,.38,.34,.045);box(g,blue,-.11,.89,.28,.10,.10,.07);box(g,coral,.11,.89,.28,.10,.10,.07);box(g,steel,0,.60,.27,.34,.05,.14);round(g,blue,0,1.35,-.02,.24,.55);round(g,cream,0,1.09,-.02,.18,.10);}
    else if(o.kind==='printer'){box(g,wood,0,.35,0,1.33,.65,.76);box(g,cream,0,.88,-.02,1.03,.48,.64);box(g,charcoal,0,1.15,-.03,.97,.12,.58);box(g,steel,0,1.22,-.12,.81,.05,.35);box(g,charcoal,0,.85,.31,.67,.12,.04);box(g,cream,0,.83,.38,.45,.018,.19);box(g,blue,.37,1.20,.25,.16,.035,.10);}
@@ -48,7 +36,7 @@ window.OC61_WORLD=(()=>{
   return {pickables:out,vista,glass,cityMat,glow};
  }
  function applyLighting(T,scene,hemi,sun,fill,decor,date){const l=lighting(date);scene.background=new T.Color(l.sky);hemi.intensity=l.hemi;sun.intensity=l.sun;sun.color=new T.Color(l.sunColor);fill.intensity=l.fill;if(decor){decor.glass.color=new T.Color(l.glass);decor.cityMat.color=new T.Color(l.city);decor.glow.emissiveIntensity=l.phase==='night'?1.2:l.phase==='sunset'?.65:.08;}return l;}
- return {scenes,activeScene:'main-office',objects,at,lighting,decorate,applyLighting};
+ return {scenes,activeScene:'main-office',definitions,objects,at,lighting,decorate,applyLighting};
 })();
 // Original procedural ambient motif, opt-in only. No recording or external audio dependency.
 window.OC61_AMBIENT=(()=>{

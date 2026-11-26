@@ -27,7 +27,7 @@ window.OC61_IDEAS=(()=>{
  const $=id=>document.getElementById(id),d=$('worldDialog'),W=window.OC61_WORLD,A=window.OC61_AMBIENT;
  function musicLabel(){const b=$('ambientToggle');b.setAttribute('aria-pressed',String(A.enabled()));b.textContent=A.enabled()?'เพลง: เปิด':'เพลง: ปิด';}
  function phaseLabel(){$('worldPhase').textContent='บรรยากาศ '+W.lighting().label+' · เวลาไทย';}
- $('worldHub').onclick=()=>{const list=$('worldObjects');list.replaceChildren();for(const o of W.objects(window.officeAPI?.getMap())){const b=document.createElement('button');b.type='button';b.textContent=o.action;b.onclick=()=>{d.close();void window.OC50?.visitObject(o.key);};list.append(b);}phaseLabel();musicLabel();if(!d.open)d.showModal();};
+ $('worldHub').onclick=()=>{const list=$('worldObjects');list.replaceChildren();const objects=W.objects(window.officeAPI?.getMap()).filter(o=>o.action&&o.target);if(!objects.length){const p=document.createElement('p');p.className='muted';p.textContent='ยังไม่มีจุดพักที่ Admin วางใน Layout';list.append(p);}for(const o of objects){const b=document.createElement('button');b.type='button';b.textContent=o.action;b.onclick=()=>{d.close();void window.OC50?.visitObject(o.key);};list.append(b);}phaseLabel();musicLabel();if(!d.open)d.showModal();};
  $('worldClose').onclick=()=>d.close();$('ambientToggle').onclick=async()=>{const b=$('ambientToggle');b.disabled=true;try{await A.toggle();}catch(e){window.OC41?.notify(String(e.message||e));}finally{b.disabled=false;musicLabel();}};
  document.addEventListener('visibilitychange',musicLabel);setInterval(phaseLabel,60000);
 })();
