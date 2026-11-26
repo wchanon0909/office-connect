@@ -1,30 +1,88 @@
-# Office Connect V4.0 — Interface Studio
+# Office Connect — V5.3.2
 
-Phase V4.0 (interface only). Based on the V3 Three.js office release. The 3D furniture, wall geometry, layout data and desk IDs are unchanged. No database, authentication, actual occupancy, actual presence or live chat has been connected yet.
+Virtual Office สำหรับเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
-## Update the existing GitHub Pages site
-1. In V3, export the current layout JSON as a backup.
-2. Upload these four files from the interface update archive to the repository root: `index.html`, `interface.css` (new), `app.js`, `renderer.js`.
-3. Keep the current `layout.js`, `layout.json`, `style.css` and `assets/` in your repository. Do not replace them with older copies.
-4. Commit, wait for GitHub Pages deployment to complete, then reload using Ctrl+F5.
+[เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
 
-The complete project archive is intended for a clean installation. It includes the last supplied 10 x 20 plan with 72 desks. Do not use it to overwrite a newer layout. The localStorage key remains `office-connect-v3`, preserving the plan already saved on the same website and browser. Export a backup before updating.
+## What's new — V5.3.2: Chat Dock & Notifications
 
-## Controls
-- Main office: full-width 3D workspace, no permanent sidebar.
-- Hover a desk to see its nickname/desk ID and demo status; click to open a floating desk card. Touch users can tap a desk.
-- Drag to pan, scroll to zoom; use the bottom dock for zoom, Fit (show the entire plan), or Reset (initial angle and enlarged view). View menu: change elevation, rotate, or switch RPG/Top presets. Reset uses 55-degree elevation, 15-degree azimuth, and 150% desktop / 102% narrow-screen zoom. The desktop view is intentionally larger than Fit and can crop the bottom; use pan or Fit to see the rest.
-- Manage opens `#admin` in the same app. Edit floor plan, search desks, change local demo desk profiles, import/export JSON. Back to office returns to the main view. Changes are local only. Manage is a UI preview, NOT a security boundary or a password-protected admin area.
-- My desk, Sit here, Messages and Invite are explicitly labelled interface previews. No credentials are collected, no account created, and no message sent. These functions will be connected to the backend in subsequent roadmap phases.
+- ย่อหน้าต่างข้อความด้วยปุ่ม `−` และขยายกลับได้โดยไม่ออกจากกลุ่ม ไม่เปลี่ยนตำแหน่งตัวละคร และไม่ลบร่างข้อความ
+- คำเชิญเข้ากลุ่ม คำขอร่วมฟัง และการสะกิด แสดงเป็นการแจ้งเตือนกลางหน้าจอแบบคิว ไม่ซ้อนกัน และตอบรับ/ปฏิเสธได้จาก Pop-up
+- ตรวจเส้นทางการขอร่วมฟังกลุ่มกลางโถง: คลิกไอคอนกลุ่ม → ขอเข้าร่วม → สมาชิกคนใดคนหนึ่งอนุมัติ → เดินมารวมกลุ่มและเปิดแชท โดยไม่เห็นข้อความก่อนอนุมัติ
+- รายการข้อความแสดงเฉพาะบทสนทนา ไม่เติมรายชื่อพนักงานที่ยังไม่เคยเปิดแชทหรือนำแชทที่ลบกลับมาเป็นรายชื่อเพื่อน
+- ใช้ฐานข้อมูล Migration 16 ของ V5.3.1 ต่อได้ ไม่ต้องเพิ่ม Migration ใหม่
 
-## Rendering
-Requires internet and a WebGL2-capable browser, served over HTTPS or HTTP. Three.js remains pinned at 0.170.0; jsDelivr is the primary CDN, unpkg is an alternate CDN on import failure. An explicit fallback warning appears if 3D initialization fails. The 2D map/editor remains accessible. A full 3D test still needs to run on the deployed site: the build environment blocked external JS download and browser navigation to the local server.
+## การใช้งาน
 
-## Verification
-- JavaScript syntax and DOM ID references checked.
-- Base layout JSON preserved exactly; 10 columns, 20 rows, 72 desks. Base model construction code and assets preserved.
-- Chromium UI test with inline app/CSS/assets and simulated local storage (2D fallback; not WebGL): full-width workspace, hover/click, preview dialogs, Manage route, add desk/undo, export equals original JSON, local save, mobile layout. No page JS errors in this test.
-- Production GitHub Pages, actual WebGL camera/raycast and online backend not tested in this environment.
+| ฟังก์ชัน | วิธีใช้ |
+|---|---|
+| เข้าระบบ / จองโต๊ะ | เลือกโต๊ะว่าง ลงทะเบียนด้วย Employee ID และรหัสผ่าน |
+| กล้อง 3D | ลากเพื่อเลื่อน, Scroll เพื่อซูม, รีเซ็ตหรือเปลี่ยนมุมกล้อง |
+| สถานะ | ว่าง, ติดงาน, ห้ามรบกวน, ประชุม, พัก; ไม่อยู่ที่โต๊ะเป็นสถานะอัตโนมัติ |
+| ตัวละคร | แต่งตัว เปลี่ยนเพศ ทรงผมและชุด เดินกลับโต๊ะ ทักทายและพูดข้อความสั้น ๆ |
+| Private Message | คลิกโต๊ะของเพื่อน → ส่งข้อความ |
+| กลุ่มงาน | สร้างกลุ่มถาวรและเชิญเพื่อน ไม่บังคับให้ตัวละครเดิน |
+| กลุ่มยืนคุย | สร้างกลุ่ม / ตอบรับคำเชิญแล้วเดินมารวมกลุ่มกลางโถง |
+| ขอร่วมฟัง | คลิกไอคอนแชทเหนือกลุ่ม รอสมาชิกอนุญาต |
+| ย่อหน้าต่าง | `−` ย่อ, `▢` ขยาย; ยังอยู่ในกลุ่มและยังรับข้อความ |
+| ปิด / กลับโต๊ะ | `×` ปิดหน้าต่างกลุ่มยืนคุยแล้วออกจากกลุ่ม; กลับโต๊ะก็ออกจากกลุ่ม |
+| ลบแชท | `×` ในรายการแชท ล้างเฉพาะประวัติที่ตัวเองเห็น; กลุ่มยืนคุยจะออกและคืนตำแหน่ง |
+| ตั้งค่า / Admin | รูปเฟือง → เข้าหลังบ้านเมื่อมีสิทธิ์ Admin |
 
-## Next roadmap step
-V4.1: Supabase shared layout, free registration using employee ID and password, persistent desk assignment, admin authentication and permissions. V4.2: live presence and personal status. V4.3: private messaging, group chat and invitation. V5: characters and movement.
+ผังกลางปัจจุบัน: 10 คอลัมน์ × 19 แถว, โต๊ะทำงาน 72 ตัว, ห้องประชุมมี 9 ที่นั่งที่เข้าถึงได้และ 5 จุดยืน; โถงกลางรองรับ 5 กลุ่ม กลุ่มละ 6 คน ตาม Layout ปัจจุบัน
+
+## Technology
+
+- Frontend: HTML, CSS, JavaScript, Three.js (Orthographic camera)
+- Hosting: GitHub Pages (branch `main`, root)
+- Backend: Supabase Auth, PostgreSQL, RPC, Realtime signals และ polling สำรอง
+- Chat: private account-based conversations; database membership checks and history cutoff
+- Presence: heartbeat; แยกสถานะออนไลน์จากการจองโต๊ะ
+
+## Deployment / Upgrade
+
+**อัปเดตจาก V5.3.1:** ต้องติดตั้ง Migration 16 แบบ Install สำเร็จก่อน (Dry Run ไม่บันทึกฐานข้อมูล) ตรวจด้วยไฟล์ `setup/check-v532-database.txt` ที่มากับชุดอัปเดต หากได้ `V5.3.2 DATABASE READY` และ `database_ready = true` ไม่ต้อง Run SQL อีก หากไม่พร้อมให้ใช้ไฟล์ Migration 16 check-only และ install ตามคู่มือใน ZIP ก่อนอัปโหลดเว็บไซต์
+
+1. สำรอง Layout และ Source เดิมก่อนอัปเดต
+2. อัปโหลดไฟล์ในโฟลเดอร์ `site/` จาก ZIP ไปยัง root ของ repository ไม่ต้องอัปโหลดทั้งโฟลเดอร์
+3. Commit และรอ GitHub Pages deploy จาก `main / root`
+4. เปิดเว็บและกด Ctrl+F5 จากนั้นทดสอบอย่างน้อยสองบัญชี
+
+เก็บ `online-config.js`, `layout.js`, `layout.json`, assets และ CSS/JS อื่นที่ไม่ได้อยู่ในแพตช์เดิมไว้ ไม่อัปโหลดไฟล์ `setup/` หรือ `qa/` ขึ้น GitHub ไม่ต้องสร้างบัญชีใหม่
+
+**Fresh install:** ต้องมีไฟล์ Full Project และ SQL migrations ตามลำดับของรุ่นก่อนหน้า ไม่สามารถติดตั้งจากแพตช์นี้เพียงชุดเดียวได้ ตั้งค่า Supabase Project URL และ publishable key ใน `online-config.js` เท่านั้น ห้ามใส่ service_role key, secret key หรือ database password ใน repo. การลงทะเบียนเปิดแบบ Free Registration จึงไม่ยืนยันตัวตนพนักงานโดยบริษัท เหมาะกับกลุ่มที่ไว้ใจกันก่อน
+
+รหัสผ่านขั้นต่ำขึ้นกับ Supabase Auth (อย่างน้อย 6 ตัวตามการตั้งค่าที่รองรับ) ไม่บังคับ 8 ตัวจากเว็บไซต์
+
+## Development history
+
+| Version | Feature |
+|---|---|
+| V3.0 | Three.js office, orthographic camera, layout editor |
+| V4.0 | Modern office interface |
+| V4.1 | Shared layout, employee accounts, desk assignment and Admin |
+| V4.2 | Online presence and personal status |
+| V4.3 | Direct messages, group chat, invitations, poke |
+| V5.0 | Avatars, customization, walking animation |
+| V5.1 | Walk-to-poke, door interaction, meeting seating |
+| V5.1.1 | Personal camera angle and optional status bubble |
+| V5.2 | Expanded avatar customization, emotes and speech bubbles |
+| V5.2.1 | Hall huddles |
+| V5.2.2 | Status actions, guest privacy and avatar save fix |
+| V5.3 | Hall chat requests and return-to-desk behavior |
+| V5.3.1 | Compact hall positions, chat deletion, SQL migration 16 |
+| **V5.3.2** | Minimized chat dock, central notifications, room-only chat list |
+
+## Roadmap
+
+- V5.3.x: stabilize live hall chat, invitations, notifications, real-world UI testing
+- V5.4 (planned): improve movement transitions and collision avoidance
+- V6.0 (planned): office productivity features (scope to be agreed)
+
+## Current limitations
+
+- Requires a WebGL-capable browser and internet access for CDN modules; 2D fallback exists.
+- Chat notifications are in-app only. Inbox polling is approximately every 4 seconds when the page is active; browser throttling or offline devices may delay delivery.
+- Chat history is not end-to-end encrypted. Guest cannot read private conversations or member identities from the intended member-only snapshot.
+- Standing places are reserved by the backend; moving characters may still overlap while travelling.
+- Test the deployed app against your own Supabase project before broad rollout. No live database connection or WebGL screenshot was verified for this patch.
