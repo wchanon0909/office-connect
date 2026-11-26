@@ -32,3 +32,14 @@
 .oc-view-mode button[aria-pressed=true]{background:#665cc5;border-color:#b8adff;color:white;font-weight:700}
 .oc-view-mode p{font-size:10px;color:#a9bad2;margin:1px 0 0;line-height:1.4}
 .oc-view-heading{text-align:center}.oc-view-heading output{color:#b6b3ff;font-weight:700}
+
+/* V5.2: social controls and expanded outfit presets */
+#livingDock #socialBtn[hidden],#socialDialog [hidden]{display:none!important}#livingDock #socialBtn{background:#5c427f;border-color:#9877b8;color:#f3e7ff}
+#avatarDialog{max-width:680px;max-height:calc(100dvh - 28px);overflow:auto}#avatarDialog .avatar-preview-wrap{grid-template-columns:minmax(100px,.8fr) minmax(185px,1.6fr)}#avatarPreview [hidden]{display:none!important}.avatar-preview-card svg{max-height:240px}
+.social-emotes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:12px 0 16px}.social-emotes button{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;padding:12px 4px;color:#e8e3ff;background:#354164;border:1px solid #6570a0;border-radius:12px;font-weight:700;font-size:12px}.social-emotes button svg{width:26px;height:26px;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}#socialDialog textarea{resize:vertical;min-height:58px;width:100%;max-width:100%;background:#142138;color:#eef2ff;border:1px solid #51668b;border-radius:10px;padding:9px;font:inherit}#socialForm{display:grid;gap:6px}#socialForm small{text-align:right}#socialMeeting button{width:100%}#socialMeeting hr{border:0;border-top:1px solid #40516a;margin:15px 0}#socialDialog button:disabled{opacity:.55;cursor:not-allowed}.oc52-floor-speech{position:absolute;z-index:8;left:50%;bottom:86%;transform:translateX(-50%);max-width:144px;width:max-content;white-space:normal;overflow-wrap:anywhere;pointer-events:none;background:#142238f5;color:white;font-size:10px;padding:4px 7px;border:1px solid #a89aff;border-radius:8px;box-shadow:0 2px 5px #10182844}.editor-mode .oc52-floor-speech,.admin-mode .oc52-floor-speech{display:none!important}
+@media(max-width:600px){#avatarDialog .avatar-preview-wrap{grid-template-columns:minmax(78px,.7fr) minmax(130px,1.3fr)}.social-emotes{gap:4px}.social-emotes button{padding:9px 2px}.avatar-preview-card{padding:7px}#livingHint{top:86px}}
+/* Keep the preview, heading and save controls visible while browsing outfits. */
+#avatarDialog{width:min(700px,calc(100vw - 24px));max-width:calc(100vw - 24px);padding:22px}
+#avatarDialog #avatarOptions{max-height:min(510px,55dvh);overflow:auto;padding:5px 9px 8px 5px;scrollbar-width:thin;scrollbar-color:#697a9a #1c2941}
+#avatarDialog .avatar-preview-card{position:static}.avatar-preview-card svg{max-height:260px}
+@media(max-width:600px){#avatarDialog{padding:14px}#avatarDialog #avatarOptions{max-height:48dvh;padding:5px 6px 8px 3px}#avatarDialog .dialog-heading h2{font-size:20px}#avatarDialog .dialog-heading p{font-size:11px}#avatarDialog .avatar-note{font-size:11px}}
