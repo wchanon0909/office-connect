@@ -58,3 +58,9 @@ body,button,input,select,textarea{font-family:inherit}
 .poke-alert-card h2{margin:0;font-size:23px}.poke-alert-card p{font-size:17px;margin:6px 0 20px;overflow-wrap:anywhere}.poke-alert-actions{display:flex;justify-content:center;gap:8px}
 .poke-pop{animation:oc522-poke-in .65s cubic-bezier(.2,.75,.2,1) both}.poke-pop .poke-alert-icon{animation:oc522-poke-wave .8s ease-in-out 3}@keyframes oc522-poke-in{0%{opacity:0;transform:scale(.8)}65%{opacity:1;transform:scale(1.04)}100%{transform:scale(1)}}@keyframes oc522-poke-wave{0%,100%{transform:rotate(0)}25%{transform:rotate(-15deg)}75%{transform:rotate(15deg)}}@media(prefers-reduced-motion:reduce){.poke-pop,.poke-pop .poke-alert-icon{animation:none}}
 .cell.oc522-sleep .worker-sprite{transform:rotate(18deg) translateY(-10%)}
+
+/* V5.3 Hall interaction markers: projected world position, not fixed screen coords. */
+#hallMarkers{position:absolute;inset:0;pointer-events:none;z-index:7;overflow:hidden}
+#hallMarkers[hidden]{display:none!important}
+.hall-marker{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;display:flex;align-items:center;justify-content:center;gap:5px;padding:5px 9px;border-radius:22px;background:#3f3778;border:1px solid #bfb1ff;color:#fff;font-size:11px;font-weight:700;box-shadow:0 4px 18px #10192b66;white-space:nowrap;line-height:1.1;cursor:pointer}
+.hall-marker svg{width:22px;height:22px;flex:none}.hall-marker:hover,.hall-marker:focus-visible{background:#7563c6;border-color:#fff;outline:2px solid #c2b6ff;outline-offset:2px}.hall-marker.own-hall{background:#216f65;border-color:#82efd0}.hall-marker.pending-hall{background:#74532e;border-color:#f3c478}.hall-marker:after{content:'';position:absolute;left:calc(50% - 5px);bottom:-5px;width:8px;height:8px;background:inherit;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:rotate(45deg)}

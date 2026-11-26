@@ -5,7 +5,7 @@ window.OC50=(()=>{
  const palettes=Object.freeze({"gender":{"neutral":"ไม่ระบุ","male":"ชาย","female":"หญิง"},"shirt":{"teal":"#359b98","blue":"#577cc3","rose":"#cf728d","lavender":"#9475c8","amber":"#d2a04f","slate":"#566674","white":"#e7e9ea","black":"#30333f","green":"#71925e","red":"#b64c54","cream":"#c8b397","navy":"#30466e"},"outfit":{"tee":"เสื้อยืด","polo":"โปโล","shirt":"เชิ้ต","blazer":"สูท","hoodie":"ฮู้ด","knit":"เสื้อไหมพรม","cardigan":"คาร์ดิแกน"},"bottom":{"trousers":"กางเกง","jeans":"ยีนส์","skirt":"กระโปรง"},"lower":{"navy":"#3d4b5c","black":"#31333a","khaki":"#b39b77","denim":"#58789e","cream":"#d8c9ae","grey":"#85848c"},"skin":{"light":"#f2cfb2","warm":"#d8a57d","tan":"#ad7855","deep":"#79513b","peach":"#eab693"},"hair":{"black":"#343038","brown":"#594032","chestnut":"#965b37","silver":"#b8bdc8","blond":"#b59359","ash":"#70645d"},"style":{"short":"ผมสั้น","long":"ผมยาว","bun":"มวยผม","bob":"ผมบ๊อบ","pony":"หางม้า","spiky":"ผมตั้ง"},"accessory":{"none":"ไม่มี","badge":"ป้ายชื่อ","glasses":"แว่นตา","tie":"เนกไท","scarf":"ผ้าพันคอ"},"shoe":{"dark":"#2a333d","white":"#e9e7df","brown":"#785846"}});
  const defaults={"gender":"neutral","shirt":"blue","outfit":"tee","bottom":"trousers","lower":"navy","skin":"warm","hair":"brown","style":"short","accessory":"badge","shoe":"dark"};
  function avatar(a){const out={};for(const k of Object.keys(defaults))out[k]=Object.hasOwn(palettes[k],a?.[k])?a[k]:defaults[k];return out;}
- let me=null,revision=null,installed=false,connected=false,walkMode=false,busy=false,clockOffset=0,records=new Map(),appearances={},draft=avatar(),generation=0,interaction=false,pendingVisit=null;
+ let me=null,revision=null,installed=false,connected=false,walkMode=false,busy=false,clockOffset=0,records=new Map(),appearances={},draft=avatar(),generation=0,interaction=false,pendingVisit=null,huddleId=null;
  const now=()=>Date.now()+clockOffset;
  const note=msg=>window.OC41?.notify(msg);
  const inOffice=()=>!window.officeCloudBridge?.isAdminMode()&&!window.officeAPI?.isEditing();
@@ -40,7 +40,7 @@ window.OC50=(()=>{
  function motion(id,t=now()){return sample(records.get(id),t);}
  function update(data){
   const next=data?.me?.enabled?data.me:null;if(me?.user_id!==next?.user_id){generation++;walkMode=false;busy=false;pendingVisit=null;if($('avatarDialog').open)$('avatarDialog').close();}
-  me=next?{...next,avatar:data.my_avatar}:null;installed=data?.living_version===1;interaction=data?.interaction_version===1;connected=!!data;const oldRevision=revision;revision=data?.revision;if(oldRevision!==null&&oldRevision!==revision)pendingVisit=null;
+  me=next?{...next,avatar:data.my_avatar}:null;huddleId=me?.desk_id?data?.my_huddle||null:null;installed=data?.living_version===1;interaction=data?.interaction_version===1;connected=!!data;const oldRevision=revision;revision=data?.revision;if(oldRevision!==null&&oldRevision!==revision)pendingVisit=null;
   if(installed&&Number.isFinite(data.server_ms))clockOffset=data.server_ms-Date.now();
   appearances=installed&&data.avatars&&typeof data.avatars==='object'?data.avatars:{};
   records=new Map();if(installed&&Array.isArray(data.motions))for(const m of data.motions){
@@ -48,10 +48,10 @@ window.OC50=(()=>{
   }
   if(!canWalk()){walkMode=false;pendingVisit=null;}if(pendingVisit&&records.get(me?.desk_id)?.activity!=='poke')pendingVisit=null;refreshUI();
  }
- function lost(){connected=false;walkMode=false;pendingVisit=null;records.clear();appearances={};if($('avatarDialog').open)$('avatarDialog').close();refreshUI();}
+ function lost(){connected=false;huddleId=null;walkMode=false;pendingVisit=null;records.clear();appearances={};if($('avatarDialog').open)$('avatarDialog').close();refreshUI();}
  function refreshUI(){
   if(!inOffice())walkMode=false;const visible=member()&&inOffice(),m=me?.desk_id?motion(me.desk_id):null,locked=busy||!!pendingVisit||!!m?.moving;
-  $('livingDock').hidden=!visible;$('avatarBtn').disabled=busy;$('walkBtn').disabled=!canWalk()||locked;$('returnBtn').hidden=!m;$('returnBtn').disabled=locked;$('returnBtn').title=m?.activity==='huddle'?'กลับโต๊ะและออกจากกลุ่มยืนคุย':'กลับโต๊ะ';
+  $('livingDock').hidden=!visible;$('avatarBtn').disabled=busy;$('walkBtn').disabled=!canWalk()||locked;$('returnBtn').hidden=!m&&!huddleId;$('returnBtn').disabled=huddleId?(busy||!!pendingVisit):locked;$('returnBtn').title=m?.activity==='huddle'?'กลับโต๊ะและออกจากกลุ่มยืนคุย':'กลับโต๊ะ';
   $('meetingBtn').hidden=!interaction||!roomOK(window.officeAPI?.getMap());$('meetingBtn').disabled=!canWalk()||locked||m?.activity==='meeting';
   $('walkBtn').setAttribute('aria-pressed',String(walkMode));$('walkBtn').querySelector('span').textContent=walkMode?'ยกเลิกเดิน':'เดินเล่น';
   $('livingHint').hidden=!visible||(!walkMode&&!m&&!pendingVisit);const hint=pendingVisit?(m?.moving?'กำลังเดินไปหา '+pendingVisit.nickname+'…':'กำลังสะกิด '+pendingVisit.nickname+'…'):m?.moving?(m.returning?'กำลังเดินกลับโต๊ะ…':m.activity==='meeting'?'กำลังไปห้องประชุม…':m.activity==='huddle'?'กำลังเดินไปจับกลุ่ม…':'กำลังเดินไปจุดหมาย…'):walkMode?'คลิกทางเดินหรือห้องประชุมเพื่อเลือกจุดหมาย':m?.activity==='huddle'?'กำลังยืนคุย · กลับโต๊ะเพื่อออกจากกลุ่ม':m?.pose==='seat'?'กำลังนั่งในห้องประชุม · กดกลับโต๊ะเพื่อออก':m?.pose==='lean'?'ที่นั่งเต็ม · กำลังยืนริมผนัง':m?'กำลังอยู่ในออฟฟิศ · กดกลับโต๊ะเมื่อต้องการ':'';if($('livingHint').textContent!==hint)$('livingHint').textContent=hint;
@@ -66,7 +66,7 @@ window.OC50=(()=>{
  async function moveTo(k){return interaction?action('oc51_move',{p_target:k,p_revision:revision,p_kind:'walk',p_peer:null,p_nonce:null}):action('oc50_move',{p_target:k,p_revision:revision});}
  async function choose(k){if(!walkMode||!canWalk()||!inOffice()||busy||pendingVisit)return false;const p=window.officeAPI.getMap();if(!k||!/^\d+,\d+$/.test(k))return false;const [x,y]=point(k);if(x<0||y<0||x>=p.cols||y>=p.rows||(p.cells[k]&&p.cells[k].type!=='aisle'&&!(interaction&&isRoomKey(k,p)))){note('เลือกช่องพื้นว่าง ทางเดิน หรือห้องประชุมนะ');return false;}walkMode=false;const ok=await moveTo(k);refreshUI();return ok;}
  async function joinMeeting(){if(!interaction||!canWalk()||busy||pendingVisit||!inOffice())return;walkMode=false;window.officeAPI?.select(null);await moveTo('4,3');refreshUI();}
- async function returnDesk(){if(!canWalk()||busy||pendingVisit)return;walkMode=false;await moveTo(null);refreshUI();}
+ async function returnDesk(){if(busy||pendingVisit)return;walkMode=false;if(huddleId){await action('oc55_leave_huddle',{p_room:huddleId});refreshUI();return;}if(!canWalk())return;await moveTo(null);refreshUI();}
  async function visit(desk,peer,nickname){
   if(!interaction||!canWalk()||!inOffice()){note('เลือกโต๊ะประจำและสถานะที่พร้อมเดินก่อนนะ');return false;}
   if(busy||pendingVisit||motion(me.desk_id)?.moving){note('รอให้ตัวละครเดินถึงจุดหมายก่อนนะ');return false;}
