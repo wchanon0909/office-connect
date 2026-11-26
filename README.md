@@ -1,13 +1,23 @@
-# Office Connect — V6.1.1
+# Office Connect — V6.1.2
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
 
+## What's new — V6.1.2: 3D Layout Studio
+
+- Admin → Edit floor plan opens an interactive draft using the same orthographic Three.js scene and models as the live office. Pan by dragging, zoom, rotate the camera, use the 85° top view or switch to the 2D fallback. The original 2D JSON grid is still the underlying plan.
+- Click a palette item and a floor cell to place it. Select a model, then Move object and click an empty floor cell to move it; the desk ID and employee assignment remain unchanged. Rotate selected furniture, remove, undo/redo, export, import, and Save Online still work. Wall/door direction follows adjoining wall segments as before.
+- Existing special desk offsets are preserved. Existing/new eligible furniture in the main 10×19 office row just below the long partition (`y=4`, rotation 0) automatically aligns with the actual wall face. Use จัดชิดผนัง to align selected furniture/desk with an adjacent solid wall (rotates it to face away); use กลางช่อง to center non-legacy objects. Other rows are not moved automatically. A legacy desk can be relocated using Move without replacing its ID.
+- Select Glass window, then click a blue perimeter segment. A window is stored independently of floor cells in `edges` (`N:x`, `S:x`, `E:y`, `W:y`), can share a boundary cell with a desk, and does not consume a walkable tile. Select Remove edge window to remove a window. In the 2D fallback, select a boundary cell and click N/E/S/W. Existing old-style center-cell windows, if any, are retained; erase them manually and place an edge window instead. V6.1.2 supports exterior perimeter windows, not window cutouts in internal partitions.
+- All changes are draft-only until Save online & exit, with the same server revision conflict and assigned-desk protections. Migration 21 changes functions/validation, not the saved layout rows. This patch does not place any new furniture or windows automatically. Current geometry can show the scoped wall alignment even before a new draft is saved.
+- Install SQL 20 first. Run `setup/21-layout-studio-check-only.txt`; expect `V6.1.2 CHECK PASSED - ROLLED BACK`. Then run `setup/21-layout-studio-install.txt`; expect `V6.1.2 READY`, `precommit_checks=true`, `studio_ready=true`. Upload all 9 files in `site/` to repository root (including the two new layout-studio files and README). Preserve `online-config.js`, `layout.js`, `layout.json`, assets and unchanged modules. Refresh all clients before publishing plans with new edge metadata.
+- Limits: one main object per original floor cell, with wall alignment and perimeter fixtures as separate geometry; no arbitrary continuous free-placement or multiselect yet. Validate walking access and hall/meeting zones after rearrangement. Browser tests use a mock backend; renderer tests use a Three.js API double, not actual WebGL. SQL 21 must pass Supabase dry run.
+
 ## What's new — V6.1.1: Free Grid & Manual Layout
 
 - ไม่มีการวางเฟอร์นิเจอร์หรือหน้าต่างอัตโนมัติอีกต่อไป ผังจริงยังเป็นผังที่ Admin บันทึกไว้เดิม; ไม่ต้อง Import หรือ Reset Layout
-- Admin → Edit floor plan: เลือก Coffee machine, Water dispenser, Printer, Fridge, Cabinet, Sofa, Plant corner, Bookshelf หรือ Glass window แล้วคลิกช่องที่ต้องการ ใช้ Rotate R และ Save Online ตามเดิม; ไม่สามารถวางเฟอร์นิเจอร์ใหม่ทับโต๊ะโดยตรง ควรรักษาทางเดินและตำแหน่งกลุ่มกลางโถง
+- Admin → Edit floor plan: เลือก Coffee machine, Water dispenser, Printer, Fridge, Cabinet, Sofa, Plant corner, Bookshelf หรือ Glass window แล้วคลิกช่องที่ต้องการ (วิธีเดิมของ V6.1.1; V6.1.2 ใช้ขอบแยก) ใช้ Rotate R และ Save Online ตามเดิม; ไม่สามารถวางเฟอร์นิเจอร์ใหม่ทับโต๊ะโดยตรง ควรรักษาทางเดินและตำแหน่งกลุ่มกลางโถง
 - เดินเล่น: คลิกช่องกระเบื้องย่อย (3 × 3 ต่อหนึ่งช่อง Layout) ที่ว่างและเข้าถึงได้ ไม่บังคับนั่งประชุมจากการคลิกพื้น; ปุ่มห้องประชุมยังจองที่นั่งแบบเดิม ยืนค้างได้โดยไม่หมดอายุหลัง 10 นาทีขณะที่เชื่อมต่อ
 - ปุ่มหันซ้าย/หันขวา 90° ขณะยืน ส่งทิศทางจากฐานข้อมูลให้ทุก Browser เห็นตรงกัน ไม่ใช่การหมุนกล้อง; ไม่หมุนขณะเดินหรือนั่งโต๊ะ/นั่งประชุม
 - สะกิดเพื่อนที่ออนไลน์และอยู่โต๊ะจริงได้โดยเดินไปหาทุกสถานะ รวมถึงพักและห้ามรบกวน; หากเพื่อนไม่อยู่โต๊ะ ออฟไลน์ หรือผู้ส่งอยู่ในกิจกรรมที่ขัดกัน ใช้แจ้งเตือนตรงตามเดิม; กรณีผู้ส่งพักแล้วเลือกสะกิดแบบเดิน จะตื่นและเปลี่ยนเป็นว่างเมื่อเริ่มเดิน
@@ -97,7 +107,9 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 
 ## Deployment / Upgrade
 
-**V6.1.1:** Install SQL 19 first. Run `setup/20-free-grid-layout-check-only.txt` and verify `V6.1.1 CHECK PASSED - ROLLED BACK`; then run `setup/20-free-grid-layout-install.txt` and verify `V6.1.1 READY`, `walk_ready=true`, `rotate_ready=true`. Upload the patch files and the nine new SVGs under `assets/`. Keep existing `layout.js`, `layout.json` and `online-config.js`. No reset. Have all users refresh to V6.1.1 before publishing a layout containing new furniture types (older clients cannot validate them).
+**V6.1.2:** Run migration 21 check-only and install, then upload the 9 site files. See the current release notes above.
+
+**V6.1.1 (historical):** Install SQL 19 first. Run `setup/20-free-grid-layout-check-only.txt` and verify `V6.1.1 CHECK PASSED - ROLLED BACK`; then run `setup/20-free-grid-layout-install.txt` and verify `V6.1.1 READY`, `walk_ready=true`, `rotate_ready=true`. Upload the patch files and the nine new SVGs under `assets/`. Keep existing `layout.js`, `layout.json` and `online-config.js`. No reset. Have all users refresh to V6.1.1 before publishing a layout containing new furniture types (older clients cannot validate them).
 
 **V6.1 (historical):** Run `setup/19-idea-board-check-only.txt` and verify `V6.1 CHECK PASSED - ROLLED BACK`, then `setup/19-idea-board-install.txt` and verify `V6.1 READY`. The dry run validates grants/RLS and, when enabled desk owners are available, posting, shared visibility, unauthorized deletion, idempotent retry and owner/admin deletion in a rolled-back transaction. Then upload the 8 files inside `site/` to repository root. Keep all V6.0 files including `productivity.js`, `productivity.css`, `motion.js`, `online-config.js`, `layout.js`, and `layout.json`. Hard refresh after deploy. Do not upload `setup/` or `qa/`.
 
