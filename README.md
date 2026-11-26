@@ -1,8 +1,17 @@
-# Office Connect — V5.3.4
+# Office Connect — V5.4
 
 Virtual Office สำหรับเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
+
+## What's new — V5.4: Natural Movement
+
+- ปรับท่าเดินให้ขยับข้อเข่า ข้อศอก สลับแขนขา และลดจังหวะก้าวก่อนหยุด; เพิ่มการเอนตัวลงนั่งเมื่อถึงเก้าอี้ประชุมและกลับโต๊ะ
+- เลี้ยวแบบโค้งและหันตัวแบบค่อยเป็นค่อยไป ตรวจระยะจากเฟอร์นิเจอร์ ผนัง ต้นไม้ และขอบฉากก่อนปรับเส้นทางภาพ
+- เมื่อเดินสวนกันบนทางเดินที่มีพื้นที่เพียงพอ ตัวละครเบี่ยงหลบกันเล็กน้อย; งดเบี่ยงบริเวณประตู จุดหมายและพื้นที่แคบ (best effort, not a full collision engine)
+- การหลบเป็นการปรับภาพเฉพาะฝั่ง client ไม่เปลี่ยนเส้นทาง/เวลาถึง/การจองตำแหน่งจาก Supabase และไม่เขียนข้อมูลทุกเฟรม
+- ขณะเคลื่อนไหว Renderer พยายามอัปเดตสูงสุดประมาณ 30 FPS; เมื่อฉากนิ่งใช้รอบเดิม และเคารพการตั้งค่า reduced motion ของระบบ
+- ไม่ต้อง Run SQL ใหม่; ต้องติดตั้ง Migration 16 และ 17 จริงแล้วตามรุ่นก่อนหน้า
 
 ## What's new — V5.3.4: Status & Live Sync
 
@@ -54,6 +63,8 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 
 ## Deployment / Upgrade
 
+**V5.4:** Frontend only. Upload the files in `site/` (including the new `motion.js`); no new SQL. Existing layouts, config, chat, and permissions stay unchanged. Requires V5.3.4 and its previously committed migrations.
+
 **V5.3.4:** Frontend only. Requires committed migration 17 for hall activity messages and migration 16 for hall requests. Upload the files in this release `site/`; no new SQL. If an earlier migration was only dry-run, install that migration before upgrading.
 
 **V5.3.3:** From V5.3.2 (including the password hotfix), run `17-hall-events-check-only.txt` then `17-hall-events-install.txt` from `setup/`. The SQL self-test requires two registered profiles and one free hall zone. It does not retain synthetic test rows; identity sequence gaps can occur. Upload the files in `site/` after install.
@@ -92,12 +103,14 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 | V5.3.1 | Compact hall positions, chat deletion, SQL migration 16 |
 | V5.3.2 | Minimized chat dock, central notifications, room-only chat list, password wording hotfix |
 | V5.3.3 | Hall join/leave system messages (migration 17) |
-| **V5.3.4** | Default head status, minute reconciliation, direct hall join request |
+| V5.3.4 | Default head status, minute reconciliation, direct hall join request |
+| **V5.4** | Articulated walking, rounded turns, local clearance-aware passing, sitting transitions |
 
 ## Roadmap
 
 - V5.3.x: stabilize live hall chat, invitations, notifications, real-world UI testing
-- V5.4 (planned): improve movement transitions and collision avoidance
+- V5.4: natural motion and local clearance-aware steering; validate on the actual WebGL site
+- V5.4.x (optional): full chair-to-aisle paths and coordinated crowd navigation, if needed
 - V6.0 (planned): office productivity features (scope to be agreed)
 
 ## Current limitations
@@ -105,5 +118,5 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 - Requires a WebGL-capable browser and internet access for CDN modules; 2D fallback exists.
 - Chat notifications are in-app only. Inbox polling is approximately every 4 seconds when the page is active; browser throttling or offline devices may delay delivery.
 - Chat history is not end-to-end encrypted. Guest cannot read private conversations or member identities from the intended member-only snapshot.
-- Standing places are reserved by the backend; moving characters may still overlap while travelling.
+- Standing places are reserved by the backend. V5.4 reduces overlap in open corridors but does not guarantee collision-free walking, especially near doors, crowded groups, and shared goals. The original backend route and desk anchor are preserved; the full seat-to-aisle route is not simulated. Visual offsets may differ temporarily across clients with delayed snapshots. 2D fallback uses the original discrete markers.
 - Test the deployed app against your own Supabase project before broad rollout. No live database connection or WebGL screenshot was verified for this patch.
