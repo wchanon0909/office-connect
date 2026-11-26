@@ -14,24 +14,29 @@ const executiveDeskIds=new Set(['D-063','D-073']);
 function desk(g,c){
  const executive=executiveDeskIds.has(c?.id);
  if(executive){
-  box(g,mat(0x5e6f86,.8,.05),0,.03,.06,1.58,.03,1.36,false);
-  box(g,edge,0,.73,-.10,1.86,.11,1.12);box(g,wood,0,.80,-.10,1.90,.055,1.16);
-  for(const x of [-.82,.82])for(const z of [-.63,.20])box(g,metal,x,.36,z,.06,.72,.06);
-  box(g,metal,0,.54,-.67,1.62,.08,.06);box(g,metal,0,.92,-.47,.50,.035,.26);box(g,metal,0,1.08,-.53,.06,.32,.06);
+  box(g,mat(0x5e6f86,.8,.05),0,.03,.06,1.74,.03,1.44,false);
+  box(g,mat(0x77523c),0,.73,-.23,1.73,.11,1.28);box(g,mat(0xb68659),0,.80,-.23,1.75,.055,1.32);
+  for(const x of [-.78,.78])for(const z of [-.77,.34])box(g,metal,x,.36,z,.06,.72,.06);
+  box(g,metal,0,.54,-.67,1.54,.08,.06);box(g,metal,0,.92,-.47,.50,.035,.26);box(g,metal,0,1.08,-.53,.06,.32,.06);
   box(g,dark,0,1.28,-.55,.88,.50,.08);box(g,c.name&&c.status!=='offline'?screen:offscreen,0,1.28,-.50,.80,.44,.02);
-  box(g,edge,-.78,.48,.20,.42,.95,.62);box(g,wood,-.78,.97,.20,.44,.05,.64);for(let i=0;i<2;i++){box(g,edge,-.78,.26+i*.26,.48,.38,.016,.014);box(g,metal,-.78,.34+i*.26,.50,.12,.026,.022);} 
+  box(g,edge,-.64,.36,.09,.39,.69,.72);box(g,wood,-.64,.72,.09,.40,.035,.73);for(let i=0;i<2;i++){box(g,edge,-.64,.19+i*.22,.455,.35,.016,.014);box(g,metal,-.64,.26+i*.22,.47,.12,.026,.022);} 
   box(g,paper,.26,.84,-.04,.58,.022,.22);box(g,paper,-.16,.84,.14,.34,.018,.18);box(g,metal,.61,.83,.06,.11,.05,.15);round(g,white,.78,.88,-.52,.06,.16);round(g,mat(0x6d4a31),.78,.97,-.52,.047,.01);
-  const z=.60;round(g,metal,0,.27,z,.06,.45);for(let i=0;i<5;i++){const a=i*Math.PI*2/5;const foot=box(g,metal,Math.sin(a)*.14,.08,z+Math.cos(a)*.14,.06,.04,.30);foot.rotation.y=a;ball(g,dark,Math.sin(a)*.28,.06,z+Math.cos(a)*.28,.045,.052,.045);}box(g,chair,0,.50,z,.68,.12,.58);box(g,chair,0,.84,z+.27,.70,.56,.11);for(const x of [-.37,.37]){box(g,metal,x,.63,z,.04,.22,.04);box(g,chair,x,.76,z,.085,.06,.38);} 
+  const z=.60;round(g,metal,0,.27,z,.06,.45);for(let i=0;i<5;i++){const a=i*Math.PI*2/5;const foot=box(g,metal,Math.sin(a)*.14,.08,z+Math.cos(a)*.14,.06,.04,.30);foot.rotation.y=a;ball(g,dark,Math.sin(a)*.28,.06,z+Math.cos(a)*.28,.045,.052,.045);}box(g,mat(0x35404d),0,.50,z,.68,.12,.58);box(g,mat(0x35404d),0,.84,z+.27,.70,.56,.11);for(const x of [-.37,.37]){box(g,metal,x,.63,z,.04,.22,.04);box(g,chair,x,.76,z,.085,.06,.38);} 
   if(c.name&&c.status!=='offline'){const shirt=mat(c.status==='away'?0xa97b49:0x507f98),skin=mat(0xd8a57d);ball(g,shirt,0,.84,z,.25,.30,.17);ball(g,skin,0,1.18,z-.02,.13,.16,.13);ball(g,mat(0x47372c),0,1.24,z+.03,.14,.11,.13);for(const x of [-.18,.18]){box(g,shirt,x,.83,z-.13,.12,.13,.30);ball(g,skin,x,.85,z-.30,.058,.048,.078);}ball(g,mat(c.status==='online'?0x32b67e:0xe1ab45),.82,1.58,-.50,.08,.08,.08);} 
   return;
  }
- box(g,edge,0,.72,-.21,1.61,.105,.88);box(g,wood,0,.78,-.21,1.63,.055,.9);for(const x of [-.72,.72])for(const z of [-.56,.15])box(g,metal,x,.35,z,.055,.7,.055);box(g,metal,0,.52,-.59,1.42,.07,.05);box(g,white,-.49,.36,-.25,.35,.62,.67);for(let i=0;i<3;i++){box(g,edge,-.49,.15+i*.19,.092,.34,.014,.012);box(g,metal,-.49,.21+i*.19,.105,.11,.024,.02);} 
+ box(g,edge,0,.72,-.21,1.61,.105,.88);box(g,wood,0,.78,-.21,1.63,.055,.9);for(const x of [-.72,.72])for(const z of [-.56,.15])box(g,metal,x,.35,z,.055,.7,.055);box(g,metal,0,.52,-.59,1.42,.07,.05);box(g,white,-.49,.36,-.25,.35,.62,.67);for(let i=0;i<3;i++){box(g,edge,-.49,.15+i*.19,.092,.34,.014,.012);box(g,metal,-.49,.21+i*.19,.105,.11,.024,.02);}
  box(g,metal,.12,.84,-.44,.32,.035,.19);box(g,metal,.12,1.0,-.48,.045,.3,.055);box(g,dark,.12,1.2,-.49,.66,.43,.075);box(g,c.name&&c.status!=='offline'?screen:offscreen,.12,1.2,-.445,.60,.37,.018);for(let i=0;i<3;i++)box(g,mat(0xa1d7de),.02,1.29-i*.075,-.431,.32-i*.055,.012,.008,false);
  box(g,paper,.08,.82,-.02,.49,.025,.17);for(let j=0;j<3;j++)box(g,mat(0xa1a7a7),.08,.836,-.08+j*.052,.43,.003,.008,false);box(g,metal,.43,.83,.005,.09,.045,.13);box(g,paper,-.53,.815,-.12,.24,.016,.27);box(g,mat(0x446f7e),-.52,.83,-.12,.018,.014,.25);round(g,white,.66,.88,-.48,.055,.14);round(g,mat(0x75533c),.66,.956,-.48,.043,.009);
- const z=.54;round(g,metal,0,.25,z,.055,.41);for(let i=0;i<5;i++){const a=i*Math.PI*2/5;const foot=box(g,metal,Math.sin(a)*.13,.075,z+Math.cos(a)*.13,.055,.035,.28);foot.rotation.y=a;ball(g,dark,Math.sin(a)*.26,.055,z+Math.cos(a)*.26,.042,.05,.042);}box(g,chair,0,.46,z,.52,.1,.47);box(g,chair,0,.73,z+.22,.53,.45,.09);for(const x of [-.3,.3]){box(g,metal,x,.58,z,.035,.19,.035);box(g,chair,x,.69,z,.075,.055,.32);} 
- if(c.name&&c.status!=='offline'){const shirt=mat(c.status==='away'?0xa97b49:0x507f98),skin=mat(0xd8a57d);ball(g,shirt,0,.78,z,.23,.28,.15);ball(g,skin,0,1.10,z-.025,.125,.15,.12);ball(g,mat(0x47372c),0,1.16,z+.025,.13,.11,.12);for(const x of [-.17,.17]){box(g,shirt,x,.77,z-.12,.11,.12,.28);ball(g,skin,x,.79,z-.28,.055,.045,.075);}ball(g,mat(c.status==='online'?0x32b67e:0xe1ab45),.70,1.49,-.45,.075,.075,.075);} 
+ const z=.54;round(g,metal,0,.25,z,.055,.41);for(let i=0;i<5;i++){const a=i*Math.PI*2/5;const foot=box(g,metal,Math.sin(a)*.13,.075,z+Math.cos(a)*.13,.055,.035,.28);foot.rotation.y=a;ball(g,dark,Math.sin(a)*.26,.055,z+Math.cos(a)*.26,.042,.05,.042);}box(g,chair,0,.46,z,.52,.1,.47);box(g,chair,0,.73,z+.22,.53,.45,.09);for(const x of [-.3,.3]){box(g,metal,x,.58,z,.035,.19,.035);box(g,chair,x,.69,z,.075,.055,.32);}
+ if(c.name&&c.status!=='offline'){const shirt=mat(c.status==='away'?0xa97b49:0x507f98),skin=mat(0xd8a57d);ball(g,shirt,0,.78,z,.23,.28,.15);ball(g,skin,0,1.10,z-.025,.125,.15,.12);ball(g,mat(0x47372c),0,1.16,z+.025,.13,.11,.12);for(const x of [-.17,.17]){box(g,shirt,x,.77,z-.12,.11,.12,.28);ball(g,skin,x,.79,z-.28,.055,.045,.075);}ball(g,mat(c.status==='online'?0x32b67e:0xe1ab45),.70,1.49,-.45,.075,.075,.075);}
 }
-function wall(g,door,vertical){if(vertical)g.rotation.y=Math.PI/2;const h=1.48;box(g,white,0,h/2,-.78,1.82,h,.16);box(g,wood,0,.12,-.676,1.82,.19,.045);box(g,edge,0,.25,-.68,1.82,.035,.045);box(g,white,0,h+.035,-.78,1.84,.07,.20);if(door){box(g,edge,0,.69,-.65,.77,1.38,.09);box(g,wood,0,.68,-.59,.65,1.28,.055);box(g,edge,0,.68,-.555,.48,1.06,.015);box(g,wood,0,.68,-.542,.43,1.0,.015);ball(g,mat(0xd6b565,.3,.6),.24,.66,-.49,.035,.035,.035);}}
+function wall(g,door,vertical){
+ if(vertical)g.rotation.y=Math.PI/2;const h=1.48;
+ const segment=(x,w,height=h,y=h/2,trim=true)=>{box(g,white,x,y,-.78,w,height,.16);if(trim){box(g,wood,x,.12,-.676,w,.19,.045);box(g,edge,x,.25,-.68,w,.035,.045);}};
+ if(door){const opening=.84,side=(1.82-opening)/2;segment(-(opening+side)/2,side);segment((opening+side)/2,side);segment(0,opening,.12,h-.06,false);box(g,edge,0,.67,-.70,.79,1.34,.09);box(g,wood,0,.67,-.64,.65,1.25,.055);box(g,edge,0,.67,-.605,.48,1.04,.015);box(g,wood,0,.67,-.592,.43,.98,.015);ball(g,mat(0xd6b565,.3,.6),.24,.65,-.54,.035,.035,.035);}else segment(0,1.82);
+ box(g,white,0,h+.035,-.78,1.84,.07,.20);
+}
 function plant(g){round(g,mat(0x9d7351),0,.19,0,.27,.38);round(g,mat(0x513b29),0,.39,0,.24,.03);for(let i=0;i<9;i++){const a=i*2.4;const leaf=ball(g,i%2?green:lightgreen,Math.sin(a)*.2,.59+(i%3)*.11,Math.cos(a)*.2,.13,.32,.09);leaf.rotation.set(Math.cos(a)*.65,a,Math.sin(a)*.65);} }
 function meeting(g){box(g,metal,0,.35,0,.14,.7,.14);box(g,wood,0,.75,0,1.5,.12,.85);for(const z of [-.66,.66]){box(g,chair,0,.45,z,.48,.1,.38);box(g,chair,0,.7,z+Math.sign(z)*.18,.48,.4,.08);}box(g,paper,.18,.82,.04,.24,.015,.24);}
 const tile=Array.from({length:6},(_,i)=>mat([0xa4a9a8,0x9da4a4,0xa8adab,0xa1a6a5,0x9fa6a7,0xacafaa][i]));const aisle=mat(0x929e9f);
@@ -40,19 +45,33 @@ function render(){if(!host.hidden)renderer.render(scene,camera);}
 function cameraUpdate(){api.showZoom(scale);api.setZoomValue(scale);const w=host.clientWidth||800,h=host.clientHeight||600,aspect=w/h;const a=elevation*Math.PI/180,b=azimuth*Math.PI/180;camera.position.copy(target).add(new T.Vector3(Math.sin(b)*Math.cos(a),Math.sin(a),Math.cos(b)*Math.cos(a)).multiplyScalar(65));camera.lookAt(target);camera.left=-base*aspect/scale;camera.right=base*aspect/scale;camera.top=base/scale;camera.bottom=-base/scale;camera.updateProjectionMatrix();const current=renderer.getSize(new T.Vector2());if(current.x!==w||current.y!==h)renderer.setSize(w,h,false);render();}
 function fit(z=1){const p=api.getMap();target.set(0,.45,0);scale=z;const aspect=(host.clientWidth||800)/(host.clientHeight||600);const a=elevation*Math.PI/180,b=azimuth*Math.PI/180;const W=p.cols*1.82,D=p.rows*1.82;const projectedW=Math.abs(Math.cos(b))*W+Math.abs(Math.sin(b))*D,projectedH=(Math.abs(Math.sin(b))*W+Math.abs(Math.cos(b))*D)*Math.sin(a)+2.5;base=Math.max(projectedH/2,projectedW/(2*aspect))*1.09;api.showZoom(scale);api.setZoomValue(scale);cameraUpdate();}
 function resetView(){elevation=55;azimuth=15;document.getElementById('elevation').value=55;document.getElementById('elevationValue').textContent='55°';fit(host.clientWidth<650?1.02:1.5);if(scale>1.1){const up=new T.Vector3().setFromMatrixColumn(camera.matrixWorld,1);target.addScaledVector(up,base*(1-1/scale)*.85);cameraUpdate();}}
-// Stable IDs (not display labels) identify a few desks that need custom presentation.
-// Adjust rendering coordinates only. Grid coordinates and all assignment data stay unchanged.
+// The grid keeps one object per cell; the shortened layout removes the empty
+// logical row 5 and aligns the row-4 meshes with the face of the wall in row 3.
+// Stable desk IDs never change. These offsets are also used for selection.
+const frontDeskIds=new Set(['D-077','D-148','D-082','D-083']);
 function deskOffset(p,x,y,c){
+ const wallOrDoor=(xx,yy)=>['wall','door'].includes(p.cells[`${xx},${yy}`]?.type);
+ const horizontal=(xx,yy)=>wallOrDoor(xx-1,yy)||wallOrDoor(xx+1,yy);
  const wallAt=(xx,yy)=>p.cells[`${xx},${yy}`]?.type==='wall';
- if(['D-074','D-093'].includes(c?.id)&&[0,180].includes(c.rotation)&&wallAt(x-1,y))return [-1.60,0];
- if(executiveDeskIds.has(c?.id)&&c.rotation===270&&wallAt(x-1,y))return [-0.12,0];
+ // Standard tabletop rear edge -0.66; wall front face approx -0.65.
+ // One-grid pullback minus 0.08 leaves a small positive wall clearance.
+ if(frontDeskIds.has(c?.id)&&c.rotation===0&&wallAt(x,y-1)&&horizontal(x,y-1))return [0,-1.74];
+ // Adjacent partition is on the left edge of its grid cell.
+ if(['D-074','D-093'].includes(c?.id)&&[0,180].includes(c.rotation)&&wallAt(x-1,y)&&!horizontal(x-1,y))return [-1.60,0];
+ // Executive models are deeper: move inward at the exterior perimeter only.
+ if(executiveDeskIds.has(c?.id)&&c.rotation===270&&x===p.cols-1)return [-.15,0];
  return [0,0];
+}
+function plantOffset(p,x,y){
+ if(p.cols!==10||p.rows!==19||y!==4||![3,6].includes(x)||p.cells['0,4']?.id!=='D-077'||p.cells['8,4']?.id!=='D-082')return [0,0];
+ // Move plants with the compressed scene; keep the relocated door unobstructed.
+ return [p.cells[`${x},${y-1}`]?.type==='door'?.88:0,-1.74];
 }
 function deskPosition(p,x,y,c){const [dx,dz]=deskOffset(p,x,y,c);return [(x-(p.cols-1)/2)*1.82+dx,(y-(p.rows-1)/2)*1.82+dz];}
 function highlight(key){if(selection){root.remove(selection);selection.geometry.dispose();selection.material.dispose();selection=null;}if(key&&root){const p=api.getMap(),[x,y]=key.split(',').map(Number);selection=new T.Mesh(new T.RingGeometry(.83,.91,48),new T.MeshBasicMaterial({color:0x41efaa,side:T.DoubleSide}));selection.rotation.x=-Math.PI/2;const [X,Z]=deskPosition(p,x,y,p.cells[key]);selection.position.set(X,.035,Z);root.add(selection);}render();}
 function rebuild(p){if(root){scene.remove(root);root.traverse(o=>{if(o.isInstancedMesh)o.dispose();});if(selection){selection.geometry.dispose();selection.material.dispose();}selection=null;}root=new T.Group();scene.add(root);pickables=[];const W=p.cols*1.82,D=p.rows*1.82;box(root,mat(0x535f63),0,-.17,0,W+.22,.33,D+.22,false);
 // Instanced floor tiles keep draw calls low.
-const tiles=new Map();for(let y=0;y<p.rows;y++)for(let x=0;x<p.cols;x++){const k=`${x},${y}`,c=p.cells[k],X=(x-(p.cols-1)/2)*1.82,Z=(y-(p.rows-1)/2)*1.82;for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){const m=c?.type==='aisle'?aisle:tile[(x*17+y*7+dx*3+dy)%6];if(!tiles.has(m))tiles.set(m,[]);tiles.get(m).push([X+(dx-1)*1.82/3,Z+(dy-1)*1.82/3]);}if(!c||c.type==='aisle')continue;const g=new T.Group();g.position.set(X,0,Z);g.userData.key=k;root.add(g);g.rotation.y=-c.rotation*Math.PI/180;if(c.type==='desk'){const [dx,dz]=deskOffset(p,x,y,c);g.position.x+=dx;g.position.z+=dz;desk(g,c);pickables.push(g);}else if(c.type==='wall'||c.type==='door'){const horizontal=[x-1,x+1].some(xx=>['wall','door'].includes(p.cells[`${xx},${y}`]?.type));g.rotation.y=0;wall(g,c.type==='door',!horizontal);}else if(c.type==='plant')plant(g);else if(c.type==='meeting')meeting(g);}
+const tiles=new Map();for(let y=0;y<p.rows;y++)for(let x=0;x<p.cols;x++){const k=`${x},${y}`,c=p.cells[k],X=(x-(p.cols-1)/2)*1.82,Z=(y-(p.rows-1)/2)*1.82;for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){const m=c?.type==='aisle'?aisle:tile[(x*17+y*7+dx*3+dy)%6];if(!tiles.has(m))tiles.set(m,[]);tiles.get(m).push([X+(dx-1)*1.82/3,Z+(dy-1)*1.82/3]);}if(!c||c.type==='aisle')continue;const g=new T.Group();g.position.set(X,0,Z);g.userData.key=k;root.add(g);g.rotation.y=-c.rotation*Math.PI/180;if(c.type==='desk'){const [dx,dz]=deskOffset(p,x,y,c);g.position.x+=dx;g.position.z+=dz;desk(g,c);pickables.push(g);}else if(c.type==='wall'||c.type==='door'){const horizontal=[x-1,x+1].some(xx=>['wall','door'].includes(p.cells[`${xx},${y}`]?.type));g.rotation.y=0;wall(g,c.type==='door',!horizontal);}else if(c.type==='plant'){const [dx,dz]=plantOffset(p,x,y);g.position.x+=dx;g.position.z+=dz;plant(g);}else if(c.type==='meeting')meeting(g);}
 for(const [m,positions] of tiles){const im=new T.InstancedMesh(cube,m,positions.length),mx=new T.Matrix4();positions.forEach(([x,z],i)=>{mx.makeScale(1.82/3-.012,.035,1.82/3-.012);mx.setPosition(x,0,z);im.setMatrixAt(i,mx);});im.receiveShadow=true;root.add(im);}
 // Low perimeter trim only; preserve all explicit walls from the source layout.
 for(const z of [-D/2,D/2])box(root,white,0,.09,z,W+.10,.18,.10);for(const x of [-W/2,W/2])box(root,white,x,.09,0,.10,.18,D);
