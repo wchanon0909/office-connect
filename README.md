@@ -1,8 +1,16 @@
-# GFE & GOE Office — V6.3.2
+# GFE & GOE Office — V6.3.3
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## What's new — V6.3.3: Account profile & admin-only theme menu
+
+- Theme menu and theme-related controls in the rest dialog are hidden for members and guests. Only enabled admins can open the shared Theme Manager. Shared themes still render for everyone; existing local effect preferences and reduced-motion accessibility settings are preserved. Music remains opt-in.
+- Account dialog contains personal details (nickname and optional 160-character Caption), employee ID (read only), and a separate password change form. Wardrobe and personal status remain in the dedicated lower-right buttons. Caption is separate from overhead status and appears in the clicked Character Card for signed-in desk members, even if the subject is offline; guests cannot obtain captions from the new snapshot. Captions are text, not HTML.
+- Password change verifies the current password using the existing Supabase Auth account, then updates that user's password via Auth. Current password, new password and confirmation are cleared after submission/close; no password is stored in custom SQL tables. Supabase password requirements and security settings still apply.
+- Requires installed SQL 24. Run `setup/25-account-profile-check-only.txt` then `setup/25-account-profile-install.txt`. Upload all files in `site/`. Keep the existing layout, online configuration, assets, and all other site files. No reset or new account is needed.
+- Browser QA uses a mock Supabase/Auth backend; actual PostgreSQL/Auth must be verified on the deployed project.
 
 ## What's new — V6.3.2: Four-corner control layout
 
@@ -151,7 +159,9 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 
 ## Deployment / Upgrade
 
-**V6.3.2 (current):** Frontend-only control layout. No new migration.
+**V6.3.3 (current):** Install SQL 25 after SQL 24, then upload the site patch. Expected `V6.3.3 READY`, `profile_ready=true`.
+
+**V6.3.2:** Frontend-only control layout. No new migration.
 
 **V6.3.1:** Frontend-only patch over installed V6.3. No new migration.
 
@@ -218,11 +228,12 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 
 | **V6.3.1** | Forward-facing gestures, keyboard walk, between-door festival placement |
 | **V6.3.2** | Four-corner controls, collapsible map, admin-only Settings |
+| **V6.3.3** | Admin-only theme menu, nickname and caption, authenticated password change (migration 25) |
 
 ## Roadmap — Virtual Social Office (reordered)
 
 - V6.2: Social Experience — wave, dance, High Five. Additional poses and social activities can follow as minor updates.
-- V6.3–V6.3.2 (current release): Theme Manager — Admin theme selection/scheduling, Christmas, New Year and Songkran presets, shared weather and visual-effect controls; no automatic replacement of the saved layout.
+- V6.3–V6.3.3 (current release): Theme Manager — Admin theme selection/scheduling, Christmas, New Year and Songkran presets, shared weather and visual-effect controls; no automatic replacement of the saved layout.
 - V6.4: Seasonal World — richer festival activities and temporary decorations, music, effects and interactive content based on the Theme Manager.
 - V6.5: World Expansion — multi-scene engine, Café, Rooftop Garden, Game Room; Admin-designed layouts for every zone.
 - V6.6: Play Together — mini-games, activities and Easter eggs.
