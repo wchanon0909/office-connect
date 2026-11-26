@@ -1,0 +1,49 @@
+/* V6.3.2 — layout of the existing controls, not the office floor plan. */
+:root{--oc632-gap:12px;--oc632-personal-space:64px;--oc632-chat-top:132px;--oc632-viewport-bottom:0px}
+.topbar .nav-center{display:none!important}.topbar .header-actions{margin-left:auto;align-items:center;justify-content:flex-end;width:auto;gap:8px}
+.topbar #themeHub{width:auto;min-width:0;max-width:180px;height:auto;min-height:36px;padding:7px 10px;gap:6px;color:#ffe2a6;background:#594b343d;border-color:#907a4c}
+.topbar #themeHub #themeBadge{display:inline!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.topbar #themeHub svg{flex:none;width:17px;height:17px;stroke:currentColor;stroke-width:1.7}
+.topbar #adminLink[hidden],.oc-corner [hidden],#mapCorner [hidden],#actionCorner [hidden]{display:none!important}
+/* Each group is positioned independently; controls inside are ordinary flex items. */
+#actionCorner{position:absolute;top:var(--oc632-gap);left:var(--oc632-gap);max-width:calc(100% - 300px);display:flex;flex-direction:column;align-items:flex-start;gap:6px;z-index:13;pointer-events:none}
+#actionCorner #livingDock{position:static;max-width:100%;pointer-events:auto;gap:5px;flex-wrap:wrap;padding:5px;border-radius:13px}
+#actionCorner #livingHint{position:static;max-width:100%;font-size:11px;padding:7px 10px;overflow-wrap:anywhere}
+.oc-corner{position:absolute;display:flex;align-items:center;gap:5px;padding:5px;background:#182439ed;border:1px solid #455774;border-radius:13px;box-shadow:0 6px 24px #080e1c55;backdrop-filter:blur(10px);z-index:13}
+#communicationCorner{right:var(--oc632-gap);top:var(--oc632-gap);max-width:280px;flex-wrap:wrap;justify-content:flex-end}
+#personalCorner{right:var(--oc632-gap);bottom:var(--oc632-gap);max-width:calc(100% - 125px);flex-wrap:wrap;justify-content:flex-end}
+.oc-corner button,#actionCorner #livingDock button{position:relative;display:flex;align-items:center;justify-content:center;gap:6px;width:auto;min-width:0;min-height:37px;height:auto;padding:7px 10px;border:1px solid #4b6083;border-radius:9px;background:#2b3b58;color:#e1eaff;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:none;flex:none}
+.oc-corner button svg,#actionCorner #livingDock button svg{flex:none;width:17px;height:17px;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.oc-corner button span{display:inline!important} .oc-corner button:disabled{opacity:.6;cursor:not-allowed}
+#communicationCorner #chatHub{background:#6558bf;border-color:#a39af5;color:#fff}#communicationCorner #workspaceHub{width:auto!important;min-width:0!important;flex:none;padding:7px 10px!important}
+#personalCorner #myStatus{background:#253f45;border-color:#537a76}#personalCorner #ideaHub{background:#514479;border-color:#a9a1ee}
+body #personalCorner #ideaHub,body #actionCorner #worldHub,body:has(#chatPanel:not([hidden])) #personalCorner #ideaHub,body:has(#chatPanel:not([hidden])) #actionCorner #worldHub{position:relative;inset:auto;visibility:visible;z-index:auto}
+#actionCorner #worldHub{background:#31485c;border-color:#5b7890}
+.admin-mode :is(#actionCorner,#communicationCorner,#personalCorner),.editor-mode :is(#actionCorner,#communicationCorner,#personalCorner){display:none!important}
+/* Map toggle stays available in the editor. The full drawer starts closed. */
+#mapCorner{position:absolute;left:var(--oc632-gap);bottom:var(--oc632-gap);z-index:14;display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-height:calc(100% - 24px);max-width:calc(100% - 24px);pointer-events:none}
+#mapToggle,#mapTools{pointer-events:auto}
+#mapToggle{display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 11px;min-height:40px;border-radius:11px;background:#1c2a42f5;border:1px solid #637a9b;color:#e1eaff;font-size:12px;font-weight:700;box-shadow:0 5px 22px #0a132a60}
+#mapToggle svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}#mapToggle .corner-chevron{width:14px;height:14px;transition:transform .15s}#mapToggle[aria-expanded=true] .corner-chevron{transform:rotate(180deg)}
+#mapTools{width:min(248px,calc(100vw - 24px));max-height:calc(100% - 48px);min-height:0;overflow:auto;overscroll-behavior:contain;background:#1b293ff5;border:1px solid #52688b;border-radius:13px;padding:7px;box-shadow:0 8px 30px #080e1e80}
+#mapTools .camera-dock{position:static;transform:none;display:grid;grid-template-columns:1fr 1fr;align-items:stretch;gap:5px;width:100%;padding:0;border:0;box-shadow:none;background:transparent;backdrop-filter:none;white-space:normal}
+#mapTools .dock-group{grid-column:1/-1;flex-direction:row;justify-content:space-between;gap:6px}#mapTools .dock-group button{width:48px;min-height:34px;height:34px;font-size:22px}
+#mapTools .dock-divider{display:none}#mapTools .camera-dock button{display:flex;flex-direction:row;min-height:36px;gap:6px;font-size:11px;border:1px solid #526485;background:#2a3b57;padding:7px 5px;white-space:normal}
+#mapTools .camera-dock button svg{width:17px;height:17px;flex:none}#mapTools .camera-dock #fullScreen::after{content:'เต็มจอ'}
+#mapTools #statusBubbles.status-visibility-toggle{position:static;inset:auto;grid-column:1/-1;width:100%;visibility:visible!important;z-index:auto}
+#mapTools #statusBubbles[aria-pressed=true]{background:#3b4778;border-color:#aaa6ff}
+#mapTools .map-connection{grid-column:1/-1;padding:4px 0;text-align:center;min-width:0}#mapTools #cloudBadge{white-space:normal;overflow-wrap:anywhere;max-width:100%}
+#mapTools #cameraControls{position:static;width:100%;max-height:none;padding:10px;margin:0 0 8px;background:#273750;border-radius:9px;box-shadow:none;gap:7px}#mapTools #cameraControls label{font-size:12px}#mapTools #cameraControls .view-presets{gap:4px}
+/* Chat floats below its own launch buttons, and profile stays above the personal group. */
+body:not(.admin-mode) #chatPanel{top:var(--oc632-chat-top);right:var(--oc632-gap);bottom:auto;width:min(660px,calc(100vw - 24px));height:min(610px,max(160px,calc(100dvh - var(--oc632-chat-top) - var(--oc632-personal-space) - var(--oc632-viewport-bottom) - 10px)))}
+body:not(.admin-mode) #chatPanel.chat-minimized{height:auto;min-height:0;width:min(350px,calc(100vw - 24px))}
+body:not(.admin-mode) #deskPanel{right:var(--oc632-gap);bottom:calc(var(--oc632-personal-space) + 8px);max-height:calc(100% - var(--oc632-personal-space) - 24px);overflow:auto}
+body:not(.admin-mode):has(#chatPanel:not([hidden]).chat-minimized) #deskPanel{bottom:calc(var(--oc632-personal-space) + 8px);max-height:calc(100% - var(--oc632-personal-space) - 120px)}
+@media(min-width:1040px){body:not(.admin-mode):has(#chatPanel:not([hidden]):not(.chat-minimized)) #deskPanel{right:calc(min(660px,100vw - 24px) + 2 * var(--oc632-gap));max-width:min(286px,calc(100% - 760px))}}
+@media(max-width:1039px){body:not(.admin-mode):has(#chatPanel:not([hidden]):not(.chat-minimized)) #deskPanel{visibility:hidden}}
+@media(max-width:650px){:root{--oc632-gap:8px}.topbar .header-actions{margin-left:0;width:100%;gap:6px}.topbar .live-chip{margin-right:0}.topbar #themeHub{margin-right:auto;min-height:34px;padding:6px 9px;max-width:170px}.topbar #themeHub #themeBadge{font-size:11px}.topbar #adminLink{width:auto;padding:7px 9px}.topbar #adminLink span{display:inline}.topbar .live-caption{display:inline;font-size:11px}
+ #actionCorner{max-width:calc(100% - 144px)}#communicationCorner{width:128px;max-width:128px;flex-direction:column;align-items:stretch}#communicationCorner button{width:100%!important;justify-content:flex-start!important}#personalCorner{max-width:calc(100% - 113px);gap:4px;padding:4px}#actionCorner #livingDock{gap:4px;padding:4px}.oc-corner button,#actionCorner #livingDock button{font-size:11px;padding:6px 7px;gap:4px;min-height:35px}.oc-corner button svg,#actionCorner #livingDock button svg{width:15px;height:15px}#communicationCorner #workspaceHub{padding:6px 7px!important}#actionCorner #livingHint{font-size:10px;padding:6px 7px}
+ #mapToggle{min-height:39px;padding:7px 9px;font-size:11px}#mapTools{width:min(218px,calc(100vw - 16px))}
+ body:not(.admin-mode) #chatPanel{width:calc(100vw - 16px);height:min(610px,max(160px,calc(100dvh - var(--oc632-chat-top) - var(--oc632-personal-space) - var(--oc632-viewport-bottom) - 8px)))}body:not(.admin-mode) #chatPanel.chat-minimized{height:auto;width:min(350px,calc(100vw - 16px))}}
+@media(max-width:350px){.topbar .live-caption{display:none}#communicationCorner{width:113px;max-width:113px}#actionCorner{max-width:calc(100% - 128px)}#personalCorner{max-width:calc(100% - 116px)}.oc-corner button,#actionCorner #livingDock button{padding:5px;gap:3px;font-size:10px}}
+@media(max-height:480px){#mapTools{max-height:min(260px,calc(100dvh - 150px))}body:not(.admin-mode) #chatPanel{height:max(125px,calc(100dvh - var(--oc632-chat-top) - 8px))}}

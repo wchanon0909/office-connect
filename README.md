@@ -1,8 +1,15 @@
-# GFE & GOE Office — V6.3.1
+# GFE & GOE Office — V6.3.2
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## What's new — V6.3.2: Four-corner control layout
+
+- Header: unchanged company logos/name; right side shows current theme, online count and Settings only for verified admins. Admin view also retains Back to office. Theme opens the shared Theme Manager for admins and local rest/music/effect settings for other users. Guests log in through the lower-right account button.
+- Top left: walk, meeting, return to desk, turn, Action and rest spots; top right: chat and announcements with existing unread counts. Bottom right: wardrobe, personal status, account and idea board.
+- Bottom left: collapsed map drawer, containing zoom, fit/reset, camera angle, status visibility, fullscreen and connection indicator. Expanding or collapsing does not modify avatar activity. Camera controls remain available in Layout Studio. Fullscreen now includes the whole application so relocated menus and chat remain accessible. Chat minimize still preserves group membership.
+- Frontend-only patch over V6.3.1: upload `index.html`, `app.js`, `cloud.js`, `living.js`, `theme.js`, `corners.js`, `corners.css`, `README.md`. No new SQL. Do not replace the layout or online configuration.
 
 ## What's new — V6.3.1: Gesture, keyboard and festival placement fixes
 
@@ -144,7 +151,9 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 
 ## Deployment / Upgrade
 
-**V6.3.1 (current):** Frontend-only patch over installed V6.3. No new migration.
+**V6.3.2 (current):** Frontend-only control layout. No new migration.
+
+**V6.3.1:** Frontend-only patch over installed V6.3. No new migration.
 
 **V6.3:** Run SQL 24 check-only then install after committed migration 23. Expected `V6.3 READY`, `theme_ready=true`. Upload site patch, retaining all earlier files.
 
@@ -208,11 +217,12 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 | V6.3 | Theme Manager, shared weather and seasonal effects, GFE & GOE branding (migration 24) |
 
 | **V6.3.1** | Forward-facing gestures, keyboard walk, between-door festival placement |
+| **V6.3.2** | Four-corner controls, collapsible map, admin-only Settings |
 
 ## Roadmap — Virtual Social Office (reordered)
 
 - V6.2: Social Experience — wave, dance, High Five. Additional poses and social activities can follow as minor updates.
-- V6.3 / V6.3.1 (current release): Theme Manager — Admin theme selection/scheduling, Christmas, New Year and Songkran presets, shared weather and visual-effect controls; no automatic replacement of the saved layout.
+- V6.3–V6.3.2 (current release): Theme Manager — Admin theme selection/scheduling, Christmas, New Year and Songkran presets, shared weather and visual-effect controls; no automatic replacement of the saved layout.
 - V6.4: Seasonal World — richer festival activities and temporary decorations, music, effects and interactive content based on the Theme Manager.
 - V6.5: World Expansion — multi-scene engine, Café, Rooftop Garden, Game Room; Admin-designed layouts for every zone.
 - V6.6: Play Together — mini-games, activities and Easter eggs.

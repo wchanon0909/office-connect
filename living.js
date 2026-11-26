@@ -52,7 +52,7 @@ window.OC50=(()=>{
  function lost(){stopKeyboard();connected=false;movementPatch=false;huddleId=null;walkMode=false;pendingVisit=null;records.clear();appearances={};if($('avatarDialog').open)$('avatarDialog').close();refreshUI();}
  function refreshUI(){
   if(!inOffice())walkMode=false;const visible=member()&&inOffice(),m=me?.desk_id?motion(me.desk_id):null,locked=busy||!!pendingVisit||!!m?.moving;
-  $('livingDock').hidden=!visible;$('avatarBtn').disabled=busy;$('walkBtn').disabled=!canWalk()||locked;$('returnBtn').hidden=!m&&!huddleId;$('returnBtn').disabled=huddleId?(busy||!!pendingVisit):locked;$('returnBtn').title=m?.activity==='huddle'?'กลับโต๊ะและออกจากกลุ่มยืนคุย':'กลับโต๊ะ';
+  $('livingDock').hidden=!visible;$('avatarBtn').hidden=!visible;$('avatarBtn').disabled=busy;$('walkBtn').disabled=!canWalk()||locked;$('returnBtn').hidden=!m&&!huddleId;$('returnBtn').disabled=huddleId?(busy||!!pendingVisit):locked;$('returnBtn').title=m?.activity==='huddle'?'กลับโต๊ะและออกจากกลุ่มยืนคุย':'กลับโต๊ะ';
   const turn=visible&&movementPatch&&!!m&&!m.moving&&!m.returning&&m.pose==='stand'&&!busy&&!pendingVisit;for(const id of ['faceLeft','faceRight']){const b=$(id);b.hidden=!visible||!movementPatch||!m||m.pose!=='stand';b.disabled=!turn;}
   $('meetingBtn').hidden=!interaction||!roomOK(window.officeAPI?.getMap());$('meetingBtn').disabled=!canWalk()||locked||m?.activity==='meeting';
   $('walkBtn').setAttribute('aria-pressed',String(walkMode));$('walkBtn').querySelector('span').textContent=walkMode?'ยกเลิกเดิน':'เดินเล่น';
