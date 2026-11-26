@@ -100,5 +100,28 @@ window.OC54_MOTION=(()=>{
   });
  }
  function gait(phase,weight=1){const f=phase*1.08,am=clamp(weight),s=Math.sin(f),r=Math.sin(f+Math.PI);return {hips:[s*.40*am,r*.40*am],knees:[-Math.max(0,s)*.63*am,-Math.max(0,r)*.63*am],arms:[-s*.31*am,-r*.31*am],elbows:[(.08+Math.max(0,-s)*.17)*am,(.08+Math.max(0,-r)*.17)*am],bob:Math.abs(s)*.035*am,roll:Math.cos(f)*.035*am,lean:.045*am};}
- return Object.freeze({clearance,rounded,solve,gait,blendAngle,smooth,STEP,CELL,RADIUS,LANE});
+ // The avatar's face is -Z. Solve hand targets in the avatar-local frame, not camera space.
+ function handPose(kind,side,phase,seated=false){
+  const clap=kind==='clap',sign=side===0?-1:1;
+  const gap=clap?.046+.085*(.5+.5*Math.cos(phase*1.8)):.035;
+  const dx=sign*(gap-(seated?.171:.223)),dy=clap?.055:.10,dz=seated?-.235:-.22;
+  const h=Math.hypot(dx,dz),theta=Math.atan2(h,-dy),yaw=Math.atan2(-dx,-dz);
+  const reach=Math.min(.359,Math.hypot(h,dy)),elbow=seated?0:2*Math.acos(reach/.36);
+  return {pitch:seated?theta-Math.atan2(.285,.115):theta-elbow/2,yaw,elbow};
+ }
+ const directions=[[0,1],[-1,0],[1,0],[0,-1]];
+ function keyboardDirection(key,azimuth=0){const a=Math.round(azimuth/90)*Math.PI/2,up=[-Math.round(Math.sin(a)),-Math.round(Math.cos(a))],right=[Math.round(Math.cos(a)),-Math.round(Math.sin(a))];return key==='ArrowUp'?up:key==='ArrowDown'?up.map(x=>-x):key==='ArrowRight'?right:key==='ArrowLeft'?right.map(x=>-x):null;}
+ function keyboardCell(plan,x,y,field){
+  if(x<0||y<0||x>=plan.cols||y>=plan.rows)return 'outside';
+  const c=plan.cells[`${x},${y}`],type=c?.type||'aisle';
+  if(type==='aisle'||type==='door')return type;
+  const off=window.OC612_STUDIO?.offset(plan,x,y,c)||[0,0];
+  if(type==='wall'&&x===6&&y===2&&plan.cols===10&&plan.rows===19&&plan.cells['6,0']?.type==='wall'&&plan.cells['6,1']?.type==='wall'&&plan.cells['6,3']?.type==='door'&&plan.cells['7,3']?.type==='wall')return 'aisle';
+  if(type==='plant'&&plan.cols===10&&plan.rows===19&&y===4&&[3,6].includes(x)&&plan.cells['0,4']?.id==='D-077'&&plan.cells['8,4']?.id==='D-082')return 'aisle';
+  if(['desk','coffee','water','printer','fridge','cabinet','sofa','plants','books'].includes(type)&&Math.abs(off[0])+Math.abs(off[1])>1.4&&field?.free(x,y))return 'aisle';
+  return type;
+ }
+ function keyboardAnchor(plan,key,field){if(!key)return null;const q=[point(key)],seen=new Set([key]);for(let i=0;i<q.length;i++){const [x,y]=q[i];if(keyboardCell(plan,x,y,field)==='aisle'&&field?.free(x,y)&&directions.some(([dx,dy])=>keyboardCell(plan,x+dx,y+dy,field)==='aisle'))return `${x},${y}`;for(const [dx,dy] of directions){const nx=x+dx,ny=y+dy,k=`${nx},${ny}`,type=keyboardCell(plan,nx,ny,field);if(seen.has(k)||['outside','wall','door'].includes(type))continue;seen.add(k);q.push([nx,ny]);}}return null;}
+ function keyboardTarget(plan,source,key,azimuth,field){if(!source||!field)return null;const d=keyboardDirection(key,azimuth);if(!d)return null;const [x,y]=point(source),[dx,dy]=d;let nx=x+dx,ny=y+dy;const cell=(a,b)=>keyboardCell(plan,a,b,field);if(cell(nx,ny)==='door'){const horizontal=[plan.cells[`${nx-1},${ny}`]?.type,plan.cells[`${nx+1},${ny}`]?.type].some(t=>t==='wall'||t==='door');if(horizontal?dx!==0:dy!==0)return null;nx+=dx;ny+=dy;if(cell(nx,ny)!=='aisle'||!field.free(nx,ny))return null;}else if(cell(nx,ny)!=='aisle'||!field.segment({x,y},{x:nx,y:ny}))return null;return `${nx},${ny}`;}
+ return Object.freeze({clearance,rounded,solve,gait,blendAngle,smooth,handPose,keyboardDirection,keyboardCell,keyboardAnchor,keyboardTarget,STEP,CELL,RADIUS,LANE});
 })();

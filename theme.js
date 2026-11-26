@@ -30,13 +30,30 @@ window.OC63_THEME=(()=>{
  document.addEventListener('visibilitychange',()=>{refresh();resetEffects();});reduce.addEventListener?.('change',refresh);setInterval(()=>{refresh();resetEffects();},1000);refresh();
  // Lighting overrides preserve the original Bangkok day/night model.
  function lighting(base,q=selected()){if(q.intensity===0||!fx)return base;const f=q.intensity/100,out={...base};if(q.weather==='cloudy'||q.weather==='rain'){out.sky=base.phase==='night'?0x202b40:0x8494a6;out.sun*=1-.48*f;out.hemi*=1-.12*f;out.glass=0x90a6b9;out.city=0x627587;}else if(q.weather==='snow'){out.sky=base.phase==='night'?0x304661:0xa0b6c7;out.sun*=1-.24*f;out.glass=0xc7dce8;}if(q.theme==='christmas')out.sunColor=0xffdeb2;else if(q.theme==='newyear')out.sunColor=0xffd7a3;else if(q.theme==='songkran')out.sunColor=0xfff0d2;return out;}
- // A decorative frame OUTSIDE the floor: no geometry in pickables, no changes to plan.
- function decorate(p,H){const {T,root,box,ball,mat}=H,q=selected();if(!fx||q.theme==='normal'||q.intensity===0)return null;const g=new T.Group();g.userData.themeDecoration=true;root.add(g);const W=p.cols*1.82,D=p.rows*1.82,colors=q.theme==='christmas'?[0x2a9a60,0xe44d4d,0xffdf86]:q.theme==='newyear'?[0xffd46c,0xa88df1,0x75c6e9]:[0x38bbd0,0xf5b45c,0xe981b2,0x8aca80];const n=Math.max(2,Math.min(18,Math.ceil(12*q.intensity/100)));for(const s of [-1,1]){for(let i=0;i<n;i++){const x=(i+.5)*W/n-W/2,z=s*(D/2+.18);const c=mat(colors[i%colors.length]);if(q.theme==='songkran'){box(g,c,x,.27,z,.38,.19,.07,false);}else{ball(g,c,x,.28,z,.075,.095,.075);}}for(let i=0;i<n;i++){const z=(i+.5)*D/n-D/2,x=s*(W/2+.18),c=mat(colors[(i+1)%colors.length]);if(q.theme==='songkran')box(g,c,x,.27,z,.07,.19,.38,false);else ball(g,c,x,.28,z,.075,.095,.075);}}
- // Small exterior festival displays. They are not saved floor objects, and sit outside both axes.
- const strength=.65+.35*q.intensity/100,cornerX=W/2+1.18,cornerZ=-D/2-1.18;
- const scalePoint=(x,y,z)=>[cornerX+x*strength,y*strength,cornerZ+z*strength];
- const cubeAt=(c,x,y,z,w,h,d)=>box(g,mat(c),...scalePoint(x,y,z),w*strength,h*strength,d*strength,false);
- const ballAt=(c,x,y,z,w,h,d)=>ball(g,mat(c),...scalePoint(x,y,z),w*strength,h*strength,d*strength);
+ // Place the centerpiece only on the free, non-walkable strip between doors.
+ // The renderer wall plane is 0.78 units behind each wall-cell center.
+ function festivalSpot(p,field){
+  const doors=Object.entries(p.cells).filter(([,c])=>c.type==='door').map(([k])=>k.split(',').map(Number));const candidates=[];
+  for(let i=0;i<doors.length;i++)for(let j=i+1;j<doors.length;j++){
+   const [ax,ay]=doors[i],[bx,by]=doors[j],horizontal=ay===by,vertical=ax===bx;if(!horizontal&&!vertical)continue;
+   const a=horizontal?ax:ay,b=horizontal?bx:by,lo=Math.min(a,b),hi=Math.max(a,b);if(hi-lo<2)continue;
+   const cells=[];for(let k=lo+1;k<hi;k++){const x=horizontal?k:ax,y=horizontal?ay:k;if(p.cells[`${x},${y}`]?.type!=='wall'){cells.length=0;break;}cells.push([x,y,k]);}
+   for(const [x,y,k] of cells){const cx=x+(vertical?.035:0),cy=y+(horizontal?.035:0);const r=.35;
+    // Reserve the blocked wall tile, not the adjacent aisle. The footprint is in front of the wall plane.
+    if(field?.rects?.some(o=>o.x1<cx+r&&o.x2>cx-r&&o.y1<cy+r&&o.y2>cy-r))continue;
+    candidates.push({x:cx,y:cy,key:`${x},${y}`,vertical,score:Math.abs(k-(lo+hi)/2),span:hi-lo});}
+  }
+  return candidates.sort((a,b)=>b.span-a.span||a.score-b.score||a.key.localeCompare(b.key))[0]||null;
+ }
+ // Small perimeter lights stay on the floor edge; no geometry in pickables, no changes to plan.
+ function decorate(p,H){const {T,root,box,ball,mat,field}=H,q=selected();if(!fx||q.theme==='normal'||q.intensity===0)return null;const g=new T.Group();g.userData.themeDecoration=true;root.add(g);const W=p.cols*1.82,D=p.rows*1.82,colors=q.theme==='christmas'?[0x2a9a60,0xe44d4d,0xffdf86]:q.theme==='newyear'?[0xffd46c,0xa88df1,0x75c6e9]:[0x38bbd0,0xf5b45c,0xe981b2,0x8aca80];const n=Math.max(2,Math.min(18,Math.ceil(12*q.intensity/100)));for(const s of [-1,1]){for(let i=0;i<n;i++){const x=(i+.5)*W/n-W/2,z=s*(D/2-.035);const c=mat(colors[i%colors.length]);if(q.theme==='songkran'){box(g,c,x,.27,z,.38,.19,.07,false);}else{ball(g,c,x,.28,z,.075,.095,.075);}}for(let i=0;i<n;i++){const z=(i+.5)*D/n-D/2,x=s*(W/2-.035),c=mat(colors[(i+1)%colors.length]);if(q.theme==='songkran')box(g,c,x,.27,z,.07,.19,.38,false);else ball(g,c,x,.28,z,.075,.095,.075);}}
+ // No fallback to a floating object outside the office if the gap is blocked.
+ const spot=festivalSpot(p,field);if(!spot)return g;
+ const display=new T.Group();display.userData.festivalSpot=spot.key;display.position.set((spot.x-(p.cols-1)/2)*1.82,0,(spot.y-(p.rows-1)/2)*1.82);display.rotation.y=spot.vertical?Math.PI/2:0;g.add(display);
+ const strength=.60+.13*q.intensity/100;
+ const scalePoint=(x,y,z)=>[x*strength,y*strength,z*strength];
+ const cubeAt=(c,x,y,z,w,h,d)=>box(display,mat(c),...scalePoint(x,y,z),w*strength,h*strength,d*strength,false);
+ const ballAt=(c,x,y,z,w,h,d)=>ball(display,mat(c),...scalePoint(x,y,z),w*strength,h*strength,d*strength);
  if(q.theme==='christmas'){
   cubeAt(0x9a6845,0,.28,0,.22,.56,.22);for(let j=0;j<4;j++){const r=.73-j*.135;ballAt(j%2?0x347b48:0x276c40,0,.61+j*.35,0,r,.45,r);for(let k=0;k<5;k++){const a=k*2*Math.PI/5+j*.6;ballAt(colors[(j+k)%colors.length],Math.cos(a)*r*.83,.67+j*.35,Math.sin(a)*r*.83,.074,.074,.074);}}
   ballAt(0xffd770,0,2.04,0,.13,.17,.13);for(const [x,z,c] of [[-.56,.53,0xc64949],[.56,.44,0x367d65]]){cubeAt(c,x,.15,z,.42,.30,.40);cubeAt(0xffd779,x,.31,z,.07,.025,.42);cubeAt(0xffd779,x,.31,z,.44,.025,.065);}
@@ -46,5 +63,5 @@ window.OC63_THEME=(()=>{
   for(const x of [-.65,.65])cubeAt(0x9e7751,x,.86,0,.06,1.72,.06);cubeAt(0xb5c4ba,0,1.68,0,1.35,.035,.035);for(let i=0;i<5;i++)cubeAt(colors[i%colors.length],(i-2)*.25,1.51,0,.19,.26,.035);ballAt(0x8cd6eb,0,.24,0,.54,.20,.54);for(let i=0;i<6;i++)ballAt(colors[i%colors.length],Math.cos(i*1.047)*.38,.42,Math.sin(i*1.047)*.38,.075,.075,.075);
  }
  return g;}
- return {update,lost,selected,effective,clean,lighting,decorate,enabled,label,ready:()=>ready,config:()=>({...config}),particleCount:()=>particles.length};
+ return {update,lost,selected,effective,clean,lighting,festivalSpot,decorate,enabled,label,ready:()=>ready,config:()=>({...config}),particleCount:()=>particles.length};
 })();
