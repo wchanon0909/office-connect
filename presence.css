@@ -7,3 +7,7 @@
 @media(max-width:650px){.status-dialog{padding:16px}.status-option-copy strong{font-size:12px}.status-option-copy small{font-size:10px}.status-dialog label.status-option{padding:9px 6px;gap:6px}.status-quick{min-width:32px;padding:7px}.status-quick .presence-dot{width:10px;height:10px}}
 
 .admin-mode #myStatus{display:none!important}
+
+/* V4.3: icons for live desks; muted non-connected workstation sprites. */
+body:not(.admin-mode):not(.editor-mode) .cell.desk:not([data-connection=online]) .sprite{filter:grayscale(1) saturate(0) contrast(.72) brightness(1.12);opacity:.8}
+.presence-dot:is([data-state=busy],[data-state=meeting],[data-state=break],[data-state=away],[data-state=dnd]){width:19px;height:19px;display:inline-grid;place-items:center;color:#172238;box-shadow:0 0 0 1px #eff5ff55}.presence-dot svg{width:75%;height:75%;display:block;flex:none}.cell .presence-dot:is([data-state=busy],[data-state=meeting],[data-state=break],[data-state=away],[data-state=dnd]){width:16px;height:16px;top:3px;right:3px}.status-quick .presence-dot:is([data-state=busy],[data-state=meeting],[data-state=break],[data-state=away],[data-state=dnd]){width:20px;height:20px}.status-option .presence-dot:is([data-state=busy],[data-state=meeting],[data-state=break],[data-state=away],[data-state=dnd]){width:22px;height:22px}

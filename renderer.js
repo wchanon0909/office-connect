@@ -11,10 +11,14 @@ function mesh(g,geo,m,x,y,z,sx,sy,sz,shadow=true){const a=new T.Mesh(geo,m);a.po
 const box=(g,m,x,y,z,w,h,d,s=true)=>mesh(g,cube,m,x,y,z,w,h,d,s);const round=(g,m,x,y,z,r,h)=>mesh(g,cyl,m,x,y,z,r,h,r);const ball=(g,m,x,y,z,sx,sy,sz)=>mesh(g,sphere,m,x,y,z,sx,sy,sz);
 const wood=mat(0xc5a47d),edge=mat(0x8c6747),white=mat(0xe8e4d9),metal=mat(0x343c42,.4,.35),chair=mat(0x4c5860),paper=mat(0xf6f3e9),dark=mat(0x222a30),screen=new T.MeshStandardMaterial({color:0x8bc9d4,emissive:0x448899,emissiveIntensity:.45,roughness:.45}),offscreen=mat(0x293e45),green=mat(0x467a43),lightgreen=mat(0x769c55);
 const executiveDeskIds=new Set(['D-063','D-073']);
-const markerMats=new Map();
-function drawPresence(g,c,executive){const key=window.OC42_STATUS.state(c);if(key==='vacant'||key==='unknown')return;const color=window.OC42_STATUS.states[key].color;if(!markerMats.has(color))markerMats.set(color,new T.MeshBasicMaterial({color}));const x=executive ? .68 : .65,y=executive?1.68:1.58,z=executive?-.52:-.45;ball(g,markerMats.get(color),x,y,z,.125,.125,.125).castShadow=false;}
+// Cached neutral materials keep desks pickable and avoid transparent depth sorting.
+const fadedMats=new Map(),markerMats=new Map();
+function fadedMaterial(m){if(!fadedMats.has(m)){const copy=m.clone();const lum=.2126*m.color.r+.7152*m.color.g+.0722*m.color.b;const g=.22+.48*lum;copy.color.setRGB(g,g,g);if(copy.emissive)copy.emissive.setRGB(0,0,0);copy.metalness=.06;copy.roughness=.88;fadedMats.set(m,copy);}return fadedMats.get(m);}
+function fadeDesk(g){g.traverse(o=>{if(o.isMesh&&o.material?.color)o.material=fadedMaterial(o.material);});}
+function markerMaterial(key){if(markerMats.has(key))return markerMats.get(key);const s=window.OC42_STATUS,canvas=document.createElement('canvas');canvas.width=canvas.height=128;const ctx=canvas.getContext('2d');ctx.beginPath();ctx.arc(64,64,52,0,Math.PI*2);ctx.fillStyle=s.states[key].color;ctx.fill();ctx.lineWidth=5;ctx.strokeStyle='#eef5ff';ctx.stroke();const path=s.glyphs[key];if(path){ctx.save();ctx.translate(28,28);ctx.scale(3,3);ctx.strokeStyle='#172238';ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke(new Path2D(path));ctx.restore();}const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;const material=new T.SpriteMaterial({map:texture,transparent:true,depthTest:true,depthWrite:false,toneMapped:false});markerMats.set(key,material);return material;}
+function drawPresence(g,c,executive){const key=window.OC42_STATUS.state(c);if(!window.OC42_STATUS.keys.includes(key))return;const marker=new T.Sprite(markerMaterial(key));marker.position.set(executive ? .66 : .65,executive ? 1.80 : 1.70,executive ? -.52 : -.45);const size=key==='available' ? .31 : .49;marker.scale.set(size,size,1);g.add(marker);}
 const deskState=c=>JSON.stringify([!!c.name,c.status,c.connection,c.personalStatus]);
-function desk(g,c){
+function buildDesk(g,c){
  const executive=executiveDeskIds.has(c?.id);
  if(executive){
   box(g,mat(0x5e6f86,.8,.05),0,.03,.06,1.74,.03,1.44,false);
@@ -26,15 +30,16 @@ function desk(g,c){
   box(g,paper,.26,.84,-.04,.58,.022,.22);box(g,paper,-.16,.84,.14,.34,.018,.18);box(g,metal,.61,.83,.06,.11,.05,.15);round(g,white,.78,.88,-.52,.06,.16);round(g,mat(0x6d4a31),.78,.97,-.52,.047,.01);
   const z=.60;round(g,metal,0,.27,z,.06,.45);for(let i=0;i<5;i++){const a=i*Math.PI*2/5;const foot=box(g,metal,Math.sin(a)*.14,.08,z+Math.cos(a)*.14,.06,.04,.30);foot.rotation.y=a;ball(g,dark,Math.sin(a)*.28,.06,z+Math.cos(a)*.28,.045,.052,.045);}box(g,mat(0x35404d),0,.50,z,.68,.12,.58);box(g,mat(0x35404d),0,.84,z+.27,.70,.56,.11);for(const x of [-.37,.37]){box(g,metal,x,.63,z,.04,.22,.04);box(g,chair,x,.76,z,.085,.06,.38);} 
   if(c.name&&c.status==='online'){const shirt=mat(c.status==='away'?0xa97b49:0x507f98),skin=mat(0xd8a57d);ball(g,shirt,0,.84,z,.25,.30,.17);ball(g,skin,0,1.18,z-.02,.13,.16,.13);ball(g,mat(0x47372c),0,1.24,z+.03,.14,.11,.13);for(const x of [-.18,.18]){box(g,shirt,x,.83,z-.13,.12,.13,.30);ball(g,skin,x,.85,z-.30,.058,.048,.078);}} 
-  drawPresence(g,c,true);return;
+  return;
  }
  box(g,edge,0,.72,-.21,1.61,.105,.88);box(g,wood,0,.78,-.21,1.63,.055,.9);for(const x of [-.72,.72])for(const z of [-.56,.15])box(g,metal,x,.35,z,.055,.7,.055);box(g,metal,0,.52,-.59,1.42,.07,.05);box(g,white,-.49,.36,-.25,.35,.62,.67);for(let i=0;i<3;i++){box(g,edge,-.49,.15+i*.19,.092,.34,.014,.012);box(g,metal,-.49,.21+i*.19,.105,.11,.024,.02);}
  box(g,metal,.12,.84,-.44,.32,.035,.19);box(g,metal,.12,1.0,-.48,.045,.3,.055);box(g,dark,.12,1.2,-.49,.66,.43,.075);box(g,c.name&&c.status==='online'?screen:offscreen,.12,1.2,-.445,.60,.37,.018);for(let i=0;i<3;i++)box(g,mat(0xa1d7de),.02,1.29-i*.075,-.431,.32-i*.055,.012,.008,false);
  box(g,paper,.08,.82,-.02,.49,.025,.17);for(let j=0;j<3;j++)box(g,mat(0xa1a7a7),.08,.836,-.08+j*.052,.43,.003,.008,false);box(g,metal,.43,.83,.005,.09,.045,.13);box(g,paper,-.53,.815,-.12,.24,.016,.27);box(g,mat(0x446f7e),-.52,.83,-.12,.018,.014,.25);round(g,white,.66,.88,-.48,.055,.14);round(g,mat(0x75533c),.66,.956,-.48,.043,.009);
  const z=.54;round(g,metal,0,.25,z,.055,.41);for(let i=0;i<5;i++){const a=i*Math.PI*2/5;const foot=box(g,metal,Math.sin(a)*.13,.075,z+Math.cos(a)*.13,.055,.035,.28);foot.rotation.y=a;ball(g,dark,Math.sin(a)*.26,.055,z+Math.cos(a)*.26,.042,.05,.042);}box(g,chair,0,.46,z,.52,.1,.47);box(g,chair,0,.73,z+.22,.53,.45,.09);for(const x of [-.3,.3]){box(g,metal,x,.58,z,.035,.19,.035);box(g,chair,x,.69,z,.075,.055,.32);}
  if(c.name&&c.status==='online'){const shirt=mat(c.status==='away'?0xa97b49:0x507f98),skin=mat(0xd8a57d);ball(g,shirt,0,.78,z,.23,.28,.15);ball(g,skin,0,1.10,z-.025,.125,.15,.12);ball(g,mat(0x47372c),0,1.16,z+.025,.13,.11,.12);for(const x of [-.17,.17]){box(g,shirt,x,.77,z-.12,.11,.12,.28);ball(g,skin,x,.79,z-.28,.055,.045,.075);}}
- drawPresence(g,c,false);
+
 }
+function desk(g,c){buildDesk(g,c);if(c.connection!=='online')fadeDesk(g);else drawPresence(g,c,executiveDeskIds.has(c.id));}
 function wall(g,door,vertical){
  if(vertical)g.rotation.y=Math.PI/2;const h=1.48;
  const segment=(x,w,height=h,y=h/2,trim=true)=>{box(g,white,x,y,-.78,w,height,.16);if(trim){box(g,wood,x,.12,-.676,w,.19,.045);box(g,edge,x,.25,-.68,w,.035,.045);}};
