@@ -17,3 +17,18 @@
 #grid .oc50-floor-avatar[data-pose=seat]{border-color:#c7adff;box-shadow:0 0 0 2px #a78bfa55}
 #grid .oc50-floor-avatar[data-pose=lean]{border-color:#f5bc7d}
 @media(max-width:600px){#livingDock{max-width:calc(100% - 18px);flex-wrap:wrap}#livingDock button{padding:6px;gap:3px;font-size:10px}#livingDock button svg{width:13px;height:13px}}
+
+/* V5.1.1 camera and optional status bubbles */
+.camera-dock #statusBubbles span{display:block}
+.camera-dock #statusBubbles[aria-pressed=true]{background:#3b4778;border-color:#aaa6ff;color:#e4dfff}
+.editor-mode #statusBubbles{display:none!important}
+#cameraControls.view-settings{display:flex;flex-direction:column;align-items:stretch;overflow-x:hidden;overflow-y:auto;gap:9px;min-width:0}
+#cameraControls[hidden]{display:none!important}
+#cameraControls .view-presets{display:flex;gap:6px;min-width:0;flex-wrap:nowrap;justify-content:center}
+#cameraControls .view-presets button{flex:1;min-width:0;white-space:normal;line-height:1.35;padding:7px 5px}
+#cameraControls input[type=range]{width:100%;min-width:0;margin:0;max-width:100%}
+#cameraControls .oc-view-mode{display:grid;gap:5px;padding:8px;background:#131e31;border:1px solid #40516d;border-radius:11px;text-align:center;min-width:0}
+.oc-view-mode small,.oc-view-heading{font-size:11px;color:#b9c7df}.oc-view-mode button{width:100%;min-width:0;white-space:normal;font-size:12px;padding:7px 5px;border:1px solid #465675;border-radius:8px;background:#26344c;color:#e7edfc}
+.oc-view-mode button[aria-pressed=true]{background:#665cc5;border-color:#b8adff;color:white;font-weight:700}
+.oc-view-mode p{font-size:10px;color:#a9bad2;margin:1px 0 0;line-height:1.4}
+.oc-view-heading{text-align:center}.oc-view-heading output{color:#b6b3ff;font-weight:700}
