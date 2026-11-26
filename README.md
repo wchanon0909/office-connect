@@ -1,8 +1,15 @@
-# Office Connect — V5.3.3
+# Office Connect — V5.3.4
 
 Virtual Office สำหรับเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
+
+## What's new — V5.3.4: Status & Live Sync
+
+- เปิดสถานะเหนือหัวเป็นค่าเริ่มต้น (เปิดให้ผู้ใช้เดิมครั้งแรกด้วย); ปิด/เปิดเองได้ที่มุมขวาล่าง และจำค่าหลังจากนั้น หากไม่มีข้อความจะแสดงเฉพาะไอคอน หากมีจะแสดงไอคอนและข้อความที่พิมพ์เอง Guest ไม่เห็นสถานะ
+- Realtime และ polling เดิมยังทำงาน เพิ่มการตรวจข้อมูลกลางและ Inbox ทุก 60 วินาทีโดยไม่ reload หน้าเว็บ; เมื่อกลับมาเปิดแท็บหรือออนไลน์ใหม่จะ sync ทันที
+- คลิกไอคอนกลุ่มจากโต๊ะเพื่อขอร่วมฟังได้โดยไม่ต้องเปิดแชทก่อน เมื่อสมาชิกอนุมัติจึงเข้ากลุ่ม เดินไปหา และเปิดแชท; ไม่เห็นข้อความเก่าก่อนเข้าร่วม
+- ไม่ต้องเพิ่ม SQL migration หากติดตั้ง Migration 17 (Install) สำเร็จแล้ว
 
 ## What's new - V5.3.3: Hall activity messages
 
@@ -47,6 +54,8 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 
 ## Deployment / Upgrade
 
+**V5.3.4:** Frontend only. Requires committed migration 17 for hall activity messages and migration 16 for hall requests. Upload the files in this release `site/`; no new SQL. If an earlier migration was only dry-run, install that migration before upgrading.
+
 **V5.3.3:** From V5.3.2 (including the password hotfix), run `17-hall-events-check-only.txt` then `17-hall-events-install.txt` from `setup/`. The SQL self-test requires two registered profiles and one free hall zone. It does not retain synthetic test rows; identity sequence gaps can occur. Upload the files in `site/` after install.
 
 **อัปเดตจาก V5.3.1:** ต้องติดตั้ง Migration 16 แบบ Install สำเร็จก่อน (Dry Run ไม่บันทึกฐานข้อมูล) ตรวจด้วยไฟล์ `setup/check-v532-database.txt` ที่มากับชุดอัปเดต หากได้ `V5.3.2 DATABASE READY` และ `database_ready = true` ไม่ต้อง Run SQL อีก หากไม่พร้อมให้ใช้ไฟล์ Migration 16 check-only และ install ตามคู่มือใน ZIP ก่อนอัปโหลดเว็บไซต์
@@ -82,7 +91,8 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 | V5.3 | Hall chat requests and return-to-desk behavior |
 | V5.3.1 | Compact hall positions, chat deletion, SQL migration 16 |
 | V5.3.2 | Minimized chat dock, central notifications, room-only chat list, password wording hotfix |
-| **V5.3.3** | Hall join/leave system messages (migration 17) |
+| V5.3.3 | Hall join/leave system messages (migration 17) |
+| **V5.3.4** | Default head status, minute reconciliation, direct hall join request |
 
 ## Roadmap
 

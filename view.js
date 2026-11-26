@@ -4,9 +4,10 @@ window.OC511_VIEW=(()=>{
  const KEY='office-connect:view-preferences:v1';
  const DEFAULT_ELEVATION=30, DEFAULT_AZIMUTH=45;
  const norm=a=>((a%360)+360)%360;
- const defaults={mode:'desk',bubbles:false};
+ // V5.3.4: enable once for existing installations as well as new users.
+ const defaults={mode:'desk',bubbles:true};
  let prefs={...defaults};
- try{const raw=JSON.parse(localStorage.getItem(KEY)||'null');if(raw){prefs.mode=raw.mode==='fixed'?'fixed':'desk';prefs.bubbles=raw.bubbles===true;}}catch{}
+ try{const raw=JSON.parse(localStorage.getItem(KEY)||'null');if(raw){prefs.mode=raw.mode==='fixed'?'fixed':'desk';prefs.bubbles=raw.bubbleDefaultVersion===2?raw.bubbles!==false:true;}}catch{}
  const $=id=>document.getElementById(id);
  const mode=()=>prefs.mode,bubbles=()=>prefs.bubbles;
  const officeMode=()=>!window.officeAPI?.isEditing()&&!window.officeCloudBridge?.isAdminMode();
@@ -27,13 +28,13 @@ window.OC511_VIEW=(()=>{
   const verticalRoom=base/zoom-bounds(plan,aspect,DEFAULT_ELEVATION,az).height/2;
   return {zoom,base,upwardShift:w>=650?Math.max(0,Math.min(base/zoom*.08,verticalRoom*.6)):0};}
  function seated(c,walking){return !!c?.name&&c.connection==='online'&&c.status==='online'&&!walking;}
- function save(){try{localStorage.setItem(KEY,JSON.stringify(prefs));}catch{}}
- function paint(){const follow=$('followDeskView'),fixed=$('fixedOfficeView'),toggle=$('statusBubbles');if(follow)follow.setAttribute('aria-pressed',String(mode()==='desk'));if(fixed)fixed.setAttribute('aria-pressed',String(mode()==='fixed'));if(toggle){toggle.setAttribute('aria-pressed',String(bubbles()));toggle.title=bubbles()?'ซ่อนข้อความสถานะเหนือหัว':'แสดงข้อความสถานะเหนือหัว';}}
+ function save(){try{localStorage.setItem(KEY,JSON.stringify({...prefs,bubbleDefaultVersion:2}));}catch{}}
+ function paint(){const follow=$('followDeskView'),fixed=$('fixedOfficeView'),toggle=$('statusBubbles');if(follow)follow.setAttribute('aria-pressed',String(mode()==='desk'));if(fixed)fixed.setAttribute('aria-pressed',String(mode()==='fixed'));if(toggle){toggle.setAttribute('aria-pressed',String(bubbles()));toggle.title=bubbles()?'ซ่อนสถานะเหนือหัว':'แสดงสถานะเหนือหัว';toggle.setAttribute('aria-label',toggle.title);toggle.querySelector('span').textContent=bubbles()?'สถานะ: เปิด':'สถานะ: ปิด';}}
  function setMode(next){if(!['desk','fixed'].includes(next))return;prefs.mode=next;save();paint();window.office3D?.resetView();}
  function toggleBubbles(){prefs.bubbles=!prefs.bubbles;save();paint();window.office3D?.updateBubbles();}
  function ready(ok){for(const id of ['followDeskView','fixedOfficeView','statusBubbles']){const b=$(id);if(b)b.disabled=!ok;}}
  function showAngle(a){const out=$('azimuthValue');if(out)out.textContent=norm(a)+'\u00b0';}
  $('followDeskView').onclick=()=>setMode('desk');$('fixedOfficeView').onclick=()=>setMode('fixed');$('statusBubbles').onclick=toggleBubbles;
- paint();ready(false);
+ save();paint();ready(false);
  return {DEFAULT_ELEVATION,DEFAULT_AZIMUTH,mode,bubbles,ownDesk,heading,azimuth,seatKey,fitBase,framing,seated,setMode,toggleBubbles,ready,showAngle};
 })();

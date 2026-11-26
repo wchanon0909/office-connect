@@ -93,3 +93,13 @@ body,button,input,select,textarea{font-family:inherit}
 .chat-system-event.leave{color:#c4cbd8}
 .chat-system-text{font-weight:500;max-width:100%}
 .chat-system-time{font-size:10px;color:#91a3ba}
+
+/* V5.3.4: one independent status toggle in the lower-right corner. */
+#statusBubbles.status-visibility-toggle{position:absolute;bottom:16px;right:16px;z-index:12;display:flex;align-items:center;gap:6px;padding:8px 11px;border-radius:12px;min-height:38px;background:#1d2b43f5;color:#e2e9fa;border:1px solid #586c90;font-size:12px;box-shadow:0 4px 18px #111b2d55;white-space:nowrap}
+#statusBubbles.status-visibility-toggle svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}
+#statusBubbles.status-visibility-toggle[aria-pressed=true]{background:#3b4778;border-color:#aaa6ff;color:#e4dfff}
+.admin-mode #statusBubbles,.editor-mode #statusBubbles{display:none!important}
+body:has(#chatPanel:not([hidden]).chat-minimized) #statusBubbles.status-visibility-toggle{bottom:82px}
+body:has(#chatPanel:not([hidden]):not(.chat-minimized)) #statusBubbles.status-visibility-toggle{right:calc(min(660px,100vw - 32px) + 28px)}
+@media(max-width:800px){body:has(#chatPanel:not([hidden]):not(.chat-minimized)) #statusBubbles.status-visibility-toggle{visibility:hidden}}
+@media(max-width:620px){#statusBubbles.status-visibility-toggle{bottom:10px;right:10px}body:has(#chatPanel:not([hidden]).chat-minimized) #statusBubbles.status-visibility-toggle{bottom:73px}}
