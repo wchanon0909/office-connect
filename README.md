@@ -1,8 +1,16 @@
-# Office Connect — V5.4
+# Office Connect — V6.0
 
 Virtual Office สำหรับเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
+
+## What's new — V6.0: Office Productivity
+
+- สะกิดได้ทุกสถานะและฝากสะกิดให้คนออฟไลน์ได้ (เห็นเมื่อกลับมาออนไลน์) ไม่เปลี่ยนสถานะผู้รับและคง cooldown 30 วินาทีต่อคน / 10 ครั้งต่อนาที เมื่อผู้รับว่างหรือติดงานอยู่ที่โต๊ะและผู้ส่งเดินได้ จะเดินไปสะกิดเหมือนเดิม; กรณีอื่นแจ้งเตือนโดยตรง ไม่ดึงคนออกจากห้องประชุมหรือกลุ่มยืนคุย
+- กระดานประกาศ: สมาชิกที่เข้าสู่ระบบอ่านได้ ผู้ดูแลเผยแพร่และลบประกาศได้เท่านั้น
+- ฝากข้อความที่โต๊ะ: คลิกโต๊ะเพื่อน หรือเลือกผู้รับจากเมนูงานและประกาศ ส่งได้แม้เพื่อนไม่ออนไลน์ ข้อมูลผูกกับบัญชีผู้รับไม่ใช่โต๊ะ ผู้รับกดอ่านแล้วหรือเก็บออกจากกล่องได้ ผู้ส่งตรวจสถานะอ่านได้
+- แยกจากแชทเดิม; ไม่ส่งข้อความส่วนตัวผ่าน public snapshot หรือ Realtime signal; แสดงรายการประกาศล่าสุด 50 รายการ กล่องรับสูงสุด 100 รายการ (เลือกข้อความยังไม่อ่านก่อน) และกล่องส่งล่าสุด 50 รายการ
+- Run migration 18 check-only แล้ว install หลัง migration 16 และ 17 ที่ commit แล้ว; ไม่แก้ไขผัง บัญชี รหัสผ่าน หรือข้อมูลแชทเดิม
 
 ## What's new — V5.4: Natural Movement
 
@@ -43,6 +51,9 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 | สถานะ | ว่าง, ติดงาน, ห้ามรบกวน, ประชุม, พัก; ไม่อยู่ที่โต๊ะเป็นสถานะอัตโนมัติ |
 | ตัวละคร | แต่งตัว เปลี่ยนเพศ ทรงผมและชุด เดินกลับโต๊ะ ทักทายและพูดข้อความสั้น ๆ |
 | Private Message | คลิกโต๊ะของเพื่อน → ส่งข้อความ |
+| สะกิด | คลิกโต๊ะ → สะกิด ทุกสถานะ; ถ้าออฟไลน์จะได้รับเมื่อเข้าสู่ระบบ |
+| ประกาศ | งานและประกาศ → ประกาศ (Admin เผยแพร่/ลบได้) |
+| ฝากข้อความ | คลิกโต๊ะเพื่อน → ฝากข้อความที่โต๊ะ; ตรวจกล่องรับ/ที่ส่งไปในเมนูงานและประกาศ |
 | กลุ่มงาน | สร้างกลุ่มถาวรและเชิญเพื่อน ไม่บังคับให้ตัวละครเดิน |
 | กลุ่มยืนคุย | สร้างกลุ่ม / ตอบรับคำเชิญแล้วเดินมารวมกลุ่มกลางโถง |
 | ขอร่วมฟัง | คลิกไอคอนแชทเหนือกลุ่ม รอสมาชิกอนุญาต |
@@ -62,6 +73,8 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 - Presence: heartbeat; แยกสถานะออนไลน์จากการจองโต๊ะ
 
 ## Deployment / Upgrade
+
+**V6.0:** Run `setup/18-productivity-check-only.txt` and verify `V6.0 CHECK PASSED - ROLLED BACK`, then `setup/18-productivity-install.txt` and verify `V6.0 READY`. Dry run includes RPC/privacy smoke tests when two enabled desk owners are available; if only one exists the RLS and permission checks still run. Then upload `site/` to repository root, retaining all earlier files (including `motion.js`). Do not replace `online-config.js`, `layout.js`, or `layout.json`. Hard refresh after GitHub Pages deploys.
 
 **V5.4:** Frontend only. Upload the files in `site/` (including the new `motion.js`); no new SQL. Existing layouts, config, chat, and permissions stay unchanged. Requires V5.3.4 and its previously committed migrations.
 
@@ -104,14 +117,16 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 | V5.3.2 | Minimized chat dock, central notifications, room-only chat list, password wording hotfix |
 | V5.3.3 | Hall join/leave system messages (migration 17) |
 | V5.3.4 | Default head status, minute reconciliation, direct hall join request |
-| **V5.4** | Articulated walking, rounded turns, local clearance-aware passing, sitting transitions |
+| V5.4 | Articulated walking, rounded turns, local clearance-aware passing, sitting transitions |
+| **V6.0** | All-status pokes, announcement board, private desk notes, read receipts |
 
 ## Roadmap
 
 - V5.3.x: stabilize live hall chat, invitations, notifications, real-world UI testing
 - V5.4: natural motion and local clearance-aware steering; validate on the actual WebGL site
 - V5.4.x (optional): full chair-to-aisle paths and coordinated crowd navigation, if needed
-- V6.0 (planned): office productivity features (scope to be agreed)
+- V6.0: all-status pokes, announcements, private desk notes (current release)
+- V6.1 (proposed): meeting scheduling and reminders; scope to be agreed after feedback
 
 ## Current limitations
 

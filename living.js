@@ -68,11 +68,11 @@ window.OC50=(()=>{
  async function choose(k){if(!walkMode||!canWalk()||!inOffice()||busy||pendingVisit)return false;const p=window.officeAPI.getMap();if(!k||!/^\d+,\d+$/.test(k))return false;const [x,y]=point(k);if(x<0||y<0||x>=p.cols||y>=p.rows||(p.cells[k]&&p.cells[k].type!=='aisle'&&!(interaction&&isRoomKey(k,p)))){note('เลือกช่องพื้นว่าง ทางเดิน หรือห้องประชุมนะ');return false;}walkMode=false;const ok=await moveTo(k);refreshUI();return ok;}
  async function joinMeeting(){if(!interaction||!canWalk()||busy||pendingVisit||!inOffice())return;walkMode=false;window.officeAPI?.select(null);await moveTo('4,3');refreshUI();}
  async function returnDesk(){if(busy||pendingVisit)return;walkMode=false;if(huddleId){await action('oc55_leave_huddle',{p_room:huddleId});refreshUI();return;}if(!canWalk())return;await moveTo(null);refreshUI();}
- async function visit(desk,peer,nickname){
-  if(!interaction||!canWalk()||!inOffice()){note('เลือกโต๊ะประจำและสถานะที่พร้อมเดินก่อนนะ');return false;}
-  if(busy||pendingVisit||motion(me.desk_id)?.moving){note('รอให้ตัวละครเดินถึงจุดหมายก่อนนะ');return false;}
+ function canVisit(desk){return interaction&&canWalk()&&inOffice()&&!huddleId&&!busy&&!pendingVisit&&['available','busy','dnd'].includes(me?.personal_status)&&!motion(me.desk_id)?.moving&&!motion(desk);}
+ async function visit(desk,peer,nickname,onFailure){
+  if(!canVisit(desk))return false;
   const gen=generation,nonce=crypto.randomUUID();walkMode=false;window.officeAPI?.select(null);
-  const result=await action('oc51_move',{p_target:desk,p_revision:revision,p_kind:'poke',p_peer:peer,p_nonce:nonce});
+  const result=await action('oc51_move',{p_target:desk,p_revision:revision,p_kind:'poke',p_peer:peer,p_nonce:nonce},onFailure);
   if(gen!==generation||!result||result.nonce!==nonce||!Number.isFinite(result.arrival_ms))return false;
   pendingVisit={nonce,nickname,arrival:result.arrival_ms+1050,attempts:0,gen};refreshUI();return true;
  }
@@ -97,5 +97,5 @@ window.OC50=(()=>{
   for(const {id,motion:m} of walking){const key=Object.keys(p.cells).find(k=>p.cells[k].id===id),c=p.cells[key];if(!c||c.connection!=='online')continue;const floor=document.getElementById('c'+Math.round(m.x)+','+Math.round(m.y));if(!floor)continue;let token=lastFallback.get(id);if(!token){token=document.createElement('span');token.className='oc50-floor-avatar';token.dataset.deskKey=key;lastFallback.set(id,token);}token.title=c.visualOnly?'':c.name+(m.pose==='seat'?' · นั่งประชุม':m.pose==='lean'?' · ยืนริมผนัง':'');token.textContent=c.visualOnly?'●':c.name.slice(0,2).toUpperCase();token.dataset.pose=m.pose||'stand';token.style.left=Math.max(16,Math.min(84,50+(m.x-Math.round(m.x))*100))+'%';token.style.top=Math.max(16,Math.min(84,50+(m.y-Math.round(m.y))*100))+'%';token.style.setProperty('--avatar-shirt',palettes.shirt[appearance(id).shirt]);if(token.parentNode!==floor)floor.append(token);}
  }
  setInterval(()=>{refreshUI();fallback();void completeVisit();},150);
- return {palettes,avatar,appearance,update,lost,refreshUI,isWalking,motion,routeState,now,sample,motionRecord,doorOpenKeys,isRoomKey,interactionReady:()=>interaction,visit,joinMeeting,walkMode:()=>walkMode&&canWalk()&&inOffice(),choose,openAvatar,returnDesk,meDesk:()=>me?.desk_id,member};
+ return {palettes,avatar,appearance,update,lost,refreshUI,isWalking,motion,routeState,now,sample,motionRecord,doorOpenKeys,isRoomKey,interactionReady:()=>interaction,canVisit,visit,joinMeeting,walkMode:()=>walkMode&&canWalk()&&inOffice(),choose,openAvatar,returnDesk,meDesk:()=>me?.desk_id,member};
 })();
