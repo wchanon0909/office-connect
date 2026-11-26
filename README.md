@@ -1,8 +1,15 @@
-# Office Connect — V6.1.3
+# Office Connect — V6.1.4
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
+
+## What's new — V6.1.4: Avatar profile portrait
+
+- Click a seated or walking colleague to see a full-body illustrated avatar in the existing lower-right profile panel. It uses the same saved outfit, hair, skin, and accessory palette as the wardrobe preview; it is not an actual 3D screenshot.
+- The portrait refreshes with the shared avatar snapshot, without saving the viewer's unsaved wardrobe changes or changing any desk/profile actions. Anonymous guests and empty desks retain the original placeholder; unavailable appearance data also falls back to initials.
+- Position the profile above the status, idea and rest corner buttons, so they do not obstruct profile actions on desktop or mobile.
+- Frontend-only patch: upload `index.html`, `app.js`, `living.js`, `living.css`, and `README.md` over V6.1.3. No new SQL. Keep existing migrations, including the corrected migration 22 FIX1, and existing layout/configuration.
 
 ## What's new — V6.1.3: Water dispenser & drink animation
 

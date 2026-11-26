@@ -106,3 +106,17 @@ body:has(#chatPanel:not([hidden]):not(.chat-minimized)) #statusBubbles.status-vi
 
 /* V6.1.1: separate character rotation from camera rotation. */
 #livingDock #faceLeft[hidden],#livingDock #faceRight[hidden]{display:none!important}#livingDock{max-width:calc(100% - 32px);flex-wrap:wrap}#livingDock #faceLeft,#livingDock #faceRight{background:#32465c;border-color:#637e9e} @media(max-width:600px){#livingDock{max-width:calc(100% - 18px)}#livingHint{top:105px}}
+
+/* V6.1.4: compact character portrait in the selected desk/person profile. */
+.oc614-profile-identity{display:flex;align-items:center;gap:12px;margin:4px 0 10px;min-width:0}
+.oc614-profile-portrait{flex:0 0 78px;width:78px;height:102px;display:grid;place-items:center;border:1px solid #50678a;border-radius:13px;background:radial-gradient(ellipse at 50% 40%,#465e81,#202d45 76%);overflow:hidden}
+.oc614-profile-portrait .oc614-avatar-art{display:block;width:100%;height:100%;padding:4px;stroke:none}
+.oc614-avatar-art [hidden]{display:none!important}
+.oc614-profile-copy{min-width:0;flex:1;overflow-wrap:anywhere}
+.detail-card .oc614-profile-copy h3{margin:0 0 6px}
+.detail-card .oc614-profile-copy .desk-status-note{margin:6px 0 0}
+@media(max-width:600px){.oc614-profile-identity{gap:8px}.oc614-profile-portrait{flex-basis:62px;width:62px;height:82px}.detail-card .oc614-profile-copy h3{font-size:17px}}
+/* Keep the three persistent corner controls below the profile, not over its action buttons. */
+body:not(.admin-mode) #deskPanel{bottom:156px;max-height:calc(100% - 174px);overflow:auto}
+body:not(.admin-mode):has(#chatPanel:not([hidden]).chat-minimized) #deskPanel{bottom:222px;max-height:calc(100% - 240px)}
+@media(max-width:620px){body:not(.admin-mode) #deskPanel{bottom:144px;max-height:calc(100% - 156px)}body:not(.admin-mode):has(#chatPanel:not([hidden]).chat-minimized) #deskPanel{bottom:207px;max-height:calc(100% - 219px)}}
