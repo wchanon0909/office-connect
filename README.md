@@ -1,8 +1,14 @@
-# Office Connect — V5.3.2
+# Office Connect — V5.3.3
 
 Virtual Office สำหรับเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
+
+## What's new - V5.3.3: Hall activity messages
+
+- Hall chat displays centered system messages on successful join (including the creator) and leave, stored in the same ordered, private message stream. New members still see only events/messages after their join cutoff.
+- Minimize does not leave and does not produce an event. Failed/declined requests and repeated syncs do not produce events. No backfill.
+- Run migration 17 check-only and install after committed migration 16; see release instructions.
 
 ## What's new — V5.3.2: Chat Dock & Notifications
 
@@ -41,6 +47,8 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 
 ## Deployment / Upgrade
 
+**V5.3.3:** From V5.3.2 (including the password hotfix), run `17-hall-events-check-only.txt` then `17-hall-events-install.txt` from `setup/`. The SQL self-test requires two registered profiles and one free hall zone. It does not retain synthetic test rows; identity sequence gaps can occur. Upload the files in `site/` after install.
+
 **อัปเดตจาก V5.3.1:** ต้องติดตั้ง Migration 16 แบบ Install สำเร็จก่อน (Dry Run ไม่บันทึกฐานข้อมูล) ตรวจด้วยไฟล์ `setup/check-v532-database.txt` ที่มากับชุดอัปเดต หากได้ `V5.3.2 DATABASE READY` และ `database_ready = true` ไม่ต้อง Run SQL อีก หากไม่พร้อมให้ใช้ไฟล์ Migration 16 check-only และ install ตามคู่มือใน ZIP ก่อนอัปโหลดเว็บไซต์
 
 1. สำรอง Layout และ Source เดิมก่อนอัปเดต
@@ -73,7 +81,8 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 | V5.2.2 | Status actions, guest privacy and avatar save fix |
 | V5.3 | Hall chat requests and return-to-desk behavior |
 | V5.3.1 | Compact hall positions, chat deletion, SQL migration 16 |
-| **V5.3.2** | Minimized chat dock, central notifications, room-only chat list |
+| V5.3.2 | Minimized chat dock, central notifications, room-only chat list, password wording hotfix |
+| **V5.3.3** | Hall join/leave system messages (migration 17) |
 
 ## Roadmap
 
