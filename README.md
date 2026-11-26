@@ -1,8 +1,16 @@
-# Office Connect — V6.2
+# GFE & GOE Office — V6.3
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
-[เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
+[เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## What's new — V6.3: Theme Manager & corporate branding
+
+- Header: original GFE and GOE logo images and new name GFE & GOE Office. Existing URL, auth namespace and repository remain unchanged.
+- Admin → Theme Manager: shared preset (normal, Christmas, New Year, Songkran), simulated weather, intensity 0–100%, opt-in ambient/festive music, optional start/end in Bangkok time. Outside the scheduled interval the normal scene returns. Only one schedule is stored at a time. No real weather data.
+- Decorations (perimeter lights, a small Christmas tree/presents, New Year balloons, or Songkran bunting and a water-bowl display) are outside the floor footprint and use a separate noninteractive group; weather and confetti are lightweight screen-space effects. No changes to floor plan, desk ownership, chat, objects or navigation. The existing 3D Layout Studio remains available. Each user can turn effects off via มุมพัก & เพลง; reduced-motion settings suppress particles. Audio is original procedural music and does not autoplay.
+- Install SQL 23 first, then run `setup/24-theme-manager-check-only.txt`, followed by `setup/24-theme-manager-install.txt`. Upload the contents of `site/` including the two PNGs under `assets/`. Do not replace `online-config.js`, `layout.js`, `layout.json` or delete other assets. Refresh all clients. SQL 24 defaults to normal and preserves theme configuration on rerun.
+- Current tests use a mock backend; execute the PostgreSQL dry run before deploying. WebGL appearance must be confirmed in production.
 
 ## What's new — V6.2: Social Experience
 
@@ -129,6 +137,8 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 
 ## Deployment / Upgrade
 
+**V6.3 (current):** Run SQL 24 check-only then install after committed migration 23. Expected `V6.3 READY`, `theme_ready=true`. Upload site patch, retaining all earlier files.
+
 **V6.1.2:** Run migration 21 check-only and install, then upload the 9 site files. See the current release notes above.
 
 **V6.1.1 (historical):** Install SQL 19 first. Run `setup/20-free-grid-layout-check-only.txt` and verify `V6.1.1 CHECK PASSED - ROLLED BACK`; then run `setup/20-free-grid-layout-install.txt` and verify `V6.1.1 READY`, `walk_ready=true`, `rotate_ready=true`. Upload the patch files and the nine new SVGs under `assets/`. Keep existing `layout.js`, `layout.json` and `online-config.js`. No reset. Have all users refresh to V6.1.1 before publishing a layout containing new furniture types (older clients cannot validate them).
@@ -185,12 +195,13 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 | V6.1.2 | 3D Layout Studio, wall alignment, edge windows (migration 21) |
 | V6.1.3 | Dispenser approach, drinking animation, decoration-only bookshelf (migration 22 FIX1) |
 | V6.1.4 | Avatar portrait in the profile panel |
-| **V6.2** | Social Experience: dance, improved wave, consensual High Five (migration 23) |
+| V6.2 | Social Experience: dance, improved wave, consensual High Five (migration 23) |
+| **V6.3** | Theme Manager, shared weather and seasonal effects, GFE & GOE branding (migration 24) |
 
 ## Roadmap — Virtual Social Office (reordered)
 
-- V6.2 (current release): Social Experience — wave, dance, High Five. Additional poses and social activities can follow as minor updates.
-- V6.3: Theme Manager — Admin theme selection/scheduling, Christmas, New Year and Songkran presets, shared weather and visual-effect controls; no automatic replacement of the saved layout.
+- V6.2: Social Experience — wave, dance, High Five. Additional poses and social activities can follow as minor updates.
+- V6.3 (current release): Theme Manager — Admin theme selection/scheduling, Christmas, New Year and Songkran presets, shared weather and visual-effect controls; no automatic replacement of the saved layout.
 - V6.4: Seasonal World — richer festival activities and temporary decorations, music, effects and interactive content based on the Theme Manager.
 - V6.5: World Expansion — multi-scene engine, Café, Rooftop Garden, Game Room; Admin-designed layouts for every zone.
 - V6.6: Play Together — mini-games, activities and Easter eggs.
@@ -204,4 +215,4 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 - Chat history is not end-to-end encrypted. Guest cannot read private conversations or member identities from the intended member-only snapshot.
 - Standing places are reserved by the backend. V5.4 reduces overlap in open corridors but does not guarantee collision-free walking, especially near doors, crowded groups, and shared goals. The original backend route and desk anchor are preserved; the full seat-to-aisle route is not simulated. Visual offsets may differ temporarily across clients with delayed snapshots. 2D fallback uses the original discrete markers.
 - V6.1.1 manually placed props have no dedicated seat/queue reservation; visiting the same point can overlap avatars. The sofa is a standing lounge stop. Glass windows are placeable panels, not automatic city scenery. Fine-grid movement requires a reachable clear coarse-cell center and a clear final segment, not every physically empty sliver around furniture. Manual placement does not automatically guarantee every desk or meeting path remains reachable; avoid blocking aisles.
-- Test the deployed app against your own Supabase project before broad rollout. V6.1 was tested with Chromium, mock Supabase and Three.js API double; migration 19 needs the Supabase dry run and live install. Actual WebGL appearance and audio audibility have not been verified on the deployed site.
+- Test the deployed app against your own Supabase project before broad rollout. V6.3 was tested with Chromium, mock Supabase and a Three.js API double; migration 24 needs the Supabase dry run and live install. Actual WebGL appearance and audio audibility have not been verified on the deployed site.
