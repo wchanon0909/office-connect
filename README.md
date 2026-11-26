@@ -1,8 +1,19 @@
-# Office Connect — V6.0
+# Office Connect — V6.1
 
-Virtual Office สำหรับเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
+Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
+
+## What's new — V6.1: Living Environment & Idea Board
+
+- เพิ่มหน้าต่างกระจกและวิวเมืองแบบ low-poly ที่ขอบฉาก พร้อมแสงยามเช้า/กลางวัน/เย็น/กลางคืนตามเวลา Asia/Bangkok (ตรวจทุก 60 วินาทีและเมื่อกลับมาเปิดแท็บ)
+- เพิ่ม 8 จุดที่ริมผังเดิม: เครื่องชงกาแฟ ตู้น้ำ เครื่องปริ้น ตู้เย็น/ขนม ตู้เอกสาร มุมโซฟา มุมต้นไม้ และชั้นหนังสือ ไม่เปลี่ยนโต๊ะ 72 ตัว พื้นที่เดิน หรือฐานข้อมูล Layout; วัตถุอยู่นอกขอบ Grid และมีจุดยืนด้านในที่เข้าถึงได้ หากผังไม่ตรงหรือเส้นทางถูกแก้จะไม่วางจุดที่ใช้ไม่ได้
+- คลิกวัตถุในฉากหรือใช้ปุ่มมุมพัก & เพลง เพื่อเดินไปหาโดยใช้ RPC เดินเดิม เมื่อถึงจุดกาแฟ/น้ำ/ขนม/เครื่องปริ้นมีท่าถือแก้วหรือกระดาษจากตำแหน่งปลายทางร่วมกัน มุมโซฟายังเป็นจุดยืนพัก ไม่ใช่ระบบจองที่นั่ง; ยังไม่รองรับเดินไปพร้อมกันโดยไม่ซ้อนกันที่จุดเดียว
+- เพลง ambient สร้างจาก Web Audio API เป็นทำนองต้นฉบับ ไม่ดึงเสียงจากภายนอก เปิดเองเมื่อกดปุ่ม ปิดเมื่อสลับออกจากแท็บ ไม่เล่นอัตโนมัติ
+- กระดานเสนอไอเดียมุมขวาล่าง: สมาชิกที่มีบัญชีและโต๊ะโพสต์และอ่านได้ทุกคน แสดงชื่อ เวลา และข้อความ (สูงสุด 1,000 ตัวอักษร) เรียงจากใหม่ไปเก่า เก็บใน Supabase ไม่หมดอายุ โหลดครั้งละ 50 รายการและโหลดเก่ากว่าได้ ผู้โพสต์ลบของตัวเองได้ Admin ลบได้ทุกโพสต์; Guest ต้องเข้าสู่ระบบก่อนอ่าน เพื่อรักษาความเป็นส่วนตัวของสมาชิก
+- Auto refresh กระดานทุกประมาณ 15 วินาทีขณะเปิดหน้าล่าสุด (เมื่อโหลดหน้าประวัติย้อนไปหลายหน้าให้กดรีเฟรชเอง) ปุ่มรีเฟรชไม่ล้างร่างข้อความ
+- มีทะเบียน Scene เริ่มต้น `OC61_WORLD.scenes` สำหรับ `main-office` เท่านั้น เป็นฐานเตรียมโซนใหม่ ยังไม่มีการเดินทางข้ามฉากหรือ Theme Manager
+- Migration 19 เพิ่มเฉพาะกระดานไอเดียและ RPC ใหม่ ไม่แก้ข้อมูลบัญชี โต๊ะ แชท หรือระบบ V6.0; ต้องติดตั้ง SQL 18 แบบ Install ก่อน
 
 ## What's new — V6.0: Office Productivity
 
@@ -60,6 +71,8 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 | ย่อหน้าต่าง | `−` ย่อ, `▢` ขยาย; ยังอยู่ในกลุ่มและยังรับข้อความ |
 | ปิด / กลับโต๊ะ | `×` ปิดหน้าต่างกลุ่มยืนคุยแล้วออกจากกลุ่ม; กลับโต๊ะก็ออกจากกลุ่ม |
 | ลบแชท | `×` ในรายการแชท ล้างเฉพาะประวัติที่ตัวเองเห็น; กลุ่มยืนคุยจะออกและคืนตำแหน่ง |
+| มุมพัก & เพลง | คลิกวัตถุในฉากหรือปุ่มขวาล่างเพื่อเดินไปหา; เปิด/ปิดเพลง ambient ได้เอง |
+| เสนอไอเดีย | ปุ่มขวาล่าง → โพสต์และอ่านไอเดียของสมาชิก; โหลดข้อความเก่าได้ |
 | ตั้งค่า / Admin | รูปเฟือง → เข้าหลังบ้านเมื่อมีสิทธิ์ Admin |
 
 ผังกลางปัจจุบัน: 10 คอลัมน์ × 19 แถว, โต๊ะทำงาน 72 ตัว, ห้องประชุมมี 9 ที่นั่งที่เข้าถึงได้และ 5 จุดยืน; โถงกลางรองรับ 5 กลุ่ม กลุ่มละ 6 คน ตาม Layout ปัจจุบัน
@@ -73,6 +86,8 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 - Presence: heartbeat; แยกสถานะออนไลน์จากการจองโต๊ะ
 
 ## Deployment / Upgrade
+
+**V6.1:** Run `setup/19-idea-board-check-only.txt` and verify `V6.1 CHECK PASSED - ROLLED BACK`, then `setup/19-idea-board-install.txt` and verify `V6.1 READY`. The dry run validates grants/RLS and, when enabled desk owners are available, posting, shared visibility, unauthorized deletion, idempotent retry and owner/admin deletion in a rolled-back transaction. Then upload the 8 files inside `site/` to repository root. Keep all V6.0 files including `productivity.js`, `productivity.css`, `motion.js`, `online-config.js`, `layout.js`, and `layout.json`. Hard refresh after deploy. Do not upload `setup/` or `qa/`.
 
 **V6.0:** Run `setup/18-productivity-check-only.txt` and verify `V6.0 CHECK PASSED - ROLLED BACK`, then `setup/18-productivity-install.txt` and verify `V6.0 READY`. Dry run includes RPC/privacy smoke tests when two enabled desk owners are available; if only one exists the RLS and permission checks still run. Then upload `site/` to repository root, retaining all earlier files (including `motion.js`). Do not replace `online-config.js`, `layout.js`, or `layout.json`. Hard refresh after GitHub Pages deploys.
 
@@ -118,15 +133,18 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 | V5.3.3 | Hall join/leave system messages (migration 17) |
 | V5.3.4 | Default head status, minute reconciliation, direct hall join request |
 | V5.4 | Articulated walking, rounded turns, local clearance-aware passing, sitting transitions |
-| **V6.0** | All-status pokes, announcement board, private desk notes, read receipts |
+| V6.0 | All-status pokes, announcement board, private desk notes, read receipts |
+| **V6.1** | Living Environment, interactive props, Bangkok lighting, ambient audio, persistent idea board (migration 19) |
 
-## Roadmap
+## Roadmap — Virtual Social Office
 
-- V5.3.x: stabilize live hall chat, invitations, notifications, real-world UI testing
-- V5.4: natural motion and local clearance-aware steering; validate on the actual WebGL site
-- V5.4.x (optional): full chair-to-aisle paths and coordinated crowd navigation, if needed
-- V6.0: all-status pokes, announcements, private desk notes (current release)
-- V6.1 (proposed): meeting scheduling and reminders; scope to be agreed after feedback
+- V6.1 (current): Living Environment + Idea Board — บรรยากาศและสิ่งของให้เดินไปเล่น เก็บ Feedback จากสมาชิก
+- V6.2: World Expansion — Café & Pantry, Rooftop Garden, Game Room และการเชื่อมต่อโซนพร้อมจำนวนคนออนไลน์
+- V6.3: Seasonal World — ธีมเทศกาล Christmas, Songkran, Halloween, Loy Krathong และ Theme Manager
+- V6.4: Social Experience — emotes เพิ่ม, interactive actions, ถ่ายภาพหมู่, สัตว์เลี้ยง
+- V6.5: Play Together — มินิเกม กิจกรรม Easter eggs
+- V6.6: Personalization — แต่งโต๊ะและของสะสม
+- V7.0 (exploratory): Virtual Social World / opt-in proximity voice chat
 
 ## Current limitations
 
@@ -134,4 +152,5 @@ Virtual Office สำหรับเพื่อนร่วมงาน: ผั
 - Chat notifications are in-app only. Inbox polling is approximately every 4 seconds when the page is active; browser throttling or offline devices may delay delivery.
 - Chat history is not end-to-end encrypted. Guest cannot read private conversations or member identities from the intended member-only snapshot.
 - Standing places are reserved by the backend. V5.4 reduces overlap in open corridors but does not guarantee collision-free walking, especially near doors, crowded groups, and shared goals. The original backend route and desk anchor are preserved; the full seat-to-aisle route is not simulated. Visual offsets may differ temporarily across clients with delayed snapshots. 2D fallback uses the original discrete markers.
-- Test the deployed app against your own Supabase project before broad rollout. No live database connection or WebGL screenshot was verified for this patch.
+- V6.1 props have no dedicated seat/queue reservation; visiting the same point can overlap avatars. Props and vista are procedural visual assets, not new navigable rooms. The sofa is a standing lounge stop for now.
+- Test the deployed app against your own Supabase project before broad rollout. V6.1 was tested with Chromium, mock Supabase and Three.js API double; migration 19 needs the Supabase dry run and live install. Actual WebGL appearance and audio audibility have not been verified on the deployed site.

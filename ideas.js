@@ -1,0 +1,33 @@
+/* V6.1: persistent shared idea board. Account-gated; no HTML interpolation of member text. */
+'use strict';
+window.OC61_IDEAS=(()=>{
+ const $=id=>document.getElementById(id),dialog=$('ideaDialog'),el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n;};
+ let user=null,admin=false,connected=false,generation=0,loading=false,busy=false,items=[],next=null,hasMore=false,last=0,request=null,loaded=false;
+ const err=t=>{$('ideaError').textContent=t||'';};
+ const error=e=>/PGRST202|schema cache|could not find the function/i.test(String(e?.message))?'ยังไม่ได้ติดตั้ง SQL 19 แบบ Install หรือ schema cache ยังไม่อัปเดต':/wait before|too many/i.test(String(e?.message))?'ส่งไอเดียถี่เกินไป ลองใหม่อีกสักครู่':'ทำรายการไม่สำเร็จ: '+String(e?.message||e);
+ function controls(){const allowed=!!user&&connected&&!busy&&!loading;$('ideaSubmit').disabled=!allowed||!loaded||!$('ideaText').value.trim();$('ideaRefresh').disabled=!allowed;$('ideaMore').hidden=!hasMore;$('ideaMore').disabled=!allowed;$('ideaText').disabled=!user||!connected||busy;$('ideaLength').textContent=Array.from($('ideaText').value).length+'/1000';}
+ function time(t){const d=new Date(t);return Number.isFinite(d.valueOf())?d.toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'';}
+ function render(){const root=$('ideaList');root.replaceChildren();for(const x of items){const article=el('article',undefined,'oc61-idea'),head=el('div',undefined,'oc61-idea-head');head.append(el('strong',x.author_name),el('small',time(x.created_at)));if(admin||x.mine){const b=el('button','ลบ');b.type='button';b.disabled=busy||loading||!connected;b.onclick=()=>{if(confirm('ลบไอเดียนี้จากกระดานสำหรับทุกคน?'))void remove(x.id);};head.append(b);}article.append(head,el('p',x.body));root.append(article);}if(!items.length)root.append(el('p',loaded?'ยังไม่มีไอเดีย มาเริ่มเสนอคนแรกกันเลย':'กำลังโหลดไอเดีย…','oc61-empty'));controls();}
+ async function rpc(name,args,g=generation){const u=user;if(!u||!connected)throw Error('Sign in required');const r=await window.OC41.ideaRPC(u,name,args);if(g!==generation||u!==user)throw Error('Session changed');return r;}
+ async function refresh({more=false,force=false}={}){if(!dialog.open||!user||!connected||loading||busy||(!force&&!more&&Date.now()-last<15000)||more&&!next)return false;const g=generation,cursor=more?next:null;loading=true;last=Date.now();controls();err();try{const d=await rpc('oc61_ideas',{p_before:cursor?.created_at??null,p_before_id:cursor?.id??null},g);if(d?.version!==1||!Array.isArray(d.items))throw Error('Idea board version mismatch');const page=d.items;admin=!!d.admin;items=more?[...items,...page.filter(x=>!items.some(y=>y.id===x.id))]:page;loaded=true;hasMore=!!d.has_more&&page.length>0;next=hasMore?page[page.length-1]:null;$('ideaInfo').textContent='อัปเดต '+new Date().toLocaleTimeString('th-TH');return true;}catch(e){if(g===generation)err(error(e));return false;}finally{if(g===generation){loading=false;render();}}}
+ function reset(){items=[];next=null;hasMore=false;last=0;loaded=false;busy=false;loading=false;request=null;$('ideaForm').reset();$('ideaInfo').textContent='';err();if(dialog.open)dialog.close();render();}
+ function accountChanged(nextUser,isAdmin){nextUser=nextUser||null;if(nextUser!==user){generation++;user=nextUser;admin=!!isAdmin;connected=!!user;reset();}else{admin=!!isAdmin;connected=!!user;controls();if(dialog.open&&items.length<=50)void refresh();}}
+ function connectionLost(){connected=false;controls();if(dialog.open)err('การเชื่อมต่อขัดข้อง · ข้อความที่กำลังพิมพ์ยังอยู่');}
+ function open(){if(!user){window.OC41?.openMyDesk();return;}if(!connected){window.OC41?.notify('กำลังเชื่อมต่อ ลองอีกครั้ง');return;}if(!dialog.open)dialog.showModal();render();void refresh({force:true});}
+ async function submit(e){e.preventDefault();if(busy||loading||!connected||!user||!loaded)return;const body=$('ideaText').value.trim();if(!body||Array.from(body).length>1000)return;const g=generation;if(request?.body!==body)request={body,id:crypto.randomUUID()};busy=true;controls();err();try{await rpc('oc61_post_idea',{p_id:request.id,p_body:body},g);$('ideaForm').reset();request=null;window.OC41?.notify('ส่งไอเดียแล้ว ทุกคนในออฟฟิศสามารถอ่านได้');}catch(e){if(g===generation)err(error(e));return;}finally{if(g===generation){busy=false;controls();}}if(g===generation)await refresh({force:true});}
+ async function remove(id){if(busy||loading||!connected)return;const g=generation;busy=true;controls();err();try{await rpc('oc61_delete_idea',{p_id:id},g);items=items.filter(x=>x.id!==id);window.OC41?.notify('ลบไอเดียแล้ว');}catch(e){if(g===generation)err(error(e));return;}finally{if(g===generation){busy=false;render();}}if(g===generation)await refresh({force:true});}
+ $('ideaHub').onclick=open;$('ideaClose').onclick=()=>dialog.close();$('ideaRefresh').onclick=()=>refresh({force:true});$('ideaMore').onclick=()=>refresh({more:true,force:true});$('ideaForm').onsubmit=submit;$('ideaText').oninput=controls;
+ // Poll only while the board is open; keep loaded older pages until manual refresh.
+ setInterval(()=>{if(!document.hidden&&dialog.open&&!items.length)void refresh();else if(!document.hidden&&dialog.open&&items.length<=50)void refresh();},15000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&dialog.open)void refresh({force:true});});
+ return {accountChanged,connectionLost,open};
+})();
+// Small scene controls and an alternative to raycast clicking (also usable in 2D).
+(()=>{
+ const $=id=>document.getElementById(id),d=$('worldDialog'),W=window.OC61_WORLD,A=window.OC61_AMBIENT;
+ function musicLabel(){const b=$('ambientToggle');b.setAttribute('aria-pressed',String(A.enabled()));b.textContent=A.enabled()?'เพลง: เปิด':'เพลง: ปิด';}
+ function phaseLabel(){$('worldPhase').textContent='บรรยากาศ '+W.lighting().label+' · เวลาไทย';}
+ $('worldHub').onclick=()=>{const list=$('worldObjects');list.replaceChildren();for(const o of W.objects(window.officeAPI?.getMap())){const b=document.createElement('button');b.type='button';b.textContent=o.action;b.onclick=()=>{d.close();void window.OC50?.visitObject(o.key);};list.append(b);}phaseLabel();musicLabel();if(!d.open)d.showModal();};
+ $('worldClose').onclick=()=>d.close();$('ambientToggle').onclick=async()=>{const b=$('ambientToggle');b.disabled=true;try{await A.toggle();}catch(e){window.OC41?.notify(String(e.message||e));}finally{b.disabled=false;musicLabel();}};
+ document.addEventListener('visibilitychange',musicLabel);setInterval(phaseLabel,60000);
+})();
