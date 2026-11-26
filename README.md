@@ -1,8 +1,15 @@
-# Office Connect — V6.1.4
+# Office Connect — V6.2
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
+
+## What's new — V6.2: Social Experience
+
+- Action menu: improved wave and dance, including seated upper-body motion and standing full-body motion. Other greetings and office speech remain available.
+- High Five: stand next to a friend (one fine-grid step, straight or diagonal), select the avatar/profile, then request. The recipient must accept within 60 seconds. The server verifies both positions and the clear segment at request and acceptance; both avatars face one another visually and share an animation timestamp. No movement or chat membership is modified. Leaving the standing position cancels the paired rendering. It is an approximate animation, not physics-based hand contact.
+- Install committed migrations through 22 FIX1, then run `setup/23-social-experience-check-only.txt`; after success run `setup/23-social-experience-install.txt`. Upload the files in `site/` to the existing repository. Do not replace the layout, online config or earlier assets. Hard refresh all clients. Older clients can continue their old actions but will not render new ones.
+- New actions use a separate RLS-protected table and the existing Realtime signal; the fallback snapshot interval for signed-in members without Realtime is five seconds. Background browser throttling can delay the animation.
 
 ## What's new — V6.1.4: Avatar profile portrait
 
@@ -174,17 +181,21 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 | V5.4 | Articulated walking, rounded turns, local clearance-aware passing, sitting transitions |
 | V6.0 | All-status pokes, announcement board, private desk notes, read receipts |
 | V6.1 | Living Environment, interactive props, Bangkok lighting, ambient audio, persistent idea board (migration 19) |
-| **V6.1.1** | Manual placement, persistent fine-grid standing, facing, physical desk visits (migration 20) |
+| V6.1.1 | Manual placement, persistent fine-grid standing, facing, physical desk visits (migration 20) |
+| V6.1.2 | 3D Layout Studio, wall alignment, edge windows (migration 21) |
+| V6.1.3 | Dispenser approach, drinking animation, decoration-only bookshelf (migration 22 FIX1) |
+| V6.1.4 | Avatar portrait in the profile panel |
+| **V6.2** | Social Experience: dance, improved wave, consensual High Five (migration 23) |
 
-## Roadmap — Virtual Social Office
+## Roadmap — Virtual Social Office (reordered)
 
-- V6.1.1 (current): Living Environment + Idea Board + Manual Layout — ให้ Admin เลือกวางเอง; ปรับการเดินและสะกิด
-- V6.2: World Expansion — Café & Pantry, Rooftop Garden, Game Room และการเชื่อมต่อโซนพร้อมจำนวนคนออนไลน์
-- V6.3: Seasonal World — ธีมเทศกาล Christmas, Songkran, Halloween, Loy Krathong และ Theme Manager
-- V6.4: Social Experience — emotes เพิ่ม, interactive actions, ถ่ายภาพหมู่, สัตว์เลี้ยง
-- V6.5: Play Together — มินิเกม กิจกรรม Easter eggs
-- V6.6: Personalization — แต่งโต๊ะและของสะสม
-- V7.0 (exploratory): Virtual Social World / opt-in proximity voice chat
+- V6.2 (current release): Social Experience — wave, dance, High Five. Additional poses and social activities can follow as minor updates.
+- V6.3: Theme Manager — Admin theme selection/scheduling, Christmas, New Year and Songkran presets, shared weather and visual-effect controls; no automatic replacement of the saved layout.
+- V6.4: Seasonal World — richer festival activities and temporary decorations, music, effects and interactive content based on the Theme Manager.
+- V6.5: World Expansion — multi-scene engine, Café, Rooftop Garden, Game Room; Admin-designed layouts for every zone.
+- V6.6: Play Together — mini-games, activities and Easter eggs.
+- V6.7: Personalization — desk decorations, outfits, collectibles and pets.
+- V7.0 (exploratory): Virtual Social World / opt-in proximity voice chat.
 
 ## Current limitations
 

@@ -120,3 +120,6 @@ body:has(#chatPanel:not([hidden]):not(.chat-minimized)) #statusBubbles.status-vi
 body:not(.admin-mode) #deskPanel{bottom:156px;max-height:calc(100% - 174px);overflow:auto}
 body:not(.admin-mode):has(#chatPanel:not([hidden]).chat-minimized) #deskPanel{bottom:222px;max-height:calc(100% - 240px)}
 @media(max-width:620px){body:not(.admin-mode) #deskPanel{bottom:144px;max-height:calc(100% - 156px)}body:not(.admin-mode):has(#chatPanel:not([hidden]).chat-minimized) #deskPanel{bottom:207px;max-height:calc(100% - 219px)}}
+
+/* V6.2: social actions and paired invitations */
+#socialPairAlert[hidden]{display:none!important}#socialPairAlert{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;pointer-events:none;padding:18px}#socialPairAlert .poke-alert-icon{font-size:36px;background:#e2a45f;color:#172238}#socialPairAlert .cloud-error:empty{display:none}.oc62-highfive{border-color:#ad90e7!important;color:#e4d5ff!important}.oc62-highfive:disabled{opacity:.65}#socialPairTip{font-size:12px;line-height:1.6}#socialEmotes button[hidden]{display:none!important}
