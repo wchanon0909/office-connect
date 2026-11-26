@@ -1,8 +1,16 @@
-# Office Connect — V6.1.2
+# Office Connect — V6.1.3
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด Office Connect](https://wchanon0909.github.io/office-connect/)
+
+## What's new — V6.1.3: Water dispenser & drink animation
+
+- Click the water dispenser or coffee machine to walk to a collision-checked point directly in front of the actual placed model (including rotation and wall alignment). The server sets the facing direction. If there is no clear reachable point in front, it reports an error instead of approaching from the wrong side.
+- A shared visit marker and arrival time drive a finite fill / raise / sip / lower sequence. The cup remains in the hand and tilts toward the mouth. Ordinary walking or turning away does not trigger a drinking animation. Reduced-motion mode uses a static sip pose.
+- Bookshelf is decoration only: it stays in the Layout Studio palette but is excluded from the rest menu and interactive prop picking.
+- No plan placement, account, desk, chat or idea-board changes. Install migration 21 first, run `setup/22-drink-visit-check-only.txt` (expect `V6.1.3 CHECK PASSED - ROLLED BACK`), then `setup/22-drink-visit-install.txt` (expect `V6.1.3 READY`), then upload all seven `site/` files and refresh. The SQL checks geometry and privileges; full live multi-user testing remains necessary.
+- The standing point is shared, not a queue/reservation; simultaneous visitors can overlap. In constrained layouts the server tries slightly farther points in front, otherwise refuses the walk.
 
 ## What's new — V6.1.2: 3D Layout Studio
 

@@ -5,9 +5,25 @@ window.OC61_WORLD=(()=>{
  // New rooms can register their own layout and decoration in a later release.
  const scenes=Object.freeze({'main-office':Object.freeze({id:'main-office',title:'Main Office'})});
  const definitions=Object.freeze({
-  coffee:{name:'เครื่องชงกาแฟ',action:'ไปชงกาแฟ'},water:{name:'ตู้น้ำ',action:'ไปดื่มน้ำ'},printer:{name:'เครื่องปริ้น',action:'ไปที่เครื่องปริ้น'},fridge:{name:'ตู้เย็นและขนม',action:'ไปหยิบขนม'},cabinet:{name:'ตู้เก็บเอกสาร',action:'ไปที่ตู้เอกสาร'},sofa:{name:'มุมโซฟา',action:'ไปยืนพักที่โซฟา'},plants:{name:'มุมต้นไม้',action:'ไปดูต้นไม้'},books:{name:'ชั้นหนังสือ',action:'ไปที่ชั้นหนังสือ'},window:{name:'หน้าต่างกระจก',action:null}
+  coffee:{name:'เครื่องชงกาแฟ',action:'ไปชงกาแฟ'},water:{name:'ตู้น้ำ',action:'ไปดื่มน้ำ'},printer:{name:'เครื่องปริ้น',action:'ไปที่เครื่องปริ้น'},fridge:{name:'ตู้เย็นและขนม',action:'ไปหยิบขนม'},cabinet:{name:'ตู้เก็บเอกสาร',action:'ไปที่ตู้เอกสาร'},sofa:{name:'มุมโซฟา',action:'ไปยืนพักที่โซฟา'},plants:{name:'มุมต้นไม้',action:'ไปดูต้นไม้'},books:{name:'ชั้นหนังสือ',action:null},window:{name:'หน้าต่างกระจก',action:null}
  });
- function objects(p){if(!p?.cells)return [];return Object.entries(p.cells).filter(([,c])=>Object.hasOwn(definitions,c.type)).map(([key,c])=>{const [x,y]=key.split(',').map(Number),angle=-(c.rotation||0)*Math.PI/180;const front=[Math.round(Math.sin(angle)),Math.round(Math.cos(angle))],directions=[front,[front[1],-front[0]],[-front[1],front[0]],[-front[0],-front[1]]];const shift=window.OC612_STUDIO.offset(p,x,y,c);const target=Math.hypot(...shift)>1.4?key:directions.map(([dx,dy])=>[x+dx,y+dy]).filter(([xx,yy])=>xx>=0&&yy>=0&&xx<p.cols&&yy<p.rows).map(([xx,yy])=>`${xx},${yy}`).find(k=>(p.cells[k]?.type||'aisle')==='aisle')||null;return {...definitions[c.type],id:key,kind:c.type,key,target:c.type==='window'?null:target,x:(x-(p.cols-1)/2)*CELL+shift[0],z:(y-(p.rows-1)/2)*CELL+shift[1],angle};});}
+ function objects(p){if(!p?.cells)return [];return Object.entries(p.cells).filter(([,c])=>Object.hasOwn(definitions,c.type)).map(([key,c])=>{const [x,y]=key.split(',').map(Number),angle=-(c.rotation||0)*Math.PI/180;const front=[Math.round(Math.sin(angle)),Math.round(Math.cos(angle))],directions=[front,[front[1],-front[0]],[-front[1],front[0]],[-front[0],-front[1]]];const shift=window.OC612_STUDIO.offset(p,x,y,c);const target=Math.hypot(...shift)>1.4?key:directions.map(([dx,dy])=>[x+dx,y+dy]).filter(([xx,yy])=>xx>=0&&yy>=0&&xx<p.cols&&yy<p.rows).map(([xx,yy])=>`${xx},${yy}`).find(k=>(p.cells[k]?.type||'aisle')==='aisle')||null;return {...definitions[c.type],id:key,kind:c.type,key,target:!definitions[c.type].action?null:['water','coffee'].includes(c.type)?key:target,x:(x-(p.cols-1)/2)*CELL+shift[0],z:(y-(p.rows-1)/2)*CELL+shift[1],angle};});}
+ // Explicit drink visits use a shared slot and arrival timestamp. Free walking never starts a drink.
+ function drinkState(o,m,r,t,reduced=false){
+  if(!o||!['water','coffee'].includes(o.kind)||!m||!r||m.moving||m.returning||m.activity!=='walk'||!r.slot?.startsWith(`drink:${o.key}:`)||!Number.isFinite(r.pose_angle)||!Number.isFinite(r.pose_x)||!Number.isFinite(r.pose_y))return null;
+  if(Math.abs(Math.atan2(Math.sin(m.angle-o.angle),Math.cos(m.angle-o.angle)))>.06)return null;
+  const ms=t-r.started_ms-(r.route.length-1)*850-420;
+  if(ms<0||ms>=5200)return null;
+  // shoulder X/Z, elbow X, cup tilt, head tilt, body lowering, forward lean
+  const hold=[.287,-.175,.812,0,0,0,0],fill=[.621,-.335,.431,0,.04,.06,-.06],sip=[.636,-1.082,1.450,.34,.09,0,0];
+  const frames=[[0,hold],[650,fill],[1500,fill],[2250,sip],[3550,sip],[4350,hold],[5200,hold]];
+  let pose=sip;if(!reduced){let i=1;while(i<frames.length-1&&ms>frames[i][0])i++;const [a,A]=frames[i-1],[b,B]=frames[i];let f=Math.max(0,Math.min(1,(ms-a)/(b-a)));f=f*f*(3-2*f);pose=A.map((v,j)=>v+(B[j]-v)*f);}
+  const [shoulder,side,elbow,tilt,head,drop,lean]=pose;
+  // Same link lengths and Euler XYZ order as the standing avatar rig.
+  const yy=-.18-.18*Math.cos(elbow),zz=-.18*Math.sin(elbow),y1=yy*Math.cos(side);
+  const wrist=[.223-yy*Math.sin(side),1.08+Math.cos(shoulder)*y1-Math.sin(shoulder)*zz,Math.sin(shoulder)*y1+Math.cos(shoulder)*zz];
+  return {shoulder,side,elbow,tilt,head,drop,lean,wrist,cup:[wrist[0],wrist[1]+.025,wrist[2]-.025],stage:ms<1500?'fill':ms<3550?'sip':'lower'};
+ }
  function at(p,key){return objects(p).find(o=>o.key===key)||null;}
  function lighting(date=new Date()){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(date),h=Number(parts.find(x=>x.type==='hour').value)+Number(parts.find(x=>x.type==='minute').value)/60;
   if(h<6||h>=19)return {phase:'night',label:'กลางคืน',sky:0x17243e,hemi:1.65,sun:1.15,fill:1.15,sunColor:0xb0c6ff,glass:0x52729e,city:0x344564};
@@ -38,7 +54,7 @@ window.OC61_WORLD=(()=>{
   return {pickables:out,allObjects,edgeObjects,vista,glass,cityMat,glow};
  }
  function applyLighting(T,scene,hemi,sun,fill,decor,date){const l=lighting(date);scene.background=new T.Color(l.sky);hemi.intensity=l.hemi;sun.intensity=l.sun;sun.color=new T.Color(l.sunColor);fill.intensity=l.fill;if(decor){decor.glass.color=new T.Color(l.glass);decor.cityMat.color=new T.Color(l.city);decor.glow.emissiveIntensity=l.phase==='night'?1.2:l.phase==='sunset'?.65:.08;}return l;}
- return {scenes,activeScene:'main-office',definitions,objects,at,lighting,decorate,applyLighting};
+ return {scenes,activeScene:'main-office',definitions,objects,at,drinkState,lighting,decorate,applyLighting};
 })();
 // Original procedural ambient motif, opt-in only. No recording or external audio dependency.
 window.OC61_AMBIENT=(()=>{
