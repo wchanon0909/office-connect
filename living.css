@@ -10,3 +10,10 @@
 #grid .oc50-desk-empty .worker-sprite{display:none!important}.oc50-floor-avatar{position:absolute;top:28%;left:27%;width:46%;height:46%;display:grid;place-items:center;background:var(--avatar-shirt);border:2px solid #f1f9ff;border-radius:50%;color:white;font-size:clamp(6px,1vw,11px);font-weight:700;z-index:5;box-shadow:0 2px 6px #1c223988;pointer-events:auto}.editor-mode .oc50-floor-avatar,.admin-mode .oc50-floor-avatar{display:none!important}
 @media(max-width:600px){#livingDock{top:9px;left:9px;gap:4px;padding:4px}#livingDock button{padding:7px 8px;gap:4px;font-size:11px;min-height:34px}#livingDock button svg{width:15px;height:15px}#livingHint{top:58px;left:9px;font-size:11px}.avatar-preview-wrap{gap:10px;grid-template-columns:minmax(86px,.7fr) minmax(146px,1.3fr)}.avatar-options button.avatar-swatch{width:29px;min-width:29px;min-height:29px}#avatarDialog{max-height:calc(100dvh - 28px);overflow:auto}}
 #avatarOptions .avatar-options button:not(.avatar-swatch)[aria-pressed=false]{background:#263550;border-color:#4c6283;color:#dce7fd;box-shadow:none}
+
+#livingDock #meetingBtn[hidden],#livingDock #returnBtn[hidden]{display:none!important}
+#livingDock #meetingBtn{background:#45406e;border-color:#7772ad;color:#eee8ff}
+#grid .oc50-floor-avatar{width:32%;height:32%;transform:translate(-50%,-50%);font-size:clamp(6px,.85vw,11px)}
+#grid .oc50-floor-avatar[data-pose=seat]{border-color:#c7adff;box-shadow:0 0 0 2px #a78bfa55}
+#grid .oc50-floor-avatar[data-pose=lean]{border-color:#f5bc7d}
+@media(max-width:600px){#livingDock{max-width:calc(100% - 18px);flex-wrap:wrap}#livingDock button{padding:6px;gap:3px;font-size:10px}#livingDock button svg{width:13px;height:13px}}
