@@ -15,7 +15,7 @@ window.OC50=(()=>{
  function sample(m,time=now()){
   if(!m?.route?.length)return null;
   const last=m.route.length-1,elapsed=time-m.started_ms,travel=last*step,hasPose=Number.isFinite(m.pose_x)&&Number.isFinite(m.pose_y)&&Number.isFinite(m.pose_angle),end=travel+(hasPose?420:0),activity=m.activity||'walk';
-  if(elapsed>=end&&(m.returning||(activity!=='meeting'&&elapsed>=end+600000)))return null;
+  if(elapsed>=end&&(m.returning||(!['meeting','huddle'].includes(activity)&&elapsed>=end+600000)))return null;
   const first=point(m.route[0]);
   if(elapsed<0&&Number.isFinite(m.from_x)&&Number.isFinite(m.from_y)){
    const f=Math.min(1,Math.max(0,1+elapsed/420)),dx=first[0]-m.from_x,dy=first[1]-m.from_y;
@@ -51,10 +51,10 @@ window.OC50=(()=>{
  function lost(){connected=false;walkMode=false;pendingVisit=null;records.clear();appearances={};if($('avatarDialog').open)$('avatarDialog').close();refreshUI();}
  function refreshUI(){
   if(!inOffice())walkMode=false;const visible=member()&&inOffice(),m=me?.desk_id?motion(me.desk_id):null,locked=busy||!!pendingVisit||!!m?.moving;
-  $('livingDock').hidden=!visible;$('avatarBtn').disabled=busy;$('walkBtn').disabled=!canWalk()||locked;$('returnBtn').hidden=!m;$('returnBtn').disabled=locked;
+  $('livingDock').hidden=!visible;$('avatarBtn').disabled=busy;$('walkBtn').disabled=!canWalk()||locked;$('returnBtn').hidden=!m;$('returnBtn').disabled=locked;$('returnBtn').title=m?.activity==='huddle'?'กลับโต๊ะและออกจากกลุ่มยืนคุย':'กลับโต๊ะ';
   $('meetingBtn').hidden=!interaction||!roomOK(window.officeAPI?.getMap());$('meetingBtn').disabled=!canWalk()||locked||m?.activity==='meeting';
   $('walkBtn').setAttribute('aria-pressed',String(walkMode));$('walkBtn').querySelector('span').textContent=walkMode?'ยกเลิกเดิน':'เดินเล่น';
-  $('livingHint').hidden=!visible||(!walkMode&&!m&&!pendingVisit);const hint=pendingVisit?(m?.moving?'กำลังเดินไปหา '+pendingVisit.nickname+'…':'กำลังสะกิด '+pendingVisit.nickname+'…'):m?.moving?(m.returning?'กำลังเดินกลับโต๊ะ…':m.activity==='meeting'?'กำลังไปห้องประชุม…':'กำลังเดินไปจุดหมาย…'):walkMode?'คลิกทางเดินหรือห้องประชุมเพื่อเลือกจุดหมาย':m?.pose==='seat'?'กำลังนั่งในห้องประชุม · กดกลับโต๊ะเพื่อออก':m?.pose==='lean'?'ที่นั่งเต็ม · กำลังยืนริมผนัง':m?'กำลังอยู่ในออฟฟิศ · กดกลับโต๊ะเมื่อต้องการ':'';if($('livingHint').textContent!==hint)$('livingHint').textContent=hint;
+  $('livingHint').hidden=!visible||(!walkMode&&!m&&!pendingVisit);const hint=pendingVisit?(m?.moving?'กำลังเดินไปหา '+pendingVisit.nickname+'…':'กำลังสะกิด '+pendingVisit.nickname+'…'):m?.moving?(m.returning?'กำลังเดินกลับโต๊ะ…':m.activity==='meeting'?'กำลังไปห้องประชุม…':m.activity==='huddle'?'กำลังเดินไปจับกลุ่ม…':'กำลังเดินไปจุดหมาย…'):walkMode?'คลิกทางเดินหรือห้องประชุมเพื่อเลือกจุดหมาย':m?.activity==='huddle'?'กำลังยืนคุย · กลับโต๊ะเพื่อออกจากกลุ่ม':m?.pose==='seat'?'กำลังนั่งในห้องประชุม · กดกลับโต๊ะเพื่อออก':m?.pose==='lean'?'ที่นั่งเต็ม · กำลังยืนริมผนัง':m?'กำลังอยู่ในออฟฟิศ · กดกลับโต๊ะเมื่อต้องการ':'';if($('livingHint').textContent!==hint)$('livingHint').textContent=hint;
   $('viewport').classList.toggle('walk-mode',walkMode&&visible);$('avatarSave').disabled=busy||!member();
  }
  function isWalking(id){return !!motion(id);}

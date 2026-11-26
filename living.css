@@ -43,3 +43,6 @@
 #avatarDialog #avatarOptions{max-height:min(510px,55dvh);overflow:auto;padding:5px 9px 8px 5px;scrollbar-width:thin;scrollbar-color:#697a9a #1c2941}
 #avatarDialog .avatar-preview-card{position:static}.avatar-preview-card svg{max-height:260px}
 @media(max-width:600px){#avatarDialog{padding:14px}#avatarDialog #avatarOptions{max-height:48dvh;padding:5px 6px 8px 3px}#avatarDialog .dialog-heading h2{font-size:20px}#avatarDialog .dialog-heading p{font-size:11px}#avatarDialog .avatar-note{font-size:11px}}
+
+/* V5.2.1: hall huddle selector matches the existing chat dialog. */
+#chatGroupModeField{display:grid;gap:6px}#chatGroupModeField[hidden]{display:none!important}#chatGroupMode{width:100%;font:inherit;color:#ecf2ff;background:#172238;border:1px solid #4b5f81;border-radius:9px;padding:9px 12px}#chatGroupModeHint{font-size:12px;line-height:1.5;color:#b8c7df}
