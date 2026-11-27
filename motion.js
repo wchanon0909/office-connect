@@ -38,6 +38,7 @@ window.OC54_MOTION=(()=>{
     if(shape.door)doors.push({x,y});
    }
   }
+  if(studio.edgeMode(plan))for(const k of Object.keys(plan.wallEdges)){const q=studio.wallEdgePoint(plan,k),r=studio.wallEdgeShape(plan,k),x=q.x/CELL+(plan.cols-1)/2,y=q.z/CELL+(plan.rows-1)/2;for(const piece of r.segments)add(x,y,r.vertical?Math.PI/2:0,piece.x,0,piece.w,r.capDepth);if(r.door)doors.push({x,y});}
   const buckets=new Map();for(const r of rects){for(let x=Math.floor(r.x1-RADIUS);x<=Math.ceil(r.x2+RADIUS);x++)for(let y=Math.floor(r.y1-RADIUS);y<=Math.ceil(r.y2+RADIUS);y++){const k=`${x},${y}`;if(!buckets.has(k))buckets.set(k,[]);buckets.get(k).push(r);}}
   function free(x,y){if(!Number.isFinite(x)||!Number.isFinite(y)||x<-.5+RADIUS||y<-.5+RADIUS||x>plan.cols-.5-RADIUS||y>plan.rows-.5-RADIUS)return false;
    for(const r of buckets.get(`${Math.round(x)},${Math.round(y)}`)||[]){const dx=Math.max(r.x1-x,0,x-r.x2),dy=Math.max(r.y1-y,0,y-r.y2);if(dx*dx+dy*dy<RADIUS*RADIUS)return false;}return true;}

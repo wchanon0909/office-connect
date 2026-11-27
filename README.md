@@ -1,8 +1,17 @@
-# GFE & GOE Office — V6.6.6.2
+# GFE & GOE Office — V6.6.6.3 Preview
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## V6.6.6.3 — True wall-edge draft (PREVIEW ONLY)
+
+- Not a production release. Keep V6.6.6.2 running while the server-side layout validator, route planning, walk destination checks and door events are reviewed. Do not publish an edge-layout JSON through the old backend.
+- Preview uses independent `wallEdges` records: `H:x,y` spans grid vertices (x,y) to (x+1,y), and `V:x,y` spans (x,y) to (x,y+1). Each segment has type `wall`, `door`, or `glass`. `cells` is reserved for floor contents and the existing closed staircase marker. `edges` remains the legacy perimeter-window layer. Conversion preserves Desk IDs, labels and logical grid coordinates; old legacy wall-aligned offsets may change to fit the newly usable cells. Use the Align/Move tools to adjust the draft.
+- Opt-in Convert button, wall-line drawing, rectangular room, glass/wood door placement, separate wall eraser, undo/redo, grid expansion and JSON export. 2D is the edge-editing mode; 3D is preview only for architecture. Geometry and local clearance use the exact same edge positions. No new background requests and no change to graphics settings. The old cell-based mode remains available.
+- The edge draft is blocked from Save Online in both the editor and cloud save function. This is intentional: authoritative server routes currently use wall/door cells. Local collision tests alone cannot establish live route compatibility.
+- Open `preview.html` locally for an isolated 2D test with the supplied 10 x 29 fixture and mock backend. No actual account, data write, or Supabase connection. The site source is provided for further development; DO NOT upload it to main yet. Run only `setup/32-inspect-layout-backend.txt` in SQL Editor and export the result as CSV for review. It reads metadata, not app table contents. Redact any hardcoded secrets in function definitions.
+- QA: 17 pure geometry/draft/guard checks and 36 desktop/mobile-sized Chromium browser checks using mock backend. No live WebGL or production RPC test. Legacy front-row desk geometry may be recentered after conversion; no automatic published changes.
 
 ## V6.6.6.2 — Grid-edge walls & office layout
 

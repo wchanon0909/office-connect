@@ -45,8 +45,14 @@
   const next={...clone(p),cols,rows,cells:{},edges:{}},removed=[];
   for(const [k,c] of Object.entries(p.cells)){const [x,y]=point(k);next.cells[key(x+dx,y+dy)]=clone(c);}
   for(const [k,c] of Object.entries(p.edges||{})){const [s,i]=k.split(':');if(s===side){removed.push(k);continue;}next.edges[`${s}:${Number(i)+('NS'.includes(s)?dx:dy)}`]=clone(c);}
+  if(root.OC612_STUDIO.edgeMode(p)){next.wallEdges={};for(const [k,c] of Object.entries(p.wallEdges)){const [a,xy]=k.split(':'),[x,y]=point(xy);next.wallEdges[`${a}:${x+dx},${y+dy}`]=clone(c);}}
   return{plan:next,removed,dx,dy,added:cols*rows-p.cols*p.rows};
  }
  function missingOwned(p,ids){const present=new Set(Object.values(p.cells).filter(c=>c.type==='desk').map(c=>c.id));return [...ids].filter(id=>!present.has(id));}
- root.OC666_FLOOR=Object.freeze({targets,inspect,apply,extend,missingOwned,isBatch,shapeFor,owned});
+ // Edge editing is deliberately separate from cell editing. Rectangles use
+ // exact grid vertices; doors are explicit segments, not inferred orientations.
+ function edgeLine(p,a,b){const S=root.OC612_STUDIO;if(!S.wallEdgeValid(p,a)||!S.wallEdgeValid(p,b))return [];const [axis,xy]=a.split(':'),[x,y]=point(xy),[bx,by]=point(b.split(':')[1]);const start=axis==='H'?x:y,end=axis==='H'?bx:by,out=[];for(let i=Math.min(start,end);i<=Math.max(start,end);i++){const k=axis==='H'?`H:${i},${y}`:`V:${x},${i}`;if(S.wallEdgeValid(p,k))out.push(k);}return out;}
+ function roomEdges(p,a,b,door=true){const A=point(a),B=point(b);if(!inside(p,A)||!inside(p,B))return [];const x1=Math.min(A[0],B[0]),x2=Math.max(A[0],B[0])+1,y1=Math.min(A[1],B[1]),y2=Math.max(A[1],B[1])+1;if(x2-x1<2||y2-y1<2)return [];const out=[];for(let x=x1;x<x2;x++)for(const y of [y1,y2])out.push({key:`H:${x},${y}`,type:'wall'});for(let y=y1;y<y2;y++)for(const x of [x1,x2])out.push({key:`V:${x},${y}`,type:'wall'});if(door){const k=y2<p.rows?`H:${Math.floor((x1+x2-1)/2)},${y2}`:y1>0?`H:${Math.floor((x1+x2-1)/2)},${y1}`:x2<p.cols?`V:${x2},${Math.floor((y1+y2-1)/2)}`:x1>0?`V:${x1},${Math.floor((y1+y2-1)/2)}`:null;if(k)out.find(o=>o.key===k).type='door';}return out;}
+ function applyEdges(p,items){const S=root.OC612_STUDIO;if(!S.edgeMode(p))throw Error('Convert to edge draft first');const next=clone(p);let changed=0;for(const {key,type} of items){if(!S.wallEdgeValid(p,key)||!['wall','door','glass','erase'].includes(type))throw Error('Invalid edge operation');const old=next.wallEdges[key];if(type==='erase'){if(old){delete next.wallEdges[key];changed++;}}else if(old?.type!==type&&!(type==='wall'&&old&&old.type!=='wall')){next.wallEdges[key]={type};changed++;}}return {plan:next,changed};}
+ root.OC666_FLOOR=Object.freeze({targets,inspect,apply,extend,missingOwned,isBatch,shapeFor,owned,edgeLine,roomEdges,applyEdges});
 })(typeof window!=='undefined'?window:globalThis);

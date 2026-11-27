@@ -62,6 +62,7 @@ window.OC612_STUDIO=(()=>{
   return [{x:0,y:0,w:p.cols,h:y},{x:0,y:y+h,w:p.cols,h:p.rows-y-h},{x:0,y,w:x,h},{x:x+w,y,w:p.cols-x-w,h}].filter(r=>r.w>0&&r.h>0);
  }
  function legacyDesk(p,x,y,c){
+  if(edgeMode(p))return null;
   if(legacyFront.has(c?.id)&&c.rotation===0&&wall(p,x,y-1)&&horizontal(p,x,y-1))return [0,-1.74];
   if(legacySide.has(c?.id)&&[0,180].includes(c.rotation)&&wall(p,x-1,y)&&!horizontal(p,x-1,y))return [-1.60,0];
   if(executive.has(c?.id)&&c.rotation===270&&x===p.cols-1)return [-.15,0];
@@ -71,6 +72,7 @@ window.OC612_STUDIO=(()=>{
  // logical furniture cell for server routes and use the established back envelope.
  function flush(p,x,y,c){
   if(!canAlign(c))return null;
+  if(edgeMode(p))return edgeFlush(p,x,y,c);
   const a=-(c.rotation||0)*Math.PI/180,fx=Math.round(Math.sin(a)),fy=Math.round(Math.cos(a)),wx=x-fx,wy=y-fy;
   if(!wall(p,wx,wy))return null;const shape=wallGeometry(p,wx,wy),r=shape?.runs.find(q=>q.vertical===!!fx);if(!r)return null;
   const wallX=(wx-x)*CELL+(r.vertical?-r.offset:0),wallY=(wy-y)*CELL+(r.vertical?0:-r.offset);
@@ -89,5 +91,18 @@ window.OC612_STUDIO=(()=>{
  function edgeKeys(p){return ['N','S','W','E'].flatMap(s=>Array.from({length:'NS'.includes(s)?p.cols:p.rows},(_,i)=>`${s}:${i}`));}
  function edgeAt(p,px,py,max=.42){const choices=[['N',Math.abs(py+.5),Math.round(px)],['S',Math.abs(py-(p.rows-.5)),Math.round(px)],['W',Math.abs(px+.5),Math.round(py)],['E',Math.abs(px-(p.cols-.5)),Math.round(py)]];return choices.filter(([s,d,i])=>d<=max&&edgeValid(p,`${s}:${i}`)).sort((a,b)=>a[1]-b[1]).map(([s,d,i])=>`${s}:${i}`)[0]||null;}
  function cleanEdges(p){if(p.edges===undefined)return {};if(!p.edges||typeof p.edges!=='object'||Array.isArray(p.edges))throw Error('Invalid edge fixtures');const out={};for(const [k,v] of Object.entries(p.edges)){if(!edgeValid(p,k)||v?.type!=='window')throw Error('Invalid window edge: '+k);out[k]={type:'window'};}return out;}
- return {CELL,furniture,canAlign,offset,flush,legacyDesk,wallRotation,wallGeometry,side,stairwell,reserved,slabRects,edgeValid,edgePoint,edgeKeys,edgeAt,cleanEdges};
+ // V6.6.6.3 draft-only edge architecture. H/V keys are grid vertices,
+ // never occupied floor-cell keys. Undefined wallEdges means legacy mode.
+ const edgeMode=p=>Object.hasOwn(p,'wallEdges');
+ function wallEdgeValid(p,k){const m=/^([HV]):(0|[1-9][0-9]?),(0|[1-9][0-9]?)$/.exec(k);if(!m)return false;const x=+m[2],y=+m[3];return m[1]==='H'?x<p.cols&&y<=p.rows:x<=p.cols&&y<p.rows;}
+ function cleanWallEdges(p){if(!edgeMode(p))return undefined;const d=p.wallEdges;if(!d||typeof d!=='object'||Array.isArray(d))throw Error('Invalid wallEdges');const out={};for(const [k,v] of Object.entries(d)){if(!wallEdgeValid(p,k)||!['wall','door','glass'].includes(v?.type))throw Error('Invalid wall edge: '+k);out[k]={type:v.type};}return out;}
+ function edgeForCell(x,y,s){return s==='N'?`H:${x},${y}`:s==='S'?`H:${x},${y+1}`:s==='W'?`V:${x},${y}`:`V:${x+1},${y}`;}
+ function wallEdgePoint(p,k){if(!wallEdgeValid(p,k))return null;const [axis,xy]=k.split(':'),[x,y]=xy.split(',').map(Number),vertical=axis==='V';return {x:(x+(vertical?0:.5)-p.cols/2)*CELL,z:(y+(vertical?.5:0)-p.rows/2)*CELL,vertical};}
+ // Canonical owner for painting a segment once, even on the perimeter.
+ function edgeOwner(p,k){if(!wallEdgeValid(p,k))return null;const [axis,xy]=k.split(':'),[x,y]=xy.split(',').map(Number);return axis==='H'?{key:`${x},${Math.min(y,p.rows-1)}`,side:y===p.rows?'S':'N'}:{key:`${Math.min(x,p.cols-1)},${y}`,side:x===p.cols?'E':'W'};}
+ function wallEdgeShape(p,k){const c=p.wallEdges?.[k],q=wallEdgePoint(p,k);if(!c||!q)return null;const door=c.type!=='wall',segment=(a,b)=>({x:(a+b)/2,w:b-a}),r={vertical:q.vertical,door,glass:c.type==='glass',offset:0,depth:WALL_DEPTH,capDepth:CAP_DEPTH,opening:DOOR_OPENING,segments:door?[segment(-CELL/2,-DOOR_OPENING/2),segment(DOOR_OPENING/2,CELL/2)]:[segment(-CELL/2,CELL/2)],cap:segment(-CELL/2,CELL/2)};return {...r,runs:[r]};}
+ function convertWalls(p){if(edgeMode(p))return JSON.parse(JSON.stringify(p));const out=JSON.parse(JSON.stringify(p)),stairs=stairwell(p);out.wallEdges={};for(const [k,c] of Object.entries(p.cells)){if(!['wall','door'].includes(c.type))continue;const [x,y]=k.split(',').map(Number);if(reserved(p,x,y,stairs))continue;const shape=wallGeometry(p,x,y,stairs);for(const r of shape.runs){const ek=edgeForCell(x,y,r.side),type=r.door?(r.glass?'glass':'door'):'wall';if(!out.wallEdges[ek]||type!=='wall')out.wallEdges[ek]={type};}delete out.cells[k];}return out;}
+ function edgeBetween(p,x,y,nx,ny){if(Math.abs(nx-x)+Math.abs(ny-y)!==1)return null;return p.wallEdges?.[edgeForCell(x,y,nx>x?'E':nx<x?'W':ny>y?'S':'N')]||null;}
+ function edgeFlush(p,x,y,c){const a=-(c.rotation||0)*Math.PI/180,fx=Math.round(Math.sin(a)),fy=Math.round(Math.cos(a)),s=fx===1?'W':fx===-1?'E':fy===1?'N':'S';if(p.wallEdges?.[edgeForCell(x,y,s)]?.type!=='wall')return null;const back=c.type==='desk'?(executive.has(c.id)?.89:.66):({printer:.38,cabinet:.44,fridge:.415,water:.54,coffee:.54}[c.type]??.54),shift=-CELL/2+.135+back+.025;return [fx*shift,fy*shift];}
+ return {CELL,furniture,canAlign,offset,flush,legacyDesk,wallRotation,wallGeometry,side,stairwell,reserved,slabRects,edgeValid,edgePoint,edgeKeys,edgeAt,cleanEdges,edgeMode,wallEdgeValid,cleanWallEdges,edgeForCell,wallEdgePoint,edgeOwner,wallEdgeShape,convertWalls,edgeBetween};
 })();
