@@ -1,3 +1,35 @@
+# GFE & GOE Office - V6.7.4 (Post-it & Food Wheel)
+
+## Installation
+
+Requires V6.7.3 with SQL 37 FIX1 installed and verified. Back up current GitHub commit. Export shared JSON as usual; no plan import is required.
+
+1. Supabase SQL Editor: run `setup/38-check-only.sql`, then `38-install.sql`, then `38-verify.sql`. Each successful script returns PASS. Check-only runs within a transaction and rolls back all writes. On a fresh board, it also exercises actual authenticated RPCs with temporary test data and verifies admin-only operations if a regular member exists. On an already populated board, it skips the data-mutating smoke checks. Stop on any error; do not run Install if Check-only fails.
+2. Replace/add only the seven files from `site/` in the GitHub `main` root, commit, wait for Pages deployment, then hard refresh. Map and footer display V6.7.4.
+3. Click the blue Post-it board by the upper glass door and stairwell; click the red Food Wheel in the kitchen. Test posting, reading, spinning, shared history and Admin settings with two accounts. No other migration or reset needed.
+
+## Changes
+
+- Post-it board: solid wall-mounted clickable sign, blue frame. Opens a centered dialog. All notes persist until an Admin deletes or resets them. Pages of six overlapping, colored notes with stable randomized tilt and offsets; click a note to read the full text. Maximum 200 characters, 20-second per-account cooldown. Only signed-in members with desk assignments may use the board. Author account ID is stored in the private DB solely for rate limiting and internal administration, never returned to board readers, including Admin; no name/time is displayed. This is anonymous to other users, not to database operators. No automated profanity filter; Admin can delete individual inappropriate notes or reset all notes with two confirmations. Use respectfully and avoid confidential or personal information. Server validates limits, and UI renders user text as text, not HTML.
+- Food Wheel: solid wall-mounted clickable sign, red frame. A personal spinning animation; results are chosen on the server with equal probability per menu item and a fixed pointer. Global latest five results display nickname, food and time. Wheel history refreshed when opened, manually refreshed or after a spin, not automatically while other users spin. 5-second server cooldown, 3.2-second animation (instant if reduced motion is enabled). Stable request ID supports safe retries after uncertain network responses, without a second result while the receipt is retained. Only enabled members can spin; no coins involved. Latest five entries plus up to seven days of retry history are stored; cleanup on new spin. Admin > จัดการเมนูอาหารสุ่ม: add/edit/delete 2-15 unique food names (1-40 characters); defaults are ten Thai food choices, and reinstall preserves saved choices. Optimistic revision check protects concurrent edits. History preserves the selected menu text even after Admin changes names.
+- Admin > จัดการกระดาน Post-it: open the same board and moderate individual notes or reset the board.
+- Both boards derive position from the saved grid-edge layout. In the previously exported fixture: blue V:4,19 (floor 4,19) beside the stairwell and glass double door; red V:6,23 (floor 6,23) beside the kitchen door, facing the kitchen. No floor plan mutation, no collision or pathfinding change. If the corresponding solid wall or clear adjacent floor is missing, the sign is not shown; the Admin menus remain available. No automatic placement on unrelated walls. Actual current production geometry must be confirmed after deploy.
+- Two static sign models with cached canvas textures (four additional meshes total if both signs appear), disposed when the scene rebuilds. 2D fallback uses clickable wall labels. No reduction in graphical quality. No change to snapshot payload, no new background polling, no new Realtime channel. RPCs run on open, explicit refresh/page, write or spin only. Existing auth, wallet, shop, quest, movement and album are unchanged.
+
+## QA / limits
+
+- JavaScript syntax: 31 files checked. Existing regression groups: 21 floor shapes + 24 grid edge/status + 13 room/stair + 7 destination = 65 passed. Seven new board logic groups passed (including fixture placement, no plan changes, missing wall/overlap guard, every wheel sector for 2-15 entries, stable note style, mocked Three.js mesh reuse/disposal).
+- Chromium browser tests with the V6.7.3 local source and a mock backend: 1000x700, 390x844, 844x390. Open by board click, pages, plain-text/XSS safety, post, delete/reset, spin and retry, latest five history, edit menu, member restrictions, no idle board RPC, close buttons and no full-dialog scrollbar with test content. Screenshots are from that mock environment, not live WebGL. Extremely long/line-broken notes and unusually short viewports may need scroll; top-right close available.
+- SQL has NOT been executed on a real PostgreSQL instance in this environment. `38-check-only.sql` is designed to compile the migration and exercise database functions in your actual schema with rollback. Real Supabase authentication, concurrent requests and WebGL wall appearance remain to be validated. The source base is the previously delivered V6.7.3, not a newly retrieved main commit.
+
+## Rollback
+
+Restore all five files from `rollback-site/`. New unreferenced `office674.js` and `office674.css` can remain. Commit and refresh. If necessary run `38-rollback.sql` to revoke access to the seven new endpoints only; board data remains private and intact. Reinstall SQL 38 to restore access. No other data or migrations are reset.
+
+---
+
+## Previous version history
+
 # GFE & GOE Office - V6.7.3 (Shared Moments & Admin Events)
 
 ## Installation
