@@ -1,8 +1,17 @@
-# GFE & GOE Office - V6.6.6.6 (Startup Hotfix)
+# GFE & GOE Office - V6.6.7 (Floor Shapes)
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## V6.6.7 - Floor Shapes
+
+- Admin → Edit floor plan: **ตัดพื้นที่พื้น** removes empty floor cells with click/drag, creating holes or an irregular outline. **คืนพื้นที่พื้น** restores them. The object eraser removes furniture; it retains cutouts. Remove furniture before cutting its cells. Occupied desks remain protected. Undo/Redo covers each operation.
+- **โต๊ะกลม 2 × 2**, **โต๊ะยาว 2 × 1**, **โถงบันไดลง 3 × 2**, and **ประตูกระจกบานคู่ 2 × 1** are saved composite objects. Click their top-left footprint corner to place; R rotates before placement. Select any part to move, rotate, or delete the entire object. Round tables have no directional rotation. Tables are furnishing models, without new meeting-seat reservations.
+- Double glass doors span two cells with their centre seam between them and outer frame posts. They can replace two wall/door cells and open together for a route crossing either half. The staircase remains fenced and cannot be entered. Cutouts have no floor slab, tiles, or walking route; new boundaries receive perimeter trim.
+- Uses the existing v1 plan and save RPC, with validated `void`, `roundTable`, `longTable`, `stairs`, and `doubleDoor` cells. SQL 33 updates validation, movement clearance, and capability reporting. Admin/revision/assigned-desk protections and existing account data are retained. New tools stay disabled until the backend capability is available. Experimental `wallEdges` plans remain unsupported.
+- Deployment: run `setup/33-floor-shapes-check.sql` (transaction rolled back), then `33-floor-shapes-install.sql`. Publish the changed site files together, including the new `floor-shapes.js`. Refresh active clients before saving a plan containing new objects. No automatic change is made to the current saved layout.
+- Verification: 21 Node regression groups covering all rotations, atomic footprints, cut/restore, collision, move/delete, slab area and expansion. Browser QA covers 2D tools, 3D models, rotation, whole-object delete and a mock save/reload. The live PostgreSQL check tests the actual save RPC and its admin/revision guards inside a rolled-back subtransaction. Install preserves the existing layout and revision. Run `node qa/floor-shapes.test.cjs` from the project root for local geometry tests.
 
 ## V6.6.6.6 - Startup Hotfix
 

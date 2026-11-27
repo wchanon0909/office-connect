@@ -33,7 +33,7 @@ window.OC50=(()=>{
  }
  function doorOpenKeys(p,time=now()){
   const keys=new Set();if(!interaction)return keys;
-  for(const m of records.values())for(let i=0;i<m.route.length;i++)if(p.cells[m.route[i]]?.type==='door'&&time>=m.started_ms+(i-1)*step-350&&time<=m.started_ms+(i+1)*step+300)keys.add(m.route[i]);
+  for(const m of records.values())for(let i=0;i<m.route.length;i++)if(['door','doubleDoor'].includes(p.cells[m.route[i]]?.type)&&time>=m.started_ms+(i-1)*step-350&&time<=m.started_ms+(i+1)*step+300)keys.add(m.route[i]);
   return keys;
  }
  function roomOK(p){return p?.cols>=7&&p.rows>=4&&p.cells['4,3']?.type==='door'&&[0,1,2,3,5].every(x=>p.cells[`${x},3`]?.type==='wall')&&[0,1,2].every(y=>p.cells[`6,${y}`]?.type==='wall');}

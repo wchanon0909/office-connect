@@ -23,7 +23,7 @@ window.OC612_STUDIO=(()=>{
   }
   return found;
  }
- const rawWall=(p,x,y)=>['wall','door'].includes(p.cells[`${x},${y}`]?.type);
+ const rawWall=(p,x,y)=>['wall','door','doubleDoor'].includes(p.cells[`${x},${y}`]?.type);
  function reserved(p,x,y,stairs=stairwell(p)){return !!stairs&&x>=stairs.x&&x<stairs.x+stairs.w&&y>=stairs.y&&y<stairs.y+stairs.h;}
  const wallOrDoor=(p,x,y,stairs)=>rawWall(p,x,y)&&!reserved(p,x,y,stairs);
  function side(p,x,y,stairs=stairwell(p)){

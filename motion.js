@@ -28,7 +28,8 @@ window.OC54_MOTION=(()=>{
     add(x,y,rot,0,exec?.60:.54,exec?.82:.68,exec?.77:.65);
    }else if(c.type==='plant'){
     const [dx,dz]=plantOffset(plan,x,y);add(x+dx/CELL,y+dz/CELL,0,0,0,.83,.83);
-   }else if(c.type==='roundTable'){add(x,y,0,0,0,CELL,CELL);
+   }else if(['roundTable','longTable','stairs','void'].includes(c.type)){add(x,y,0,0,0,CELL,CELL);
+   }else if(c.type==='doubleDoor'){const b=window.OC667_SHAPES.block(plan,key);if(b&&c.part===0){for(const q of window.OC667_SHAPES.doorPosts(b))add(q.x,q.y,-b.rotation*Math.PI/180,0,0,.13,.20);for(const k of b.keys){const [dx,dy]=point(k);doors.push({x:dx,y:dy});}}
    }else if(c.type==='meeting'){
     add(x,y,rot,0,0,1.5,.85);for(const z of [-.66,.66])add(x,y,rot,0,z,.48,.46);
    }else if(['coffee','water','printer','fridge','cabinet','sofa','plants','books','window'].includes(c.type)){const [dx,dz]=window.OC612_STUDIO?.offset(plan,x,y,c)||[0,0];add(x+dx/CELL,y+dz/CELL,rot,0,c.type==='water'?.035:0,c.type==='water'?.65:1.66,c.type==='water'?.65:c.type==='window'?.20:1.08);
@@ -116,14 +117,14 @@ window.OC54_MOTION=(()=>{
  function keyboardCell(plan,x,y,field){
   if(x<0||y<0||x>=plan.cols||y>=plan.rows)return 'outside';
   const c=plan.cells[`${x},${y}`],type=c?.type||'aisle';
-  if(type==='aisle'||type==='door')return type;
+  if(type==='doubleDoor')return 'door';if(type==='aisle'||type==='door')return type;
   const off=window.OC612_STUDIO?.offset(plan,x,y,c)||[0,0];
   if(type==='wall'&&x===6&&y===2&&plan.cols===10&&plan.rows===19&&plan.cells['6,0']?.type==='wall'&&plan.cells['6,1']?.type==='wall'&&plan.cells['6,3']?.type==='door'&&plan.cells['7,3']?.type==='wall')return 'aisle';
   if(type==='plant'&&plan.cols===10&&plan.rows===19&&y===4&&[3,6].includes(x)&&plan.cells['0,4']?.id==='D-077'&&plan.cells['8,4']?.id==='D-082')return 'aisle';
   if(['desk','coffee','water','printer','fridge','cabinet','sofa','plants','books'].includes(type)&&Math.abs(off[0])+Math.abs(off[1])>1.4&&field?.free(x,y))return 'aisle';
   return type;
  }
- function keyboardAnchor(plan,key,field){if(!key)return null;const q=[point(key)],seen=new Set([key]);for(let i=0;i<q.length;i++){const [x,y]=q[i];if(keyboardCell(plan,x,y,field)==='aisle'&&field?.free(x,y)&&directions.some(([dx,dy])=>keyboardCell(plan,x+dx,y+dy,field)==='aisle'))return `${x},${y}`;for(const [dx,dy] of directions){const nx=x+dx,ny=y+dy,k=`${nx},${ny}`,type=keyboardCell(plan,nx,ny,field);if(seen.has(k)||['outside','wall','door'].includes(type))continue;seen.add(k);q.push([nx,ny]);}}return null;}
+ function keyboardAnchor(plan,key,field){if(!key)return null;const q=[point(key)],seen=new Set([key]);for(let i=0;i<q.length;i++){const [x,y]=q[i];if(keyboardCell(plan,x,y,field)==='aisle'&&field?.free(x,y)&&directions.some(([dx,dy])=>keyboardCell(plan,x+dx,y+dy,field)==='aisle'))return `${x},${y}`;for(const [dx,dy] of directions){const nx=x+dx,ny=y+dy,k=`${nx},${ny}`,type=keyboardCell(plan,nx,ny,field);if(seen.has(k)||['outside','wall','door','roundTable','longTable','stairs','void'].includes(type))continue;seen.add(k);q.push([nx,ny]);}}return null;}
  function keyboardTarget(plan,source,key,azimuth,field){if(!source||!field)return null;const d=keyboardDirection(key,azimuth);if(!d)return null;const [x,y]=point(source),[dx,dy]=d;let nx=x+dx,ny=y+dy;const cell=(a,b)=>keyboardCell(plan,a,b,field);if(cell(nx,ny)==='door'){const horizontal=window.OC612_STUDIO.side(plan,nx,ny)==='N';if(horizontal?dx!==0:dy!==0)return null;nx+=dx;ny+=dy;if(cell(nx,ny)!=='aisle'||!field.free(nx,ny))return null;}else if(cell(nx,ny)!=='aisle'||!field.segment({x,y},{x:nx,y:ny}))return null;return `${nx},${ny}`;}
  return Object.freeze({clearance,rounded,solve,gait,blendAngle,smooth,handPose,keyboardDirection,keyboardCell,keyboardAnchor,keyboardTarget,STEP,CELL,RADIUS,LANE});
 })();
