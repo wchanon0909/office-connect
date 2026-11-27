@@ -10,7 +10,7 @@ window.OC66_3D=(()=>{
  const ortho=(w,h,n=.1,f=60)=>new Float32Array([1/w,0,0,0,0,1/h,0,0,0,0,-2/(f-n),0,0,0,-(f+n)/(f-n),1]);
  const perspective=(fov,aspect,n=.1,f=60)=>{let q=1/Math.tan(fov/2);return new Float32Array([q/aspect,0,0,0,0,q,0,0,0,0,(f+n)/(n-f),-1,0,0,2*f*n/(n-f),0]);};
  const color=c=>[parseInt(c.slice(1,3),16)/255,parseInt(c.slice(3,5),16)/255,parseInt(c.slice(5,7),16)/255];
- const surfaces={desk:{label:'โต๊ะทำงาน',x:.12,z:.34,y:1.46,w:4.45,d:2.02},shelf:{label:'ชั้นวาง',x:.12,z:-1.91,y:2.61,w:3.75,d:1.00}};
+ const surfaces={desk:{label:'โต๊ะทำงาน',x:0,z:0,y:1.06,w:4.55,d:2.25}};
  const P={wood:'#e4ba91',edge:'#bc9375',cream:'#fff1df',white:'#fffaf0',ink:'#384957',blue:'#8fb8ce',pink:'#ecafba',rose:'#cf8097',mint:'#9acbb7',green:'#609d82',leaf:'#80b99a',gold:'#e7bc72',lav:'#b6add8',dark:'#5a5364',paper:'#fff6e5'};
  // Each primitive has its own dimensions and normals. Rounded edges are real geometry.
  const geoCache=new Map();
@@ -22,42 +22,33 @@ window.OC66_3D=(()=>{
  function torus(R,r){let key=['t',R,r].join();if(geoCache.has(key))return geoCache.get(key);let a=[];function v(i,j){let u=i*2*Math.PI/28,t=j*2*Math.PI/10,n=[Math.cos(u)*Math.cos(t),Math.sin(u)*Math.cos(t),Math.sin(t)];return [R*Math.cos(u)+r*n[0],R*Math.sin(u)+r*n[1],r*n[2],...n];}for(let i=0;i<28;i++)for(let j=0;j<10;j++){let b=v(i,j),c=v(i+1,j),d=v(i+1,j+1),e=v(i,j+1);a.push(...b,...c,...d,...b,...d,...e);}let g=new Float32Array(a);geoCache.set(key,g);return g;}
  function model(){let a=[];const shape=(geometry,col,x,y,z,r=[0,0,0],tag='',emit=0)=>a.push({geo:geometry,col:color(col),m:mat([x,y,z],r),tag,emit});return {a,b:(w,h,d,x,y,z,col,r=.025,rot=[0,0,0],tag='',emit=0)=>shape(rounded(w,h,d,r),col,x,y,z,rot,tag,emit),s:(rx,ry,rz,x,y,z,col,rot=[0,0,0],tag='')=>shape(sphere(rx,ry,rz),col,x,y,z,rot,tag),c:(rb,rt,h,x,y,z,col,rot=[0,0,0],tag='')=>shape(cylinder(rb,rt,h),col,x,y,z,rot,tag),t:(R,r,x,y,z,col,rot=[0,0,0])=>shape(torus(R,r),col,x,y,z,rot)};}
  function room(){let {a,b,s,c,t}=model();
-  b(6.7,.23,5.55,0,-.135,0,'#d9b497',.10);b(6.62,.065,5.47,0,-.02,0,'#ebcfae',.06);
-  // Individually modelled wooden floor boards.
-  for(let i=0;i<10;i++)for(let j=0;j<3;j++){const z=-2.475+i*.548;let x=-2.2+j*2.2; b(2.185,.022,.53,x,.016,z,['#f0d8b9','#e7c5a3','#ebcfaf','#e5c39f'][(i*3+j)%4],.006);}
-  // Rear wall with open window and trim; cut away when viewed from behind.
-  b(6.7,.78,.18,0,.39,-2.77,'#f4dfc8',.025,[0,0,0],'back');b(6.7,.46,.18,0,3.35,-2.77,'#f5e3d0',.025,[0,0,0],'back');
-  b(1.0,2.35,.18,-2.85,1.955,-2.77,'#f4dfc8',.025,[0,0,0],'back');b(3.38,2.35,.18,1.66,1.955,-2.77,'#f4dfc8',.025,[0,0,0],'back');
-  b(2.32,.68,.18,-1.19,1.12,-2.77,'#f4dfc8',.02,[0,0,0],'back');b(2.32,.36,.18,-1.19,2.94,-2.77,'#f4dfc8',.02,[0,0,0],'back');
-  b(2.24,1.58,.09,-1.19,2.15,-2.83,'#a8d6e5',.03,[0,0,0],'back');
-  for(let x of [-2.32,-1.19,-.06])b(.085,1.72,.15,x,2.15,-2.67,P.cream,.015,[0,0,0],'back');for(let y of [1.33,2.15,2.98])b(2.32,.08,.15,-1.19,y,-2.67,P.cream,.015,[0,0,0],'back');
-  b(2.45,.11,.36,-1.19,1.28,-2.59,P.wood,.035,[0,0,0],'back');
-  for(let x of [-1.98,-.48]){s(.43,.17,.025,x,2.55,-2.76,'#e4f4ed',[0,0,0],'back');s(.30,.15,.026,x+.23,2.51,-2.75,'#e4f4ed',[0,0,0],'back');}
-  b(.18,2.95,5.52,-3.35,1.475,0,'#e1e9df',.03,[0,0,0],'left');b(.24,.12,5.48,-3.29,.09,0,P.cream,.02,[0,0,0],'left');b(6.65,.12,.24,0,.09,-2.7,P.cream,.02,[0,0,0],'back');
-  // A little wall print, fixed architectural details (not placeable inventory).
-  b(.78,1.02,.075,2.33,2.66,-2.65,P.wood,.055,[0,0,0],'back');b(.65,.89,.045,2.33,2.66,-2.60,P.white,.025,[0,0,0],'back');s(.19,.19,.018,2.33,2.80,-2.57,P.gold,[0,0,0],'back');b(.40,.06,.02,2.33,2.43,-2.57,P.mint,.02,[0,0,0],'back');
-  // Proper work desk: oak top, white frame, drawer pedestal, monitor, keyboard and desk accessories.
+  // Minimal office presentation: no room backdrop, only subtle base and the work desk.
+  b(6.4,.06,4.6,0,-.03,0,'#d8dde3',.10);
+  b(5.8,.02,4.0,0,-.005,0,'#cfd6dd',.08);
   const d=surfaces.desk;
-  b(d.w,.13,d.d,d.x,d.y-.065,d.z,'#efe4d4',.055);b(d.w-.18,.04,d.d-.18,d.x,d.y-.14,d.z,'#c59a72',.02);
-  b(1.05,1.16,1.42,-1.53,.58,.31,'#b7c8bc',.06);for(let i=0;i<3;i++){b(.91,.24,.05,-1.53,.30+i*.32,1.03,'#f0f5ef',.022);b(.24,.03,.06,-1.53,.30+i*.32,1.07,P.edge,.01);}
-  b(.11,1.18,.14,2.10,.59,-.47,'#93a79d',.028);b(.11,1.18,.14,2.10,.59,1.16,'#93a79d',.028);b(.11,1.18,.14,-.08,.59,-.47,'#93a79d',.028);b(.11,1.18,.14,-.08,.59,1.16,'#93a79d',.028);
-  b(3.18,.10,.20,1.00,.28,1.19,'#8ea299',.025);b(3.18,.07,.14,1.00,1.11,-.50,'#8ea299',.02);
-  // Work setup on desk rear edge.
-  b(1.18,.11,.38,.92,1.53,-.42,'#b58f6e',.03);b(.92,.63,.09,.92,2.02,-.54,'#4d6170',.03);b(.82,.47,.02,.92,2.04,-.49,'#a7d0d7',.01);b(.17,.39,.17,.92,1.67,-.46,'#6c7b86',.03);b(.66,.03,.24,.56,1.52,-.03,'#f6f7f1',.015);b(.16,.02,.12,1.12,1.51,.03,'#f3d8df',.02);c(.06,.06,.02,1.31,1.51,.04,'#d7b4c2');
-  b(.40,.05,.26,-.28,1.51,-.10,'#dfedeb',.02);for(let i=0;i<3;i++)c(.016,.016,.28,-.42+i*.14,1.72,-.11,['#f0a4b2','#e7c472','#8bc5b5'][i]);
-  const sh=surfaces.shelf;b(sh.w,.11,sh.d,sh.x,sh.y-.055,sh.z,'#d9b28a',.035);for(let x of [-1.55,1.79]){b(.12,.48,.14,x,2.32,-2.30,P.cream,.02);b(.13,.11,.64,x,2.52,-1.99,P.cream,.02);}
-  b(.58,.25,.35,-1.05,2.82,-1.93,'#e9d5bf',.03);b(.44,.32,.06,-1.05,2.95,-1.75,'#6e8295',.02);b(.38,.24,.02,-1.05,2.97,-1.72,'#bfe0e7',.01);for(let i=0;i<4;i++)b(.11,.22,.24,-.10+i*.15,2.83,-1.93,['#9eb9dc','#efc38d','#e5a8bb','#9cc8b9'][i],.018,[0,0,(i-1.5)*4]);
-  // Chair and rug with more office-like proportions.
-  b(3.35,.05,2.45,.37,.053,1.30,'#cfdfd6',.22);b(3.10,.012,2.20,.37,.082,1.30,'#dbe9df',.20);
-  b(.78,.12,.76,.26,.74,1.92,'#edbac8',.08);b(.84,.66,.12,.26,1.14,2.20,'#d694ab',.08,[-8,0,0]);b(.70,.48,.09,.26,1.14,2.12,'#f5d0d8',.06,[-8,0,0]);c(.08,.08,.58,.26,.40,1.92,P.dark);for(let i=0;i<5;i++){let t0=i*72;b(.11,.08,.42,.26+Math.sin(rad(t0))*.19,.13,1.92+Math.cos(rad(t0))*.19,P.dark,.03,[0,t0,0]);s(.09,.08,.09,.26+Math.sin(rad(t0))*.37,.09,1.92+Math.cos(rad(t0))*.37,P.dark);}
-  // Side table, plant and friendly little chibi figure, separate from free placement surfaces.
-  b(.76,.10,.78,2.68,.49,-1.57,P.wood,.05);for(let x of [2.40,2.96])for(let z of [-1.85,-1.29])b(.08,.46,.08,x,.23,z,P.wood,.025);
-  c(.19,.26,.32,2.68,.70,-1.57,P.rose);c(.22,.22,.025,2.68,.87,-1.57,'#9c7766');for(let i=0;i<7;i++){let th=i*51;s(.095,.32,.075,2.68+Math.sin(rad(th))*.17,1.04,-1.57+Math.cos(rad(th))*.17,i%2?P.green:P.leaf,[Math.cos(rad(th))*37,0,Math.sin(rad(th))*37]);}
-  let x=2.62,z=1.45;for(let dx of [-.13,.13]){b(.25,.14,.32,x+dx,.09,z+.04,P.dark,.055);b(.19,.29,.20,x+dx,.28,z,P.blue,.055);}
-  s(.30,.35,.20,x,.60,z,P.mint);b(.40,.08,.17,x,.77,z,P.cream,.025);for(let dx of [-.30,.30]){s(.10,.24,.10,x+dx,.61,z,P.mint,[0,0,dx>0?15:-15]);s(.085,.09,.08,x+dx,.42,z+.02,'#f3c5aa');}
-  s(.36,.36,.31,x,1.13,z,'#f5c9af');s(.373,.26,.322,x,1.28,z-.035,'#6e5146');s(.19,.09,.075,x-.15,1.34,z+.24,'#6e5146',[0,0,-18]);s(.18,.07,.075,x+.13,1.34,z+.24,'#6e5146',[0,0,17]);for(let dx of [-.13,.13]){s(.034,.046,.023,x+dx,1.13,z+.29,'#58444a');s(.051,.021,.023,x+dx*1.50,1.045,z+.265,'#e7a8a1');}s(.051,.013,.018,x,1.02,z+.298,'#aa6a65');
+  // Desk top and frame inspired by a typical steel office desk.
+  b(d.w,.10,d.d,d.x,d.y-.05,d.z,'#f3f4f6',.045);
+  b(d.w-.10,.024,d.d-.10,d.x,d.y-.11,d.z,'#d6dbe1',.016);
+  // Left side panel
+  b(.17,1.42,d.d-.14,-2.16,.35,0,'#b8bec6',.02);
+  // Back modesty panel
+  b(2.55,.82,.08,-.35,.52,.68,'#9aa2ab',.02);
+  // Front shallow drawer
+  b(1.42,.22,.46,-1.07,.84,-.86,'#eef1f4',.02);
+  // Right drawer pedestal
+  b(1.34,1.44,1.04,1.59,.34,.47,'#bcc2ca',.025);
+  b(1.20,.30,.91,1.59,.90,-.08,'#eef1f4',.016);
+  b(1.20,.60,.91,1.59,.48,.25,'#e2e7ec',.016);
+  b(1.20,.60,.91,1.59,.48,.85,'#e2e7ec',.016);
+  for(let y of [.90,.48,.06])b(.28,.11,.06,1.78,y,.01,'#8b9096',.012);
+  // Lock detail and feet
+  c(.04,.04,.02,2.10,1.03,-.34,'#4b5157',[90,0,0]);
+  for(let x of [-2.18,1.03,2.15])for(let z of [-1.03,1.03])c(.05,.05,.12,x,-.02,z,'#8f969d');
+  // A small shadow under the desk for depth.
+  b(4.55,.02,2.18,0,.01,.06,'#bfc6ce',.10);
   return a;
  }
+
  // Full 3D product meshes. Front of every item is +Z. Footprints derived from geometry.
  const MODEL_ALIAS={lamp:'desk_lamp',plant:'mini_plant',cup:'cat_mug',books:'pastel_books',clock:'cute_clock',fan:'desk_fan',drawer:'mini_drawer',sign:'neon_sign',stickers:'sticker_set',laptop:'laptop_stand',stapler:'stapler_pastel',tissue:'tissue_box',notes:'memo_board',tray:'file_tray'};
  function resolveItemId(id){return MODEL_ALIAS[id]||id;}
@@ -90,7 +81,7 @@ window.OC66_3D=(()=>{
  }
  function extent(id,rot){let m=item(id),a=rad(rot);return {w:Math.abs(Math.cos(a))*m.w+Math.abs(Math.sin(a))*m.d,d:Math.abs(Math.sin(a))*m.w+Math.abs(Math.cos(a))*m.d,h:m.h};}
  function world(p){let s=surfaces[p.surface];return [s.x+(p.u-.5)*s.w,s.y+.006,s.z+(p.v-.5)*s.d];}
- function normalize(p){if(!p||typeof p.item_id!=='string'||!Object.hasOwn(surfaces,p.surface)||![p.u,p.v,p.rotation].every(v=>v!==null&&v!==''&&Number.isFinite(Number(v))))return null;return {item_id:p.item_id,surface:p.surface,u:clamp(Number(p.u),0,1),v:clamp(Number(p.v),0,1),rotation:((Math.round(Number(p.rotation))%360)+360)%360};}
+ function normalize(p){if(!p||typeof p.item_id!=='string'||![p.u,p.v,p.rotation].every(v=>v!==null&&v!==''&&Number.isFinite(Number(v))))return null;let surface=Object.hasOwn(surfaces,p.surface)?p.surface:'desk';if(p.surface==='shelf')surface='desk';return {item_id:p.item_id,surface,u:clamp(Number(p.u),0,1),v:clamp(Number(p.v),0,1),rotation:((Math.round(Number(p.rotation))%360)+360)%360};}
  function fit(p){let s=surfaces[p.surface],e=extent(p.item_id,p.rotation);let mx=(e.w/2+.025)/s.w,mz=(e.d/2+.025)/s.d;if(mx>.5||mz>.5)return null;return {...p,u:clamp(p.u,mx,1-mx),v:clamp(p.v,mz,1-mz)};}
  function valid(p,rows){if(!p)return false;let s=surfaces[p.surface],e=extent(p.item_id,p.rotation);return !rows.some(r=>{if(r.item_id===p.item_id||r.surface!==p.surface)return false;let f=extent(r.item_id,r.rotation);return Math.abs(r.u-p.u)*s.w<(e.w+f.w)/2+.025&&Math.abs(r.v-p.v)*s.d<(e.d+f.d)/2+.025;});}
  // Software rendering path. Uses the same triangle meshes, transforms, depth buffer and
