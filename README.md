@@ -1,3 +1,31 @@
+# GFE & GOE Office - V6.7.1 (UI, Rooms & Switchback Stairs)
+
+## V6.7.1 installation
+
+Patch for **V6.7.0** with SQL 34 and 35 already installed. GitHub Pages / `main` only. No new SQL migration. Do not rerun older reset migrations. Export the current shared floor plan and keep the previous GitHub commit before deployment.
+
+1. Copy every file in the release `site/` folder into the repository root (replace existing files; add new ones). Commit to `main` and hard refresh after GitHub Pages deploys.
+2. In the office, check the map menu for `V6.7.1`, the chat dock, Action picker, break activities, and the four room destinations.
+3. To add the staircase, open Admin > Edit Floor Plan on an already converted grid-edge layout. Press **เพิ่มโถงบันไดตามตำแหน่ง (4 × 3)**. The preset matches the marked corridor opposite the printer/cabinets and beside the double glass doorway. If the current plan has changed, select its intended upper-left floor cell and press **วางโถงจากช่องที่เลือก**. Occupied cells, cutouts, internal walls, and out-of-bounds positions are rejected. Review the 2D / 3D preview, check the corridor, then Save online. The deployed patch does not change the shared plan automatically. Keep the existing export for rollback.
+
+## V6.7.1 changes
+
+- Public speech input stays above the responsive bottom controls; draft text is retained when hidden behind other open panels. Guide is in Map, and quiz entry is by the wall poster only. Personality badge removal remains available in the profile.
+- Personality poster on the wall to the right of the upper water dispenser (known converted-plan fixture: edge H:5,3, approach cell 5,3). Locates a nearby qualifying wall from the current floor plan; if no qualifying wall exists it is not shown.
+- Action dialog: top-right close, icons, short / loop tabs, page controls on small displays. Removed visible redundant speech form; existing actions, eligibility checks, and RPCs are preserved. Stop is always available on the loop tab when an action is running.
+- Break menu: one button per activity, pick a reachable appliance by local route distance / approach. The server continues to validate movement, occupancy and activity. If an appliance's front is obstructed, another reachable appliance may be chosen instead. No extra polling.
+- Room dropdown: executive, large meeting, small meeting, kitchen. Classifies enclosed areas using existing grid-edge walls/doors and furniture; unavailable destinations disabled. Keeps the existing meeting-seat behavior in the original big meeting room when its layout still matches.
+- Map connection badge shows V6.7.1.
+- A 4 x 3 switchback stairwell has two 12-step descending flights, left landing and closed guardrails. Saved as two standard rotated 2 x 3 stair objects, compatible with the existing SQL 34 format. The adjacent 90/270 pair is treated as a single visual object; a merged hall can be moved or deleted as one, but not rotated. Standard individual stairs remain available. The stair footprint remains unwalkable. The 3D static parts are batched by material and shadow flag. No new backend service, polling, or change to rendering quality.
+
+## V6.7.1 QA and limits
+
+- Source reconstructed from supplied GitHub archive plus V6.6.8 and V6.7.0 patches; not independently verified against the current live GitHub commit or database.
+- 28 JS syntax checks; 21 floor shape + 24 grid edge/travel status regression groups; 13 new logic/geometry groups. Chromium mock-backend checks at 1000 x 700, 390 x 844 and 844 x 390. Live WebGL, two-user Realtime, server routes and saving on the current Supabase database still require production verification. The browser test uses offline HTML/CSS/JS and 2D fallback; the stair mesh and instancing construction are tested separately with stubs. The marked preset was tested on the previous converted 10 x 35 fixture with 78 desks.
+- Rollback: copy `rollback-site/` into the repository root and commit; newly added JS/CSS files will be unused after the original index is restored. If the new stair draft has been saved, restore your previously exported shared plan separately if needed. No SQL rollback for this patch.
+
+---
+
 # GFE & GOE Office - V6.7.0 (Social Life & Personalization)
 
 ## V6.7.0 - Installation / upgrade
