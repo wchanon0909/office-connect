@@ -92,16 +92,39 @@ function buildDesk(g,c){
 }
 function desk(g,c){g.userData.typing=null;g.userData.avatarSeat=null;g.userData.avatarUpper=null;g.userData.avatarHead=null;g.userData.seatIntro=null;g.userData.sleepPose=false;g.userData.headStatusSignature=null;const walking=window.OC50.isWalking(c.id);buildDesk(g,api.isEditing()?{...c,status:'offline'}:walking?{...c,status:'away'}:c);if(!api.isEditing()&&c.connection!=='online')fadeDesk(g);else if(!api.isEditing())drawPresence(g,c,executiveDeskIds.has(c.id));renderer.shadowMap.needsUpdate=true;}
 
+// Shared geometry puts every wall centreline on a true tile edge.
+const doorGlass=new T.MeshStandardMaterial({color:0xa6d7e3,transparent:true,opacity:.38,roughness:.22,metalness:.12,depthWrite:false,side:T.DoubleSide});
 function wall(g,shape){
- const {door,vertical,segments,cap,offset,depth,capDepth,opening}=shape;g.rotation.y=vertical?Math.PI/2:0;const h=1.48;
- const segment=(x,w,height=h,y=h/2,trim=true)=>{box(g,white,x,y,-offset,w,height,depth);if(trim){box(g,wood,x,.12,-.676,w,.19,.045);box(g,edge,x,.25,-.68,w,.035,.045);}};
- for(const piece of segments)segment(piece.x,piece.w);
- if(door){segment(0,opening,.12,h-.06,false);
- // Frame stays fixed; leaf and handle rotate on a hinge toward the room.
- for(const x of [-.375,.375])box(g,edge,x,.67,-.70,.055,1.34,.10);box(g,edge,0,1.31,-.70,.79,.06,.10);
- const hinge=pivot(g,-.325,0,-.64);g.userData.hinge=hinge;box(hinge,wood,.325,.67,0,.65,1.25,.055);box(hinge,edge,.325,.67,.035,.48,1.04,.015);box(hinge,wood,.325,.67,.048,.43,.98,.015);ball(hinge,mat(0xd6b565,.3,.6),.565,.65,.10,.035,.035,.035);
+ g.rotation.y=0;
+ for(const r of shape.runs){const q=pivot(g,0,0,0);q.rotation.y=r.vertical?Math.PI/2:0;const {door,glass,segments,cap,offset,depth,capDepth,opening}=r,h=1.48,z=-offset;
+  const segment=(x,w,height=h,y=h/2,trim=true)=>{box(q,white,x,y,z,w,height,depth);if(trim){box(q,wood,x,.12,z+depth/2+.018,w,.19,.035);box(q,edge,x,.25,z+depth/2+.018,w,.035,.035);}};
+  for(const piece of segments)segment(piece.x,piece.w);
+  if(door){segment(0,opening,.12,h-.06,false);const frame=glass?metal:edge;
+   for(const x of [-.375,.375])box(q,frame,x,.67,z,.055,1.34,.10);box(q,frame,0,1.31,z,.79,.06,.10);
+   const hinge=pivot(q,-.325,0,z+.06);g.userData.hinge=hinge;
+   if(glass){box(hinge,doorGlass,.325,.67,0,.60,1.19,.025,false);for(const x of [.027,.623])box(hinge,frame,x,.67,0,.054,1.25,.065);for(const y of [.07,1.27])box(hinge,frame,.325,y,0,.65,.065,.065);box(hinge,metal,.54,.68,.07,.055,.26,.055);box(hinge,metal,.54,.68,-.07,.055,.26,.055);}
+   else {box(hinge,wood,.325,.67,0,.65,1.25,.055);box(hinge,edge,.325,.67,.035,.48,1.04,.015);box(hinge,wood,.325,.67,.048,.43,.98,.015);ball(hinge,mat(0xd6b565,.3,.6),.565,.65,.10,.035,.035,.035);}
+  }
+  // Tiny height bias at perpendicular caps avoids coplanar z-fighting.
+  box(q,white,cap.x,h+.035+(r===shape.runs[0]?0:.001),z,cap.w,.07,capDepth);
  }
- box(g,white,cap.x,h+.035,-offset,cap.w,.07,capDepth);
+}
+function stairwell(g,p,r){
+ const w=r.w*studio.CELL,d=r.h*studio.CELL;
+ const X=(r.x+r.w/2-p.cols/2)*studio.CELL,Z=(r.y+r.h/2-p.rows/2)*studio.CELL;
+ const q=pivot(g,X,0,Z),concrete=mat(0xb5babb),inner=mat(0x697880),step=mat(0xcdd0c9),rail=mat(0x53616a,.3,.4);
+ box(q,inner,0,-1.45,0,w,.16,d,false);
+ for(const x of [-w/2+.06,w/2-.06])box(q,concrete,x,-.7,0,.12,1.4,d);
+ for(const z of [-d/2+.06,d/2-.06])box(q,concrete,0,-.7,z,w,1.4,.12);
+ // Upper landing at the rear, stair flight along the right/east side.
+ const sw=studio.CELL*1.20,sx=w/2-sw/2-.13,n=10,landing=.46,run=d-landing-.18;
+ box(q,step,sx,-.065,-d/2+landing/2,sw,.13,landing);
+ for(let i=0;i<n;i++){const z=-d/2+landing+(i+.5)*run/n,top=-(i+1)*.126;box(q,step,sx,top-.06,z,sw,.12,run/n+.006);box(q,concrete,sx,top-.126,z-run/n/2+.035,sw,.135,.07);box(q,rail,sx,top+.006,z-run/n/2+.018,sw-.06,.016,.035,false);}
+ // Closed perimeter guard, including the upper landing: no floor transition.
+ for(const x of [-w/2+.065,w/2-.065]){box(q,rail,x,.70,0,.055,.055,d-.09);box(q,rail,x,.36,0,.038,.045,d-.09);for(let i=0;i<=4;i++)box(q,rail,x,.35,-d/2+.09+i*(d-.18)/4,.065,.70,.065);}
+ for(const z of [-d/2+.065,d/2-.065]){box(q,rail,0,.70,z,w-.09,.055,.055);box(q,rail,0,.36,z,w-.09,.045,.038);for(let i=0;i<=5;i++)box(q,rail,-w/2+.09+i*(w-.18)/5,.35,z,.065,.70,.065);}
+ // Closed barrier stripe across the landing; cosmetic, no action or link.
+ box(q,mat(0xcfa653),sx,.46,-d/2+.14,sw,.11,.045,false);
 }
 function plant(g){round(g,mat(0x9d7351),0,.19,0,.27,.38);round(g,mat(0x513b29),0,.39,0,.24,.03);for(let i=0;i<9;i++){const a=i*2.4;const leaf=ball(g,i%2?green:lightgreen,Math.sin(a)*.2,.59+(i%3)*.11,Math.cos(a)*.2,.13,.32,.09);leaf.rotation.set(Math.cos(a)*.65,a,Math.sin(a)*.65);} }
 function meeting(g){box(g,metal,0,.35,0,.14,.7,.14);box(g,wood,0,.75,0,1.5,.12,.85);for(const z of [-.66,.66]){box(g,chair,0,.45,z,.48,.1,.38);box(g,chair,0,.7,z+Math.sign(z)*.18,.48,.4,.08);}box(g,paper,.18,.82,.04,.24,.015,.24);}
@@ -122,9 +145,9 @@ function plantOffset(p,x,y){
 }
 function deskPosition(p,x,y,c){const [dx,dz]=deskOffset(p,x,y,c);return [(x-(p.cols-1)/2)*1.82+dx,(y-(p.rows-1)/2)*1.82+dz];}
 function highlight(key){if(selection){root.remove(selection);selection.geometry.dispose();selection.material.dispose();selection=null;}if(key&&root){const p=api.getMap(),[x,y]=key.split(',').map(Number);selection=new T.Mesh(new T.RingGeometry(.83,.91,48),new T.MeshBasicMaterial({color:0x41efaa,side:T.DoubleSide}));selection.rotation.x=-Math.PI/2;const c=p.cells[key],d=c?.type==='plant'?plantOffset(p,x,y):studio.offset(p,x,y,c),X=(x-(p.cols-1)/2)*1.82+d[0],Z=(y-(p.rows-1)/2)*1.82+d[1];selection.position.set(X,.035,Z);root.add(selection);}render();}
-function rebuild(p){navField=movement?.clearance(p,deskOffset,plantOffset)||null;if(root){if(decor){for(const m of [decor.glass,decor.cityMat,decor.glow])m.dispose();decor=null;}disposeBubbles(root);scene.remove(root);root.traverse(o=>{if(o.isInstancedMesh)o.dispose();});if(selection){selection.geometry.dispose();selection.material.dispose();}selection=null;}root=new T.Group();scene.add(root);pickables=[];deskGroups.clear();walkers.clear();doorGroups.clear();roomPickables=[];studioPickables=[];edgeTargets=[];renderer.shadowMap.needsUpdate=true;const W=p.cols*1.82,D=p.rows*1.82;box(root,mat(0x535f63),0,-.17,0,W+.22,.33,D+.22,false);
+function rebuild(p){navField=movement?.clearance(p,deskOffset,plantOffset)||null;if(root){if(decor){for(const m of [decor.glass,decor.cityMat,decor.glow])m.dispose();decor=null;}disposeBubbles(root);scene.remove(root);root.traverse(o=>{if(o.isInstancedMesh)o.dispose();});if(selection){selection.geometry.dispose();selection.material.dispose();}selection=null;}root=new T.Group();scene.add(root);pickables=[];deskGroups.clear();walkers.clear();doorGroups.clear();roomPickables=[];studioPickables=[];edgeTargets=[];renderer.shadowMap.needsUpdate=true;const W=p.cols*1.82,D=p.rows*1.82,stairs=studio.stairwell(p);if(!stairs)box(root,mat(0x535f63),0,-.17,0,W+.22,.33,D+.22,false);else{for(const r of studio.slabRects(p,stairs)){const l=r.x===0?.11:0,e=r.x+r.w===p.cols?.11:0,n=r.y===0?.11:0,b=r.y+r.h===p.rows?.11:0;box(root,mat(0x535f63),(r.x+r.w/2-p.cols/2)*1.82+(e-l)/2,-.17,(r.y+r.h/2-p.rows/2)*1.82+(b-n)/2,r.w*1.82+l+e,.33,r.h*1.82+n+b,false);}stairwell(root,p,stairs);}
 // Instanced floor tiles keep draw calls low.
-const tiles=new Map();for(let y=0;y<p.rows;y++)for(let x=0;x<p.cols;x++){const k=`${x},${y}`,c=p.cells[k],X=(x-(p.cols-1)/2)*1.82,Z=(y-(p.rows-1)/2)*1.82;for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){const m=c?.type==='aisle'?aisle:tile[(x*17+y*7+dx*3+dy)%6];if(!tiles.has(m))tiles.set(m,[]);tiles.get(m).push([X+(dx-1)*1.82/3,Z+(dy-1)*1.82/3]);}if(!c||c.type==='aisle'||studio.furniture.has(c.type)||c.type==='window')continue;const g=new T.Group();g.position.set(X,0,Z);g.userData.key=k;root.add(g);studioPickables.push(g);g.rotation.y=-c.rotation*Math.PI/180;if(c.type==='desk'){const [dx,dz]=deskOffset(p,x,y,c);g.position.x+=dx;g.position.z+=dz;desk(g,c);deskGroups.set(k,{g,state:deskState(c)});pickables.push(g);}else if(c.type==='wall'||c.type==='door'){wall(g,studio.wallGeometry(p,x,y));if(c.type==='door'){doorGroups.set(k,g.userData.hinge);roomPickables.push(g);}}else if(c.type==='plant'){const [dx,dz]=plantOffset(p,x,y);g.position.x+=dx;g.position.z+=dz;plant(g);}else if(c.type==='meeting'){meeting(g);roomPickables.push(g);}}
+const tiles=new Map();for(let y=0;y<p.rows;y++)for(let x=0;x<p.cols;x++){const k=`${x},${y}`,c=p.cells[k],X=(x-(p.cols-1)/2)*1.82,Z=(y-(p.rows-1)/2)*1.82;if(stairs&&studio.reserved(p,x,y,stairs))continue;for(let dy=0;dy<3;dy++)for(let dx=0;dx<3;dx++){const m=c?.type==='aisle'?aisle:tile[(x*17+y*7+dx*3+dy)%6];if(!tiles.has(m))tiles.set(m,[]);tiles.get(m).push([X+(dx-1)*1.82/3,Z+(dy-1)*1.82/3]);}if(!c||c.type==='aisle'||studio.furniture.has(c.type)||c.type==='window')continue;const g=new T.Group();g.position.set(X,0,Z);g.userData.key=k;root.add(g);studioPickables.push(g);g.rotation.y=-c.rotation*Math.PI/180;if(c.type==='desk'){const [dx,dz]=deskOffset(p,x,y,c);g.position.x+=dx;g.position.z+=dz;desk(g,c);deskGroups.set(k,{g,state:deskState(c)});pickables.push(g);}else if(c.type==='wall'||c.type==='door'){wall(g,studio.wallGeometry(p,x,y,stairs));if(c.type==='door'){doorGroups.set(k,g.userData.hinge);roomPickables.push(g);}}else if(c.type==='plant'){const [dx,dz]=plantOffset(p,x,y);g.position.x+=dx;g.position.z+=dz;plant(g);}else if(c.type==='meeting'){meeting(g);roomPickables.push(g);}}
 for(const [m,positions] of tiles){const im=new T.InstancedMesh(cube,m,positions.length),mx=new T.Matrix4();positions.forEach(([x,z],i)=>{mx.makeScale(1.82/3-.012,.035,1.82/3-.012);mx.setPosition(x,0,z);im.setMatrixAt(i,mx);});im.receiveShadow=true;root.add(im);}
 // Low perimeter trim only; preserve all explicit walls from the source layout.
 for(const z of [-D/2,D/2])box(root,white,0,.09,z,W+.10,.18,.10);for(const x of [-W/2,W/2])box(root,white,x,.09,0,.10,.18,D);

@@ -14,7 +14,7 @@ window.OC54_MOTION=(()=>{
  const blendAngle=(a,b,t)=>a+angleDelta(a,b)*clamp(t);
  // Rectangles match the floor footprints of the current renderer. No geometry changes.
  function clearance(plan,deskOffset,plantOffset){
-  const rects=[],doors=[];const add=(cx,cy,rot,lx,lz,w,d)=>{
+  const rects=[],doors=[],studio=window.OC612_STUDIO,stairs=studio.stairwell(plan);const add=(cx,cy,rot,lx,lz,w,d)=>{
    const co=Math.cos(rot),si=Math.sin(rot),x=cx+(co*lx+si*lz)/CELL,y=cy+(-si*lx+co*lz)/CELL;
    const hw=(Math.abs(co)*w+Math.abs(si)*d)/(2*CELL),hh=(Math.abs(si)*w+Math.abs(co)*d)/(2*CELL);
    rects.push({x1:x-hw,x2:x+hw,y1:y-hh,y2:y+hh});
@@ -32,8 +32,9 @@ window.OC54_MOTION=(()=>{
     add(x,y,rot,0,0,1.5,.85);for(const z of [-.66,.66])add(x,y,rot,0,z,.48,.46);
    }else if(['coffee','water','printer','fridge','cabinet','sofa','plants','books','window'].includes(c.type)){const [dx,dz]=window.OC612_STUDIO?.offset(plan,x,y,c)||[0,0];add(x+dx/CELL,y+dz/CELL,rot,0,c.type==='water'?.035:0,c.type==='water'?.65:1.66,c.type==='water'?.65:c.type==='window'?.20:1.08);
    }else if(c.type==='wall'||c.type==='door'){
-    const shape=window.OC612_STUDIO.wallGeometry(plan,x,y);rot=shape.vertical?Math.PI/2:0;
-    for(const piece of shape.segments)add(x,y,rot,piece.x,-shape.offset,piece.w,shape.capDepth);
+    if(stairs&&studio.reserved(plan,x,y,stairs)){add(x,y,0,0,0,CELL,CELL);continue;}
+    const shape=studio.wallGeometry(plan,x,y,stairs);
+    for(const r of shape.runs){rot=r.vertical?Math.PI/2:0;for(const piece of r.segments)add(x,y,rot,piece.x,-r.offset,piece.w,r.capDepth);}
     if(shape.door)doors.push({x,y});
    }
   }
@@ -121,6 +122,6 @@ window.OC54_MOTION=(()=>{
   return type;
  }
  function keyboardAnchor(plan,key,field){if(!key)return null;const q=[point(key)],seen=new Set([key]);for(let i=0;i<q.length;i++){const [x,y]=q[i];if(keyboardCell(plan,x,y,field)==='aisle'&&field?.free(x,y)&&directions.some(([dx,dy])=>keyboardCell(plan,x+dx,y+dy,field)==='aisle'))return `${x},${y}`;for(const [dx,dy] of directions){const nx=x+dx,ny=y+dy,k=`${nx},${ny}`,type=keyboardCell(plan,nx,ny,field);if(seen.has(k)||['outside','wall','door'].includes(type))continue;seen.add(k);q.push([nx,ny]);}}return null;}
- function keyboardTarget(plan,source,key,azimuth,field){if(!source||!field)return null;const d=keyboardDirection(key,azimuth);if(!d)return null;const [x,y]=point(source),[dx,dy]=d;let nx=x+dx,ny=y+dy;const cell=(a,b)=>keyboardCell(plan,a,b,field);if(cell(nx,ny)==='door'){const horizontal=[plan.cells[`${nx-1},${ny}`]?.type,plan.cells[`${nx+1},${ny}`]?.type].some(t=>t==='wall'||t==='door');if(horizontal?dx!==0:dy!==0)return null;nx+=dx;ny+=dy;if(cell(nx,ny)!=='aisle'||!field.free(nx,ny))return null;}else if(cell(nx,ny)!=='aisle'||!field.segment({x,y},{x:nx,y:ny}))return null;return `${nx},${ny}`;}
+ function keyboardTarget(plan,source,key,azimuth,field){if(!source||!field)return null;const d=keyboardDirection(key,azimuth);if(!d)return null;const [x,y]=point(source),[dx,dy]=d;let nx=x+dx,ny=y+dy;const cell=(a,b)=>keyboardCell(plan,a,b,field);if(cell(nx,ny)==='door'){const horizontal=window.OC612_STUDIO.side(plan,nx,ny)==='N';if(horizontal?dx!==0:dy!==0)return null;nx+=dx;ny+=dy;if(cell(nx,ny)!=='aisle'||!field.free(nx,ny))return null;}else if(cell(nx,ny)!=='aisle'||!field.segment({x,y},{x:nx,y:ny}))return null;return `${nx},${ny}`;}
  return Object.freeze({clearance,rounded,solve,gait,blendAngle,smooth,handPose,keyboardDirection,keyboardCell,keyboardAnchor,keyboardTarget,STEP,CELL,RADIUS,LANE});
 })();

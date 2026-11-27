@@ -8,16 +8,16 @@
  const batchable=new Set(['desk','wall','aisle','plant','door','meeting','coffee','water','printer','fridge','cabinet','sofa','plants','books','erase','room']);
  const isBatch=t=>batchable.has(t);
  function shapeFor(tool,mode){return tool==='room'?'room':mode!=='auto'?mode:['wall','desk'].includes(tool)?'line':['aisle','erase'].includes(tool)?'box':'single';}
- function targets(p,tool,a,b,{mode='auto',spacing=1,roomDoor=true}={}){
+ function targets(p,tool,a,b,{mode='auto',spacing=1,roomDoor=true,rotation=0}={}){
   const A=point(a),B=point(b);if(!isBatch(tool)||!inside(p,A)||!inside(p,B))return [];
   const [ax,ay]=A,[bx,by]=B,loX=Math.min(ax,bx),hiX=Math.max(ax,bx),loY=Math.min(ay,by),hiY=Math.max(ay,by),form=shapeFor(tool,mode),gap=tool==='desk'?Math.max(1,Math.min(3,Math.trunc(Number(spacing))||1)):1,out=[];
-  const add=(x,y,t=tool)=>out.push({key:key(x,y),type:t});
+  const add=(x,y,t=tool,r)=>out.push({key:key(x,y),type:t,...(r===undefined?{}:{rotation:r})});
   if(form==='single'){add(ax,ay);return out;}
-  if(form==='line'){let horiz=Math.abs(bx-ax)>=Math.abs(by-ay),d=horiz?bx-ax:by-ay;for(let i=0;i<=Math.abs(d);i+=gap)add(ax+(horiz?Math.sign(d)*i:0),ay+(horiz?0:Math.sign(d)*i));return out;}
+  if(form==='line'){let horiz=Math.abs(bx-ax)>=Math.abs(by-ay),d=horiz?bx-ax:by-ay;for(let i=0;i<=Math.abs(d);i+=gap)add(ax+(horiz?Math.sign(d)*i:0),ay+(horiz?0:Math.sign(d)*i),tool,['wall','door'].includes(tool)&&d!==0?(horiz?0:rotation===90?90:270):undefined);return out;}
   if(form==='room'&&(hiX-loX<2||hiY-loY<2))return [];
   const entrance=roomDoor?(hiY<p.rows-1?key(Math.floor((loX+hiX)/2),hiY):loY>0?key(Math.floor((loX+hiX)/2),loY):hiX<p.cols-1?key(hiX,Math.floor((loY+hiY)/2)):loX>0?key(loX,Math.floor((loY+hiY)/2)):null):null;
   for(let y=loY;y<=hiY;y++)for(let x=loX;x<=hiX;x++){
-   if(form==='room'){if(x!==loX&&x!==hiX&&y!==loY&&y!==hiY)continue;add(x,y,key(x,y)===entrance?'door':'wall');}
+   if(form==='room'){if(x!==loX&&x!==hiX&&y!==loY&&y!==hiY)continue;add(x,y,key(x,y)===entrance?'door':'wall',y===loY||y===hiY?0:x===loX?270:90);}
    else if(Math.abs(x-ax)%gap===0&&Math.abs(y-ay)%gap===0)add(x,y);
   }
   return out;
@@ -30,13 +30,13 @@
   if(c&&c.type!=='aisle')return 'blocked';
   return 'change';
  }
- function inspect(p,tool,a,b,opts={}){let rotation=[0,90,180,270].includes(opts.rotation)?opts.rotation:0;let points=targets(p,tool,a,b,opts);let cells=points.map(o=>({...o,verdict:tool==='desk'&&points.length>1&&p.cells[o.key]?.type==='desk'?'same':verdict(p.cells[o.key],o.type,rotation,opts)}));let blocked=cells.filter(o=>o.verdict==='blocked').length,changed=cells.filter(o=>o.verdict==='change').length;return{cells,blocked,changed,invalid:tool==='room'&&!cells.length,atomicBlocked:tool==='room'&&blocked>0};}
+ function inspect(p,tool,a,b,opts={}){let rotation=[0,90,180,270].includes(opts.rotation)?opts.rotation:0;let points=targets(p,tool,a,b,opts);const stairs=root.OC612_STUDIO?.stairwell(p);if(tool==='erase'&&stairs&&points.some(o=>stairs.keys.includes(o.key))){const seen=new Set(points.map(o=>o.key));for(const k of stairs.keys)if(!seen.has(k))points.push({key:k,type:'erase'});}let cells=points.map(o=>{const old=p.cells[o.key],r=o.rotation??rotation;return {...o,rotation:r,verdict:stairs?.keys.includes(o.key)&&tool!=='erase'?'blocked':tool==='desk'&&points.length>1&&old?.type==='desk'?'same':verdict(old,o.type,r,opts)};});let blocked=cells.filter(o=>o.verdict==='blocked').length,changed=cells.filter(o=>o.verdict==='change').length;return{cells,blocked,changed,invalid:tool==='room'&&!cells.length,atomicBlocked:tool==='room'&&blocked>0};}
  function apply(p,tool,a,b,opts={}){
   let result=inspect(p,tool,a,b,opts);if(result.invalid||result.atomicBlocked||!result.changed)return{...result,plan:p,applied:0};
   let next=clone(p),rotation=[0,90,180,270].includes(opts.rotation)?opts.rotation:0,last=null,ids=new Set(Object.values(next.cells).filter(c=>c.type==='desk').map(c=>c.id));
-  for(let o of result.cells){if(o.verdict!=='change')continue;const c=next.cells[o.key];if(o.type==='erase')delete next.cells[o.key];else if(c?.type===o.type)c.rotation=rotation;else if(o.type==='desk'){
+  for(let o of result.cells){if(o.verdict!=='change')continue;const c=next.cells[o.key];if(o.type==='erase')delete next.cells[o.key];else if(c?.type===o.type)c.rotation=o.rotation;else if(o.type==='desk'){
    let id;do{if(!Number.isSafeInteger(next.nextId)||next.nextId<1||next.nextId>=99999999)throw Error('Desk ID limit');id='D-'+String(next.nextId++).padStart(3,'0');}while(ids.has(id));ids.add(id);next.cells[o.key]={type:'desk',rotation,id,label:id,name:'',status:'offline'};
-  }else next.cells[o.key]={type:o.type,rotation};last=o.key;}
+  }else next.cells[o.key]={type:o.type,rotation: o.type==='door'&&c?.type==='wall'?c.rotation:o.rotation};last=o.key;}
   return{...result,plan:next,applied:result.changed,last};
  }
  function extend(p,side,count){

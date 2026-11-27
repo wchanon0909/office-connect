@@ -4,53 +4,78 @@ window.OC612_STUDIO=(()=>{
  const CELL=1.82, legacyFront=new Set(['D-077','D-148','D-082','D-083']), legacySide=new Set(['D-074','D-093']), executive=new Set(['D-063','D-073']);
  const furniture=new Set(['coffee','water','printer','fridge','cabinet','sofa','plants','books']);
  const canAlign=c=>c?.type==='desk'||furniture.has(c?.type);
- const wallOrDoor=(p,x,y)=>['wall','door'].includes(p.cells[`${x},${y}`]?.type);
- const horizontal=(p,x,y)=>wallOrDoor(p,x-1,y)||wallOrDoor(p,x+1,y);
- const wall=(p,x,y)=>p.cells[`${x},${y}`]?.type==='wall';
- // V6.6.6.1: join perpendicular wall runs while preserving the original
- // grid-cell orientations and door hinges. Dimensions are in world units,
- // in the same local coordinates used by the renderer and clearance field.
- const WALL_OFFSET=.78, WALL_DEPTH=.16, CAP_DEPTH=.20, DOOR_OPENING=.84;
- function wallGeometry(p,x,y){
-  const type=p.cells[`${x},${y}`]?.type;if(type!=='wall'&&type!=='door')return null;
-  const door=type==='door',vertical=!horizontal(p,x,y),half=CELL/2;
-  let lo=-half,hi=half,capLo=lo,capHi=hi;
-  if(vertical){
-   // Local +X points toward grid north after a +90 degree Y rotation.
-   // Extend to the actual face, not the centre, of a horizontal neighbour.
-   if(wallOrDoor(p,x,y-1)&&horizontal(p,x,y-1)){
-    hi=CELL+WALL_OFFSET-WALL_DEPTH/2;capHi=CELL+WALL_OFFSET-CAP_DEPTH/2;
-   }
-   if(wallOrDoor(p,x,y+1)&&horizontal(p,x,y+1)){
-    lo=-(CELL-WALL_OFFSET-WALL_DEPTH/2);capLo=-(CELL-WALL_OFFSET-CAP_DEPTH/2);
-   }
-  }else if(!door&&!wallOrDoor(p,x+1,y)&&
-    ((wallOrDoor(p,x,y-1)&&!horizontal(p,x,y-1))||
-     (wallOrDoor(p,x,y+1)&&!horizontal(p,x,y+1)))){
-   // Right-hand corner: terminate the horizontal run at the vertical plane.
-   // Never shorten a door panel or a through-wall at a T/cross junction.
-   hi=-WALL_OFFSET+WALL_DEPTH/2;capHi=-WALL_OFFSET+CAP_DEPTH/2;
+ // The saved plan still uses v1 wall cells (server-blocked). Geometry is
+ // centred on grid edges, with explicit E/W orientation for 90/270 rotations.
+ const WALL_OFFSET=CELL/2, WALL_DEPTH=.16, CAP_DEPTH=.20, DOOR_OPENING=.84;
+ // A closed stairwell in this release is represented by a reserved 3x2
+ // block of ordinary wall cells. This retains the server's blocked-cell
+ // semantics without introducing an unverified database type. The alternating
+ // rotations identify the block; editor line/room tools never create it.
+ // If the marker is ambiguous or incomplete, render ordinary solid walls.
+ const stairMarker=[[90,270,90],[270,90,270]];
+ function stairwell(p){
+  let found=null;
+  for(const [k,c] of Object.entries(p.cells)){
+   if(c.type!=='wall'||c.rotation!==90)continue;
+   const [x,y]=k.split(',').map(Number),w=3,h=2;if(x+w>p.cols||y+h>p.rows)continue;
+   const keys=[];let ok=true;for(let j=0;j<h&&ok;j++)for(let i=0;i<w;i++){const k2=`${x+i},${y+j}`,v=p.cells[k2];if(v?.type!=='wall'||v.rotation!==stairMarker[j][i]){ok=false;break;}keys.push(k2);}
+   if(ok){if(found)return null;found={x,y,w,h,keys};}
   }
-  const segment=(a,b)=>({x:(a+b)/2,w:b-a});
-  const segments=door?[segment(lo,-DOOR_OPENING/2),segment(DOOR_OPENING/2,hi)]:[segment(lo,hi)];
-  return {vertical,door,segments,cap:segment(capLo,capHi),offset:WALL_OFFSET,depth:WALL_DEPTH,capDepth:CAP_DEPTH,opening:DOOR_OPENING};
+  return found;
  }
-
+ const rawWall=(p,x,y)=>['wall','door'].includes(p.cells[`${x},${y}`]?.type);
+ function reserved(p,x,y,stairs=stairwell(p)){return !!stairs&&x>=stairs.x&&x<stairs.x+stairs.w&&y>=stairs.y&&y<stairs.y+stairs.h;}
+ const wallOrDoor=(p,x,y,stairs)=>rawWall(p,x,y)&&!reserved(p,x,y,stairs);
+ function side(p,x,y,stairs=stairwell(p)){
+  if(!wallOrDoor(p,x,y,stairs))return null;
+  const r=p.cells[`${x},${y}`].rotation;
+  if(r===90)return 'E';if(r===270)return 'W';
+  if(wallOrDoor(p,x-1,y,stairs)||wallOrDoor(p,x+1,y,stairs))return 'N';
+  if(wallOrDoor(p,x,y-1,stairs)||wallOrDoor(p,x,y+1,stairs))return 'W';
+  return 'N';
+ }
+ const horizontal=(p,x,y)=>side(p,x,y)==='N';
+ const wall=(p,x,y)=>p.cells[`${x},${y}`]?.type==='wall'&&!reserved(p,x,y);
+ function wallGeometry(p,x,y,stairs=stairwell(p)){
+  const primary=side(p,x,y,stairs);if(!primary)return null;
+  const door=p.cells[`${x},${y}`].type==='door',vertical=primary!=='N';
+  // Adjacent doors in the same run are glass; single doors remain wood.
+  const glass=door&&(vertical?[[0,-1],[0,1]]:[[-1,0],[1,0]]).some(([dx,dy])=>p.cells[`${x+dx},${y+dy}`]?.type==='door'&&side(p,x+dx,y+dy,stairs)===primary);
+  const segment=(a,b)=>({x:(a+b)/2,w:b-a});
+  const run=(s,isDoor=false)=>({side:s,vertical:s!=='N',door:isDoor,glass:isDoor&&glass,offset:s==='E'?-WALL_OFFSET:WALL_OFFSET,depth:WALL_DEPTH,capDepth:CAP_DEPTH,opening:DOOR_OPENING,segments:isDoor?[segment(-CELL/2,-DOOR_OPENING/2),segment(DOOR_OPENING/2,CELL/2)]:[segment(-CELL/2,CELL/2)],cap:segment(-CELL/2,CELL/2)});
+  const runs=[run(primary,door)];
+  // At a corner, an extra edge belongs to the corner cell. It is not a
+  // diagonal bridge or a wall drawn through a genuinely empty grid cell.
+  const south=side(p,x,y+1,stairs);
+  if(primary==='N'&&['E','W'].includes(south))runs.push(run(south));
+  if(primary==='W'&&side(p,x+1,y,stairs)==='N')runs.push(run('N'));
+  if(primary==='E'&&side(p,x-1,y,stairs)==='N')runs.push(run('N'));
+  // Explicit E/W runs can turn across one cell at a grid vertex.
+  if(vertical&&south&&south!=='N'&&south!==primary){
+   const last=run('N');last.offset=-WALL_OFFSET;last.side='S';runs.push(last);
+  }
+  return {...runs[0],runs};
+ }
+ // Rectangular slab pieces around the visual-only stairwell. Grid-edge units.
+ function slabRects(p,stairs=stairwell(p)){
+  if(!stairs)return [{x:0,y:0,w:p.cols,h:p.rows}];const {x,y,w,h}=stairs;
+  return [{x:0,y:0,w:p.cols,h:y},{x:0,y:y+h,w:p.cols,h:p.rows-y-h},{x:0,y,w:x,h},{x:x+w,y,w:p.cols-x-w,h}].filter(r=>r.w>0&&r.h>0);
+ }
  function legacyDesk(p,x,y,c){
   if(legacyFront.has(c?.id)&&c.rotation===0&&wall(p,x,y-1)&&horizontal(p,x,y-1))return [0,-1.74];
   if(legacySide.has(c?.id)&&[0,180].includes(c.rotation)&&wall(p,x-1,y)&&!horizontal(p,x-1,y))return [-1.60,0];
   if(executive.has(c?.id)&&c.rotation===270&&x===p.cols-1)return [-.15,0];
   return null;
  }
- // A wall cell's actual plane is 0.78 world units behind its center. The
- // furniture faces away from that plane, so its back has 0.04 clearance.
+ // Match the actual plane, not an inferred cell centre. Keep the existing
+ // logical furniture cell for server routes and use the established back envelope.
  function flush(p,x,y,c){
   if(!canAlign(c))return null;
   const a=-(c.rotation||0)*Math.PI/180,fx=Math.round(Math.sin(a)),fy=Math.round(Math.cos(a)),wx=x-fx,wy=y-fy;
-  if(!wall(p,wx,wy)||horizontal(p,wx,wy)!==!!fy)return null;
-  const wallX=(wx-x)*CELL+(fy?0:-.78),wallY=(wy-y)*CELL+(fy?-.78:0);
-  const back=c.type==='desk'?(executive.has(c.id)?.89:.66):.54;
-  const shift=wallX*fx+wallY*fy+.10+back+.04;
+  if(!wall(p,wx,wy))return null;const shape=wallGeometry(p,wx,wy),r=shape?.runs.find(q=>q.vertical===!!fx);if(!r)return null;
+  const wallX=(wx-x)*CELL+(r.vertical?-r.offset:0),wallY=(wy-y)*CELL+(r.vertical?0:-r.offset);
+  const back=c.type==='desk'?(executive.has(c.id)?.89:.66):({printer:.38,cabinet:.44,fridge:.415,water:.54,coffee:.54}[c.type]??.54);
+  const shift=wallX*fx+wallY*fy+.135+back+.025;
   return [fx*shift,fy*shift];
  }
  function offset(p,x,y,c){
@@ -64,5 +89,5 @@ window.OC612_STUDIO=(()=>{
  function edgeKeys(p){return ['N','S','W','E'].flatMap(s=>Array.from({length:'NS'.includes(s)?p.cols:p.rows},(_,i)=>`${s}:${i}`));}
  function edgeAt(p,px,py,max=.42){const choices=[['N',Math.abs(py+.5),Math.round(px)],['S',Math.abs(py-(p.rows-.5)),Math.round(px)],['W',Math.abs(px+.5),Math.round(py)],['E',Math.abs(px-(p.cols-.5)),Math.round(py)]];return choices.filter(([s,d,i])=>d<=max&&edgeValid(p,`${s}:${i}`)).sort((a,b)=>a[1]-b[1]).map(([s,d,i])=>`${s}:${i}`)[0]||null;}
  function cleanEdges(p){if(p.edges===undefined)return {};if(!p.edges||typeof p.edges!=='object'||Array.isArray(p.edges))throw Error('Invalid edge fixtures');const out={};for(const [k,v] of Object.entries(p.edges)){if(!edgeValid(p,k)||v?.type!=='window')throw Error('Invalid window edge: '+k);out[k]={type:'window'};}return out;}
- return {CELL,furniture,canAlign,offset,flush,legacyDesk,wallRotation,wallGeometry,edgeValid,edgePoint,edgeKeys,edgeAt,cleanEdges};
+ return {CELL,furniture,canAlign,offset,flush,legacyDesk,wallRotation,wallGeometry,side,stairwell,reserved,slabRects,edgeValid,edgePoint,edgeKeys,edgeAt,cleanEdges};
 })();

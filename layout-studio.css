@@ -50,3 +50,18 @@
 @media(max-width:650px){.admin-mode.editor-mode .admin-sidebar{display:none!important}.editor-mode #toolbar{max-height:45dvh;padding:8px;margin:5px 6px 0}.editor-mode #toolbar .editor-title h2{font-size:14px}.editor-mode #toolbar :is(button,select){font-size:11px;padding:4px 6px;min-height:30px}.editor-mode .floor-selection #studioSelection{font-size:10px}.editor-mode.floor-plan-2d #stage{padding:10px 10px 65px}.editor-mode .floor-expand{gap:4px}.editor-mode #floorSummary{font-size:10px}}
 .editor-mode.floor-plan-2d:not(.floor-show-details) .desk-panel{display:none!important}
 .editor-mode.floor-plan-2d #grid .cell.floor-door-preview::before{background:#f2cb657c;box-shadow:inset 0 0 0 2px #b6862d}
+
+/* V6.6.6.2: the 2D wall diagram uses the same grid edge as 3D. */
+#grid .cell.floor-edge-architecture{background:#e6ebea!important;}
+.floor-wall-edge{position:absolute;display:block;pointer-events:none;z-index:3;background:#65757b;box-shadow:0 0 0 1px #50626a70;}
+.floor-wall-edge.wall-side-N,.floor-wall-edge.wall-side-S{left:0;right:0;height:10%;}
+.floor-wall-edge.wall-side-N{top:0}.floor-wall-edge.wall-side-S{bottom:0}
+.floor-wall-edge.wall-side-W,.floor-wall-edge.wall-side-E{top:0;bottom:0;width:10%;}
+.floor-wall-edge.wall-side-W{left:0}.floor-wall-edge.wall-side-E{right:0}
+.floor-door-edge.wall-side-N,.floor-door-edge.wall-side-S{background:linear-gradient(90deg,#65757b 0 27%,#c3a06e 27% 73%,#65757b 73% 100%)}
+.floor-door-edge.wall-side-W,.floor-door-edge.wall-side-E{background:linear-gradient(180deg,#65757b 0 27%,#c3a06e 27% 73%,#65757b 73% 100%)}
+.floor-glass-edge.wall-side-N,.floor-glass-edge.wall-side-S{background:linear-gradient(90deg,#65757b 0 27%,#53b7d0 27% 73%,#65757b 73% 100%)}
+.floor-glass-edge.wall-side-W,.floor-glass-edge.wall-side-E{background:linear-gradient(180deg,#65757b 0 27%,#53b7d0 27% 73%,#65757b 73% 100%)}
+#grid .cell.floor-stairs-reserved{background:repeating-linear-gradient(135deg,#b7c5ca 0 15%,#8fa4ac 15% 25%)!important;color:white}
+#grid .cell.floor-stairs-flight{background:repeating-linear-gradient(0deg,#53717e 0 10%,#91a9b5 10% 20%)!important;}
+.floor-stairs-label{font-size:clamp(7px,1vw,11px);font-weight:800;color:#fff;text-shadow:0 1px 2px #253c49;pointer-events:none}
