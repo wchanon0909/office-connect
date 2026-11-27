@@ -1,3 +1,39 @@
+# GFE & GOE Office - V6.7.0 (Social Life & Personalization)
+
+## V6.7.0 - Installation / upgrade
+
+**Requires V6.6.8, including installed SQL 34 and the preceding Desk Studio, Quest, social and appliance migrations.** This is a patch, not a fresh installation. No layout conversion is required if you have already converted it. No Coin, Inventory, employee, quest history or floor plan reset.
+
+1. Export the current shared JSON from Admin and retain a copy of the existing website files. Use a quiet deployment window.
+2. Run the whole `setup/35-check-only.sql` in Supabase SQL Editor. The only success result is `PASS`. On any SQL error or missing prerequisite, STOP; send the exact error. It rolls back the migration and its smoke test. Do not run installation until the check passes.
+3. Run `35-install.sql`, then `35-verify.sql`; both must show `PASS`. Do not rerun old reset migrations.
+4. Upload every file inside `site/` together to the existing GitHub `main` root. Retain all other files, notably `online-config.js`, assets and current layout. Do not publish setup, qa or rollback-site. After GitHub Pages deployment, refresh all active clients.
+5. Verify with two enabled, seated/assigned member accounts: tutorial first display, skip/replay; walk to the board, take quiz and choose share/remove; speech appears on both clients and disappears after 5 s; new loops stop upon walking/returning/status change; shop and visit, quest progression, old chat, water/printer, wall-edge movement. Confirm actual WebGL visuals and Realtime status. A guest must not see private profile/decor/events. Compare API load and frame rate during a normal busy period.
+
+## Changes
+
+- Seven-scene first-use tutorial with Next, Back, Skip and a permanent manual Guide button. Completion/skip saved per account; one Explorer quest rewards finishing, not skipping. Existing users see the tutorial once after deployment.
+- Personality Board placed against a reachable wall beside the largest connected open-floor region, without occupying a floor cell. Click board in 3D or press Personality to walk there and open the 16-question quiz on arrival. No eligible wall means no board; no layout mutation. Result is an informal MBTI-style preference quiz, not the official MBTI assessment; do not use it for staff evaluation. Ties select E/S/T/J. Only the four-letter result is optionally saved/shared with signed-in members on Character Card; individual answers are not retained in the new profile table. Unshare from own profile at any time.
+- Twelve added paid Desk Studio items, including animated fish bowl and music box in the personal 3D studio. Existing catalog and owned items preserved. Search inventory/shop; category filtering; visit with peer picker/previous/next and visible placed-item list only. Shop permissions remain as configured by Admin. Preview in the main 3D office uses up to six placed desktop items per occupied desk; important computer items first, small static instanced models (up to five parts each). Floor accessories/chairs are not replaced. Existing floor plan, avatars, and render quality settings unchanged. Visitors see updated placements on regular shared snapshots, not necessarily instantly.
+- Ten new persistent loops (14 including old): sway, jog, jumping jacks, squat, neck roll, breathing, reading, typing, phone, meditate. Six new personal one-shots: salute, thumbs, nod, laugh, point, bow. Three new directed social actions: encouragement, thanks, virtual gift (visual, no coin transfer). Movement and incompatible status cancel loops on the server. Actions use existing character orientation and local rig interpolation; public action captions end at 5 seconds without terminating a valid loop. Some standing/seated pose restrictions apply.
+- Public, ephemeral speech (1-120 chars, minimum 2 s between sends) displayed above sender for 5 seconds. Separate from saved status and private chat. Server emits validated events to a member-only private Broadcast channel. Only latest event in each slot per account is stored; expired text is not included in snapshots or displayed. This is not a private or end-to-end encrypted chat; do not send confidential messages. If private Realtime is not connected, other users may miss a 5-second message; the existing snapshot schedule is not accelerated to replay expired messages.
+- Twelve new optional quests (3 Daily, 3 Weekly, 6 Explorer), appended to the existing catalog. Events counted by the existing day/lifetime mark mechanism. Weekly targets are distinct days; no auto-grant or reset of old progress. New quest rewards from 5 to 30 Coin.
+- No new recurring network poll. New speech/social sends use one RPC and Broadcast; snapshot reuses current heartbeat and adds only bounded desktop preview rows, opted-in tags, and unexpired events. New action/visit/place events can update the existing quest mark mechanism. The extra SQL work and payload, WebSocket messages and device frame rate must still be measured in real deployment. Do not assume a speedup or free scaling.
+
+## Rollback / pause new features
+
+If V6.7 causes a problem after a successful install, run `setup/35-disable.sql` (PASS) to switch off new features, remove new temporary events/loops and cancellation triggers, and hide new quests from the catalog. It deliberately retains earned coins, purchased items, new profiles and quest marks. Existing SQL 34 and the current plan remain in place. Refresh all clients. If necessary restore all files under `rollback-site/` (the preceding V6.6.8 versions of changed files) together, keeping the rest of the website. The three new office670 files can remain unused. Do not downgrade the floor-plan schema or reset users. Newly purchased item IDs may be unknown to the old 3D renderer, so prefer disabling the new feature set while retaining the newer studio when possible. Rerun SQL 35 check/install/verify to re-enable after the issue is fixed.
+
+## Test evidence / limitations
+
+- JavaScript syntax checked for all 26 site JS files.
+- 60 pure JS tests: personality combinations, exact 5-second expiry, malformed payloads, bounded pose targets and simplified geometry, board selection on both layout formats.
+- 21 floor shape and 24 grid edge/status regression groups.
+- 10 Chromium browser smoke groups (five each at 1440x900 and 390x844) with mocked backend: tutorial skip/replay, public text/expiry, board navigation and 16 questions/consent, friend actions/tag/decor payload, member logout/privacy. Screenshots reflect mocked frontend, not live production.
+- SQL35 was generated and inspected against the prior SQL definitions and provided export, not executed against PostgreSQL or your Supabase project here. The dry-run includes catalog/permission checks and rollback tests for tour and personality. Actual Realtime two-client delivery, main-office WebGL preview, motion/pose integration and real quest/wallet behavior remain deployment acceptance tests. No guarantee of no bugs or reduced server workload until measured.
+
+---
+
 # GFE & GOE Office - V6.6.8 (Grid Edges & Travel Status)
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
