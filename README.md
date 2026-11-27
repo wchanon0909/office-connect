@@ -1,3 +1,35 @@
+# GFE & GOE Office - V6.7.3 (Shared Moments & Admin Events)
+
+## Installation
+
+Requires V6.7.2 and SQL 34, 35 and 36 installed. Back up the current GitHub commit and Export shared JSON first. Do not run earlier reset migrations.
+
+1. In Supabase SQL Editor run `setup/37-check-only.sql`, `37-install.sql`, then `37-verify.sql`. Each ends with PASS. Check-only rolls back. Stop on any actual error. SQL 37 refuses an unknown V6.7 snapshot definition. It adds new private tables and RPCs; no existing wallet, inventory, quest, desk or floor-plan reset.
+2. Upload all `site/` files to the root of GitHub `main`, commit and hard refresh after Pages deploys. No layout import is needed. The map version is V6.7.3.
+3. With two test accounts, verify speech names, MENU, photo board, and shared seating. Confirm online-only grant with a small test amount and verify the wallet ledger before awarding a large amount.
+
+## Changes
+
+- Five-second public speech: small nickname tab attached to the upper-left corner. Retains the existing authenticated speech and expiry rules.
+- Personal desk previews: only online, non-visual-only desks are eligible. SQL 37 omits offline previews from the shared snapshot; the renderer also filters them and restores the ordinary desktop model. Base furniture and rendering quality are retained. No user inventory is removed.
+- Round / long multi-block tables: click any part of the table in normal view to request one accessible free chair. 6 / 4 modeled seats, respectively. The server validates revision, presence, status, footprint, nearby anchor, wall collision, route and concurrent seat reservation under the existing layout transaction lock. Move or return to desk to release the seat. If all reachable seats are occupied, the request is rejected. Existing meeting-table activity is not replaced. Existing coarse-grid pathfinding and avatar approach limitations remain.
+- Header: theme quick button hidden, not deleted from Admin tools. Online count and MENU remain; ADMIN is visible for administrators. MENU hides/restores office HUD controls, not the 3D scene, character labels, header or editor save controls. New session starts with menus shown.
+- Close controls: top-right X or sticky close rail delegates to original close handler; preserves busy/cancellation logic. Employee management displays 1-3 staff rows per page based on height. Long lists / logs and very short screens can still scroll; no content is forcibly clipped.
+- Admin coin event: Admin > แจก Coin ให้คนออนไลน์. 1-100,000 coins per online desk-assigned account, including the Admin if online. The presence definition is the existing authoritative active-user view (last seen within 90 seconds). Recipient set determined at execution, with one ledger reference per account per request. The transaction is atomic; retries with the same ID are idempotent. Pending request ID retained in sessionStorage when available. Never start a new grant after an uncertain response without checking the first one. Admin event banner replaces the ordinary action hint for 10 seconds, including announcements created through the existing workspace UI. Existing private Realtime channel; no new polling.
+- Photo Album: fixed-size wall board on a suitable solid wall to the right of the Personality poster (test fixture H:6,3, next to H:5,3). Automatically follows the saved Personality mark; searches up to three edges. If no valid wall is found the board is not rendered. Clicking opens a centered modal (not a camera move). Members may upload a raster image that their browser can decode (source <=20 MB); JPEG re-encoding removes the original metadata, scales longest side to <=960 px, limits output to 160,000 bytes. Caption <=160 characters; author nickname recorded by the server, not provided by client. Fixed frame with contain fit. Latest ten photos, newest first; older photos displaced when a new one exceeds the cap. Expired images are excluded from reading and viewing after 24 hours; physical cleanup occurs on subsequent upload (or owner/admin deletion). Private Postgres bytea storage, at most 1.6 MB of live raw JPEG data plus row/DB overhead, not public bucket. Read metadata only when the board is open; read one photo at a time. Album-change broadcast refreshes open boards only. A member can delete their own photo; Admin can delete any photo. Do not share confidential, personal or unapproved pictures. Upload rate limit 30 seconds per author while prior photo remains in album. No extra background API polling, no photo bytes in Office snapshots.
+
+## QA / limits
+
+- JavaScript syntax: 30 files passed. Regression: 21 floor shapes, 13 room/stair, 7 destination logic groups passed. Seat geometry: 8 table/orientation combinations and 1 enclosed-table case passed using a JS mirror of SQL geometry and client clearance. Browser: 3 mock-backend viewports (1000x700, 390x844, 844x390), tested menu toggle, speech nickname, wall placement, lazy album reads, image compression, pagination, upload/delete, retry nonce, role gating, sticky close, seat request/pose. The PNG screenshots show simulated 2D fallback, not deployed 3D. Tests use V6.7.2 local source and earlier exported 78-desk fixture, not the latest live GitHub/database.
+- SQL has NOT been run on a real PostgreSQL instance here. Check-only runs the geometry and privilege checks against your installed schema. The live seating concurrency, Realtime broadcast, photo storage, current plan wall selection and visual WebGL fit remain to be verified after deploy. Some older or custom layouts may not have a suitable album wall. Long menus may scroll, but their close controls stay reachable.
+- Existing physical sub-tile pathfinding limitation remains. Older clients can ignore the new chair pose and events; refresh all active tabs.
+
+## Rollback
+
+Restore `rollback-site/` first and commit; new unreferenced files can remain. Run `37-rollback.sql` only if backend removal is needed. It removes the new public RPCs and releases temporary shared-seat motion records, but preserves album photos and admin event/coin ledger records. It does not reverse coins that have already been granted. No plan overwrite.
+
+---
+
 # GFE & GOE Office - V6.7.2 (UI & Destination Fix)
 
 ## Installation
