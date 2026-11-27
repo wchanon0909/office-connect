@@ -1,8 +1,18 @@
-# GFE & GOE Office — V6.3.3
+# GFE & GOE Office — V6.4 FIX1
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## V6.4 FIX1 — Quest Center & Social Cards
+
+- 49 optional quests (11 daily, 11 weekly, 27 lifetime Explorer). Bangkok midnight / Monday resets. Claim before reset; Explorer persists per account.
+- Uses `oc41_private.oc64_wallet`, `oc64_ledger` and `oc64_credit` from the existing database. New RPCs use `ocq_*`; private quest tables use `ocq_*`. Existing Shop / Inventory / Desk RPCs are unchanged. This source baseline is V6.3.3, so it does not contain the Shop UI.
+- Existing daily visit, regular, drink, highfive and hall rewards reuse legacy ledger references. An old auto-paid reward is displayed as claimed, never paid again. Legacy pending rewards from before installation day are settled. New weekly claim milestones count manual daily claims only.
+- Online time is measured by the extended server-timed visible-page heartbeat with recent session validation; where legacy time exists, use the larger value (not the sum). Drink, High Five and hall progress use existing validated server records. Other movement quests count successful commands, not arrival. Tutorial menu events are client-reported.
+- Free Social Cards: cheer, virtual coffee and thanks. Max 5 distinct recipients/day, one per recipient. Persistent inbox.
+- Back up first. Run `setup/26-fix1-check-only.txt` in one query, verify no errors and rollback, then `setup/26-fix1-install.txt`. Upload only `site/` contents to `main`. This replaces the previous V6.4 Quest patch. Do not run the old migration 26.
+- Local browser tests use mock data; live PostgreSQL verification requires the check-only script on your project.
 
 ## What's new — V6.3.3: Account profile & admin-only theme menu
 
