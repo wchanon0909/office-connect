@@ -7,6 +7,35 @@ window.OC612_STUDIO=(()=>{
  const wallOrDoor=(p,x,y)=>['wall','door'].includes(p.cells[`${x},${y}`]?.type);
  const horizontal=(p,x,y)=>wallOrDoor(p,x-1,y)||wallOrDoor(p,x+1,y);
  const wall=(p,x,y)=>p.cells[`${x},${y}`]?.type==='wall';
+ // V6.6.6.1: join perpendicular wall runs while preserving the original
+ // grid-cell orientations and door hinges. Dimensions are in world units,
+ // in the same local coordinates used by the renderer and clearance field.
+ const WALL_OFFSET=.78, WALL_DEPTH=.16, CAP_DEPTH=.20, DOOR_OPENING=.84;
+ function wallGeometry(p,x,y){
+  const type=p.cells[`${x},${y}`]?.type;if(type!=='wall'&&type!=='door')return null;
+  const door=type==='door',vertical=!horizontal(p,x,y),half=CELL/2;
+  let lo=-half,hi=half,capLo=lo,capHi=hi;
+  if(vertical){
+   // Local +X points toward grid north after a +90 degree Y rotation.
+   // Extend to the actual face, not the centre, of a horizontal neighbour.
+   if(wallOrDoor(p,x,y-1)&&horizontal(p,x,y-1)){
+    hi=CELL+WALL_OFFSET-WALL_DEPTH/2;capHi=CELL+WALL_OFFSET-CAP_DEPTH/2;
+   }
+   if(wallOrDoor(p,x,y+1)&&horizontal(p,x,y+1)){
+    lo=-(CELL-WALL_OFFSET-WALL_DEPTH/2);capLo=-(CELL-WALL_OFFSET-CAP_DEPTH/2);
+   }
+  }else if(!door&&!wallOrDoor(p,x+1,y)&&
+    ((wallOrDoor(p,x,y-1)&&!horizontal(p,x,y-1))||
+     (wallOrDoor(p,x,y+1)&&!horizontal(p,x,y+1)))){
+   // Right-hand corner: terminate the horizontal run at the vertical plane.
+   // Never shorten a door panel or a through-wall at a T/cross junction.
+   hi=-WALL_OFFSET+WALL_DEPTH/2;capHi=-WALL_OFFSET+CAP_DEPTH/2;
+  }
+  const segment=(a,b)=>({x:(a+b)/2,w:b-a});
+  const segments=door?[segment(lo,-DOOR_OPENING/2),segment(DOOR_OPENING/2,hi)]:[segment(lo,hi)];
+  return {vertical,door,segments,cap:segment(capLo,capHi),offset:WALL_OFFSET,depth:WALL_DEPTH,capDepth:CAP_DEPTH,opening:DOOR_OPENING};
+ }
+
  function legacyDesk(p,x,y,c){
   if(legacyFront.has(c?.id)&&c.rotation===0&&wall(p,x,y-1)&&horizontal(p,x,y-1))return [0,-1.74];
   if(legacySide.has(c?.id)&&[0,180].includes(c.rotation)&&wall(p,x-1,y)&&!horizontal(p,x-1,y))return [-1.60,0];
@@ -35,5 +64,5 @@ window.OC612_STUDIO=(()=>{
  function edgeKeys(p){return ['N','S','W','E'].flatMap(s=>Array.from({length:'NS'.includes(s)?p.cols:p.rows},(_,i)=>`${s}:${i}`));}
  function edgeAt(p,px,py,max=.42){const choices=[['N',Math.abs(py+.5),Math.round(px)],['S',Math.abs(py-(p.rows-.5)),Math.round(px)],['W',Math.abs(px+.5),Math.round(py)],['E',Math.abs(px-(p.cols-.5)),Math.round(py)]];return choices.filter(([s,d,i])=>d<=max&&edgeValid(p,`${s}:${i}`)).sort((a,b)=>a[1]-b[1]).map(([s,d,i])=>`${s}:${i}`)[0]||null;}
  function cleanEdges(p){if(p.edges===undefined)return {};if(!p.edges||typeof p.edges!=='object'||Array.isArray(p.edges))throw Error('Invalid edge fixtures');const out={};for(const [k,v] of Object.entries(p.edges)){if(!edgeValid(p,k)||v?.type!=='window')throw Error('Invalid window edge: '+k);out[k]={type:'window'};}return out;}
- return {CELL,furniture,canAlign,offset,flush,legacyDesk,wallRotation,edgeValid,edgePoint,edgeKeys,edgeAt,cleanEdges};
+ return {CELL,furniture,canAlign,offset,flush,legacyDesk,wallRotation,wallGeometry,edgeValid,edgePoint,edgeKeys,edgeAt,cleanEdges};
 })();

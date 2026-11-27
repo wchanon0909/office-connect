@@ -19,7 +19,6 @@ window.OC54_MOTION=(()=>{
    const hw=(Math.abs(co)*w+Math.abs(si)*d)/(2*CELL),hh=(Math.abs(si)*w+Math.abs(co)*d)/(2*CELL);
    rects.push({x1:x-hw,x2:x+hw,y1:y-hh,y2:y+hh});
   };
-  const near=(x,y)=>['wall','door'].includes(plan.cells[`${x},${y}`]?.type);
   for(const [key,c] of Object.entries(plan.cells)){
    let [x,y]=point(key);let rot=-(c.rotation||0)*Math.PI/180;
    if(c.type==='desk'){
@@ -33,9 +32,9 @@ window.OC54_MOTION=(()=>{
     add(x,y,rot,0,0,1.5,.85);for(const z of [-.66,.66])add(x,y,rot,0,z,.48,.46);
    }else if(['coffee','water','printer','fridge','cabinet','sofa','plants','books','window'].includes(c.type)){const [dx,dz]=window.OC612_STUDIO?.offset(plan,x,y,c)||[0,0];add(x+dx/CELL,y+dz/CELL,rot,0,c.type==='water'?.035:0,c.type==='water'?.65:1.66,c.type==='water'?.65:c.type==='window'?.20:1.08);
    }else if(c.type==='wall'||c.type==='door'){
-    rot=near(x-1,y)||near(x+1,y)?0:Math.PI/2;
-    if(c.type==='wall')add(x,y,rot,0,-.78,1.82,.20);
-    else{const opening=.84,side=(CELL-opening)/2;for(const s of [-1,1])add(x,y,rot,s*(opening+side)/2,-.78,side,.20);doors.push({x,y});}
+    const shape=window.OC612_STUDIO.wallGeometry(plan,x,y);rot=shape.vertical?Math.PI/2:0;
+    for(const piece of shape.segments)add(x,y,rot,piece.x,-shape.offset,piece.w,shape.capDepth);
+    if(shape.door)doors.push({x,y});
    }
   }
   const buckets=new Map();for(const r of rects){for(let x=Math.floor(r.x1-RADIUS);x<=Math.ceil(r.x2+RADIUS);x++)for(let y=Math.floor(r.y1-RADIUS);y<=Math.ceil(r.y2+RADIUS);y++){const k=`${x},${y}`;if(!buckets.has(k))buckets.set(k,[]);buckets.get(k).push(r);}}

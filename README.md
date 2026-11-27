@@ -1,8 +1,16 @@
-# GFE & GOE Office — V6.6.6
+# GFE & GOE Office — V6.6.6.1
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## V6.6.6.1 — Wall junction fix
+
+- Frontend-only correction for gaps at orthogonal wall junctions (L / T / cross). Straight wall planes, original door leaf, hinge and opening stay in the same place. Vertical wall spans now meet the real faces of horizontal neighbours; solid right-hand corners end at the adjoining plane rather than overhanging. No automatic wall creation across empty grid cells or between parallel horizontal rows.
+- Shared `OC612_STUDIO.wallGeometry` drives both 3D wall meshes and visual motion clearance, preserving the existing grid, layout schema and authoritative routes. No new RPC, no change to shaders, shadows, frame rate, desk IDs, user data or shop/quest systems. Existing saved plans receive the visual fix automatically; no re-save or SQL required.
+- Upload all five `site/` files together to `main` on GitHub Pages. Refresh active clients after deployment to avoid mixed asset versions. Export the current plan before making further edits. Rollback by reverting this patch commit. Geometry fixtures and regression tests are included in `qa/`. This does not fix cells that are genuinely empty in the saved plan, nor does it change ambiguous parallel-wall topology in the original grid format.
+
+- QA: 54/54 geometry and motion checks, including 2,048 wall/door neighbourhood variants and actual renderer wall-function mesh recording; 38/38 Chromium editor UI regression checks on desktop/mobile with mock cloud and renderer interface. Full WebGL render and the production saved layout were not available for validation.
 
 ## V6.6.6 — Floor Plan Editor
 
