@@ -1,8 +1,14 @@
-# GFE & GOE Office - V6.6.6.5 (Appliance Hotfix)
+# GFE & GOE Office - V6.6.6.6 (Startup Hotfix)
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## V6.6.6.6 - Startup Hotfix
+
+- Fixes a blank office on the production page: `app.js` still bound the optional `edgeDraftConvert` button after the preview controls were removed from `index.html`. The exception stopped initialization before `officeAPI` was assigned, causing follow-on cloud and renderer errors.
+- Bind and refresh the experimental controls only when present. The production page keeps its current layout tools; no preview controls are added. Bump the app asset version so returning browsers fetch the fix.
+- Deploy `app.js`, `index.html`, and this README together. No SQL, account reset, or layout import is required.
 
 ## V6.6.6.5 - Appliance Interaction Hotfix (published V6.6.6.2 baseline)
 
