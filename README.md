@@ -1,3 +1,32 @@
+# GFE & GOE Office - V6.7.5 (Board Interaction Hotfix)
+
+## Install (requires V6.7.4 and SQL 38)
+
+1. Run `setup/39-check-only.sql` on Supabase. It installs the replacement function only inside a transaction, tests authorized reset (including the populated board) and rejected guest/member access, and rolls all changes back. A nested subtransaction also rolls back all temporary test rows and deletes. Run the complete script in one operation. Result: PASS, or a real SQL error. If an error occurs, stop before installing.
+2. Run `39-install.sql`, then `39-verify.sql`. Both should show PASS. Installation only replaces the reset function, and never actually deletes notes. Existing data and permissions are retained.
+3. Replace the five files in `site/` on GitHub main, commit, wait for Pages deploy and refresh. The patch version is V6.7.5. No layout import or additional database migration required.
+
+## Changes
+
+- Post-it reset: explicitly qualifies the DELETE with `WHERE id IS NOT NULL` (id is the primary key). Compatible with the observed safe-update guard requiring a WHERE clause. Admin check, advisory lock, count of deleted notes and confirmation dialogs remain intact. No guard is disabled. The reset still deletes every note when an Admin actually confirms it.
+- Wheel placement: identify the kitchen's actual room boundary and a single door near its fridge, then choose a solid wall segment on the inside, preferring the side toward the stairwell. No longer requires water, fridge and coffee to be in one row. On the previously exported layout, mount V:6,23, facing kitchen floor 6,23. No changes to saved layout. If the actual kitchen boundary, fridge, door or clear adjacent floor is missing, no unrelated mounting surface is guessed. Actual live layout may differ; export shared JSON if positioning remains wrong.
+- All four boards (Photo Album, Post-it, Food Wheel, Personality) use one shared arrival controller. Clicking from afar requests the existing `OC50.walkToFeature()` movement. It waits for the server-confirmed motion record and a standing, stationary avatar within 0.48 grid cells of the board's approach cell. The same check opens immediately if already at the board. A failed movement, replaced motion, changed board position, logout or connection loss cancels the pending interaction. Only one journey can be pending at a time. No pop-up or board data request before arrival. No new background RPC/polling; local timer only while a board journey is pending. Admin moderation and food menu editing from ADMIN remain accessible without walking. The proximity rule is a game UI interaction rule, not new RPC-level authorization.
+- Renderer, models, collision, server movement logic, quests and wallet unchanged.
+
+## QA and limitations
+
+- 31 JS syntax checks; 65 existing layout/motion regression groups; 10 board logic groups (including appliance rearrangement, room-facing position, missing/overlapping edges, wheel math and mesh cleanup).
+- Chromium mock backend: three viewports (1000x700, 390x844, 844x390), reset UI, permissions, arrival gating, simultaneous clicks, failed/replaced paths, session loss, all existing board actions; no idle board RPCs. Additional four interaction checks ran actual `living.js` walkToFeature and motion sampling with simulated server responses.
+- PostgreSQL server and live WebGL/Supabase access unavailable in this test environment. SQL was reviewed and a real database smoke test is included in Check-only; it has not been executed here. The board positions were checked against the previously supplied fixture, not the current production plan. Test on your live site after installation.
+
+## Rollback
+
+Restore the five previous website files from `rollback-site/` to GitHub main, commit and refresh. SQL 39 is backward compatible with V6.7.4 and should remain installed; no database rollback needed. Rolling back the UI does not undo or reset user data.
+
+---
+
+## Previous version history
+
 # GFE & GOE Office - V6.7.4 (Post-it & Food Wheel)
 
 ## Installation

@@ -1,4 +1,4 @@
-/* V6.7.4: two on-demand shared boards. No snapshot or polling additions. */
+/* V6.7.5: on-demand boards and shared, arrival-gated interaction. */
 (()=>{'use strict';
 const $=id=>document.getElementById(id), E=(tag,text,cls)=>{const e=document.createElement(tag);if(text!=null)e.textContent=text;if(cls)e.className=cls;return e;},button=(text,fn,cls)=>{const b=E('button',text,cls);b.type='button';b.onclick=fn;return b;},rpc=(method,args={})=>window.OC41.boardRPC(method,args),user=()=>window.OC41?.currentUser(),admin=()=>window.OC41?.isAdmin()===true,colors=['#fff1a3','#ffd1d9','#bfe9d4','#c1e3f6','#dacbf8','#ffd8ac'],wheelColors=['#f2c46f','#a7d6c2','#aebee8','#eb9fae','#c6b6e5','#e9d7ad','#9ecfdf','#f2b999'];
 const digits=k=>k.split(',').map(Number),key=(x,y)=>`${x},${y}`;
@@ -12,17 +12,77 @@ function findBoards(p){if(!p?.cells)return {};const S=window.OC612_STUDIO,C=wind
  // Same architectural signature also works before the stairwell is placed.
  for(const [k,e] of Object.entries(q.wallEdges||{})){if(!k.startsWith('H:')||e.type!=='glassDoubleStart')continue;const [x,y]=digits(k.slice(2));if(q.wallEdges?.[`H:${x+1},${y}`]?.type!=='glassDoubleEnd'||q.wallEdges?.[`H:${x-1},${y+1}`]?.type!=='wall')continue;if(!Object.entries(q.cells).some(([cell,v])=>{const [a,b]=digits(cell);return v.type==='printer'&&a>=x&&a<=x+4&&b===y+1;}))continue;blue.push({edge:`V:${x},${y}`,cell:key(x,y)});}
  choose('notes',blue);
- // Red sign: kitchen-side face of the wall immediately beside the door, above the dispenser row.
- const red=[];for(const [k,v] of Object.entries(q.cells)){if(v.type!=='water')continue;const [x,y]=digits(k);if(!Object.entries(q.cells).some(([s,c])=>{const [a,b]=digits(s);return c.type==='fridge'&&b===y&&a>x&&a<=x+3;}))continue;for(let dx=1;dx<=3;dx++){const a=x-dx;if(q.wallEdges?.[`V:${a},${y}`]?.type!=='door')continue;red.push({edge:`V:${a},${y-1}`,cell:key(a,y-1)},{edge:`V:${a},${y+1}`,cell:key(a,y+1)});}}
+ // Red sign: kitchen-side solid wall beside its entrance, on the corner side.
+ // Use room boundaries, not the current row/order of kitchen appliances.
+ const kitchen=C.layoutRooms(q).kitchen,red=[];
+ if(kitchen){
+  const inside=new Set(kitchen.cells),water=kitchen.cells.filter(k=>q.cells[k]?.type==='water').map(digits),fridges=kitchen.cells.filter(k=>q.cells[k]?.type==='fridge').map(digits),reference=marks.notes?digits(marks.notes.cell):null;
+  for(const [edge,e] of Object.entries(q.wallEdges||{})){
+   if(!['door','glass'].includes(e.type))continue;
+   const [axis,xy]=edge.split(':'),[x,y]=digits(xy),v=axis==='V';
+   const a=key(x,y),b=v?key(x-1,y):key(x,y-1),side=inside.has(a)?1:inside.has(b)?-1:0;
+   if(!side||inside.has(a)&&inside.has(b))continue;
+   const [dx,dy]=digits(side>0?a:b);if(!fridges.some(([fx,fy])=>Math.abs(fx-dx)+Math.abs(fy-dy)<=4))continue;
+   for(const dir of [-1,1]){
+    const nx=x+(v?0:dir),ny=y+(v?dir:0),k=`${axis}:${nx},${ny}`;
+    const cell=key(nx+(v&&side<0?-1:0),ny+(!v&&side<0?-1:0));
+    if(!inside.has(cell)||q.wallEdges[k]?.type!=='wall')continue;
+    // Prefer the panel toward the stairwell; use the dispenser only if the stair landmark is absent.
+    const [cx,cy]=digits(cell),distance=reference?Math.abs(reference[0]-cx)+Math.abs(reference[1]-cy):water.length?Math.min(...water.map(([wx,wy])=>Math.abs(wx-cx)+Math.abs(wy-cy))):0;
+    red.push({edge:k,cell,distance,dir});
+   }
+  }
+ }
+ red.sort((a,b)=>a.distance-b.distance||a.dir-b.dir||a.edge.localeCompare(b.edge));
  choose('wheel',red);return marks;
 }
 function boards(p=window.officeAPI?.getMap()){if(p!==lastPlan){lastPlan=p;lastBoards=findBoards(p);}return lastBoards;}
 function fallback(){const desired=!window.officeAPI?.isEditing()&&!window.officeCloudBridge?.isAdminMode()&&!window.office3D?.active()?boards():{};for(const [kind,n] of fallbackNodes){const b=desired[kind];if(!b||!n.isConnected||n.dataset.mark!==b.key+':'+b.cell){n.remove();fallbackNodes.delete(kind);}}for(const [kind,b] of Object.entries(desired)){if(fallbackNodes.has(kind))continue;const cell=$('c'+b.cell);if(!cell)continue;const n=button(kind==='notes'?'POST-IT':'FOOD WHEEL',e=>{e?.stopPropagation();void open(kind);},'oc673-album-2d oc674-sign-'+kind);n.dataset.mark=b.key+':'+b.cell;const [x,y]=digits(b.key.slice(2)),[a,c]=digits(b.cell);n.dataset.side=b.key.startsWith('H:')?(c===y?'N':'S'):(a===x?'W':'E');n.title=kind==='notes'?'กระดานข้อความนิรนาม':'วงล้อสุ่มอาหาร';for(const evt of ['pointerdown','pointerup','click'])n.addEventListener(evt,e=>e.stopPropagation());cell.append(n);fallbackNodes.set(kind,n);}}
+// One pending board journey for all four board types. No network polling.
+let journey=null,arrivalTimer=0;
+const boardLabels={personality:'โปสเตอร์ Personality',album:'Photo Album',notes:'กระดาน Post-it',wheel:'วงล้อสุ่มอาหาร'};
+const inOffice=()=>!window.officeAPI?.isEditing()&&!window.officeCloudBridge?.isAdminMode();
+const notify=t=>window.OC41?.notify(t);
+const boardSignature=b=>b?`${b.key}|${b.cell}|${b.x}|${b.z}|${b.angle}`:'';
+const motionSignature=r=>r&&Array.isArray(r.route)&&Number.isFinite(r.started_ms)?JSON.stringify([r.started_ms,r.route,r.returning,r.activity,r.slot,r.pose_x,r.pose_y,r.pose_angle]):null;
+function atBoard(b,m){if(!b||!m||m.moving||m.returning||m.pose!=='stand'||!Number.isFinite(m.x)||!Number.isFinite(m.y))return false;const [x,y]=digits(b.cell);return Math.hypot(x-m.x,y-m.y)<.48;}
+function cancelTravel(){clearTimeout(arrivalTimer);arrivalTimer=0;journey=null;}
+function journeyValid(j){return journey===j&&user()===j.uid&&inOffice()&&j.ready()&&window.OC50?.member()&&window.OC50.meDesk()===j.desk&&boardSignature(j.getBoard())===j.mark;}
+function finishJourney(j){cancelTravel();if(document.hidden||document.querySelector('dialog[open]')){notify('ถึง'+boardLabels[j.kind]+'แล้ว · คลิกอีกครั้งเพื่อเปิด');return;}void j.show();}
+function checkArrival(j){
+ if(journey!==j)return;
+ if(!journeyValid(j)||Date.now()>j.deadline){cancelTravel();return;}
+ const record=window.OC50.motionRecord(j.desk),m=window.OC50.motion(j.desk);
+ if(motionSignature(record)!==j.record){cancelTravel();return;}
+ if(atBoard(j.b,m)){finishJourney(j);return;}
+ if(!m?.moving||m.returning){cancelTravel();notify('ยังไม่ถึง'+boardLabels[j.kind]+' · ลองคลิกอีกครั้ง');return;}
+ arrivalTimer=setTimeout(()=>checkArrival(j),180);
+}
+async function travel(kind,getBoard,show,ready=()=>!!user()){
+ if(!inOffice()||document.hidden||document.querySelector('dialog[open]'))return false;
+ if(!user()||!window.OC50?.member()){notify('เข้าสู่ระบบสมาชิกก่อนใช้งานกระดาน');return false;}
+ if(!ready()){notify('ยังไม่พร้อมใช้งาน '+boardLabels[kind]);return false;}
+ if(journey){notify('กำลังเดินไป'+boardLabels[journey.kind]+' · รอให้เดินถึงก่อน');return false;}
+ const b=getBoard();if(!b){notify('ยังไม่พบตำแหน่ง'+boardLabels[kind]);return false;}
+ const desk=window.OC50.meDesk(),m=window.OC50.motion(desk);
+ if(atBoard(b,m)){void show();return true;}
+ if(m?.moving||m?.returning){notify('รอให้เดินถึงจุดหมายก่อน');return false;}
+ const j={kind,b,mark:boardSignature(b),uid:user(),desk,getBoard,show,ready,deadline:Date.now()+190000,record:null};journey=j;
+ try{
+  const ok=await window.OC50.walkToFeature(b.cell);
+  if(journey!==j)return false;
+  if(!ok||!journeyValid(j)){cancelTravel();if(!ok)notify('เดินไป'+boardLabels[kind]+'ไม่ได้ · ตรวจสถานะหรือเส้นทางแล้วลองใหม่');return false;}
+  const r=window.OC50.motionRecord(desk);j.record=motionSignature(r);
+  // A successful command must also be confirmed by the expected authoritative route.
+  if(!j.record||r.returning||r.route.at(-1)!==b.cell){cancelTravel();notify('ยังไม่ได้รับเส้นทางไปกระดาน · ลองใหม่');return false;}
+  notify('กำลังเดินไป'+boardLabels[kind]);checkArrival(j);return true;
+ }catch(e){if(journey===j){cancelTravel();notify('ไปกระดานไม่สำเร็จ: '+String(e?.message||e));}return false;}
+}
 function seed(id){let h=2166136261;for(const ch of String(id)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
 function noteStyle(id){const h=seed(id);return {color:colors[h%colors.length],rotate:(h%21)-10,x:((h>>>8)%23)-11,y:((h>>>16)%19)-9};}
 function rotationTarget(current,winner,n){const mod=a=>((a%360)+360)%360;return current+1440+mod(-winner*360/n-current);}
 let account=null,epoch=0,nPage=0,nTotal=0,nRows=[],nSelected=null,nBusy=false,nToken=null,items=[],revision=0,history=[],wBusy=false,wToken=null,rotation=0,spinTimer=0,menuDraft=[],menuRev=0,menuPage=0,mBusy=false;
-function resetSession(){epoch++;account=null;nToken=wToken=null;nRows=[];items=[];history=[];menuDraft=[];nSelected=null;nBusy=wBusy=mBusy=false;clearTimeout(spinTimer);spinTimer=0;for(const id of ['oc674Notes','oc674Wheel','oc674MenuEdit'])if($(id)?.open)$(id).close();if($('oc674NoteInput'))$('oc674NoteInput').value='';}
+function resetSession(){cancelTravel();epoch++;account=null;nToken=wToken=null;nRows=[];items=[];history=[];menuDraft=[];nSelected=null;nBusy=wBusy=mBusy=false;clearTimeout(spinTimer);spinTimer=0;for(const id of ['oc674Notes','oc674Wheel','oc674MenuEdit'])if($(id)?.open)$(id).close();if($('oc674NoteInput'))$('oc674NoteInput').value='';}
 function session(){const u=user();if(u!==account){resetSession();account=u;}if(!u){window.OC41?.notify('เข้าสู่ระบบสมาชิกก่อนใช้งานกระดาน');return false;}return true;}
 function valid(g,d){return g===epoch&&account===user()&&$(d)?.open;}
 function error(id,e){const msg=String(e?.message||e||'เกิดข้อผิดพลาด');$(id).textContent=e?.code==='PGRST202'||e?.http===404?'กรุณาติดตั้ง SQL 38 ก่อนใช้งาน':msg.includes('Please wait 20 seconds')?'รอ 20 วินาทีก่อนแปะข้อความอีกครั้ง':msg.includes('Please wait 5 seconds')?'รอให้ครบ 5 วินาทีก่อนสุ่มอีกครั้ง':msg;}
@@ -42,10 +102,11 @@ function menuControls(){const pages=Math.max(1,Math.ceil(menuDraft.length/5));$(
 function drawMenu(){const n=$('oc674FoodList');n.replaceChildren();menuPage=Math.min(menuPage,Math.max(0,Math.ceil(menuDraft.length/5)-1));for(let i=menuPage*5;i<Math.min(menuDraft.length,menuPage*5+5);i++){const row=E('div',null,'oc674-food-row'),input=E('input');input.value=menuDraft[i];input.maxLength=40;input.placeholder='ชื่อเมนู';input.setAttribute('aria-label','เมนู '+(i+1));input.disabled=mBusy;input.oninput=()=>menuDraft[i]=input.value;const del=button('×',()=>{menuDraft.splice(i,1);drawMenu();});del.setAttribute('aria-label','ลบเมนู '+(i+1));del.disabled=mBusy;row.append(E('span',String(i+1)),input,del);n.append(row);}menuControls();}
 async function openMenuEdit(){if(!session()||!admin())return;const d=$('oc674MenuEdit');if(d.open||mBusy)return;const g=epoch;menuDraft=[];menuPage=0;mBusy=true;d.showModal();drawMenu();$('oc674FoodError').textContent='';try{const r=await rpc('oc674_wheel');if(valid(g,'oc674MenuEdit')){menuDraft=r.items.slice();menuRev=r.revision;}}catch(e){if(valid(g,'oc674MenuEdit'))error('oc674FoodError',e);}finally{if(g===epoch){mBusy=false;drawMenu();}}}
 async function saveMenu(){if(mBusy||!admin())return;const list=menuDraft.map(x=>x.trim());if(list.length<2||list.length>15||list.some(x=>!x||Array.from(x).length>40)||new Set(list.map(x=>x.toLowerCase())).size!==list.length){error('oc674FoodError','ต้องมีชื่ออาหารไม่ซ้ำกัน 2–15 รายการ');return;}const g=epoch;mBusy=true;drawMenu();$('oc674FoodError').textContent='';try{await rpc('oc674_food_save',{p_items:list,p_revision:menuRev});if(valid(g,'oc674MenuEdit')){$('oc674MenuEdit').close();window.OC41?.notify('บันทึกเมนูอาหารแล้ว');}}catch(e){if(valid(g,'oc674MenuEdit'))error('oc674FoodError',e);}finally{if(g===epoch){mBusy=false;drawMenu();}}}
-async function open(kind){if(!session())return;const id=kind==='notes'?'oc674Notes':'oc674Wheel',d=$(id);if(!d||d.open)return;if((kind==='notes'&&nBusy)||(kind==='wheel'&&wBusy)){window.OC41?.notify('กำลังยืนยันรายการก่อนหน้า');return;}if(kind==='notes'){nRows=[];nPage=nTotal=0;nSelected=null;drawNotes();noteMode('pile');d.showModal();await loadNotes(0);}else{items=[];history=[];resetRotation();drawWheel();drawHistory();$('oc674Result').textContent='วันนี้กินอะไรดี?';d.showModal();await loadWheel();}}
+async function showBoard(kind){if(!session())return;const id=kind==='notes'?'oc674Notes':'oc674Wheel',d=$(id);if(!d||d.open)return;if((kind==='notes'&&nBusy)||(kind==='wheel'&&wBusy)){window.OC41?.notify('กำลังยืนยันรายการก่อนหน้า');return;}if(kind==='notes'){nRows=[];nPage=nTotal=0;nSelected=null;drawNotes();noteMode('pile');d.showModal();await loadNotes(0);}else{items=[];history=[];resetRotation();drawWheel();drawHistory();$('oc674Result').textContent='วันนี้กินอะไรดี?';d.showModal();await loadWheel();}}
+async function open(kind){if(!['notes','wheel'].includes(kind))return false;return travel(kind,()=>boards()[kind],()=>showBoard(kind));}
 function init(){if($('oc674Notes'))return;document.body.insertAdjacentHTML('beforeend',`<dialog id="oc674Notes" class="feature-dialog cloud-dialog oc674-dialog" aria-labelledby="oc674NotesTitle"><div class="oc670-modal-head oc674-head"><div><small>MY OFFICE · ANONYMOUS BOARD</small><h2 id="oc674NotesTitle">กระดาน Post-it</h2></div><button id="oc674NotesClose" type="button" aria-label="ปิด">×</button></div><p class="oc674-sub">ฝากข้อความแบบไม่แสดงชื่อ · อยู่จนกว่า Admin จะลบหรือรีเซ็ต</p><div id="oc674NotePile" class="oc674-pile"></div><div id="oc674NoteNav" class="oc674-nav"><button id="oc674NotePrev" type="button">‹</button><span id="oc674NoteCount"></span><button id="oc674NoteNext" type="button">›</button><button id="oc674NoteRefresh" type="button" title="รีเฟรช">↻</button></div><form id="oc674NoteCompose" hidden><label for="oc674NoteInput">ข้อความของคุณ</label><textarea id="oc674NoteInput" maxlength="200" rows="4" placeholder="ฝากอะไรไว้ให้เพื่อนร่วมงาน..."></textarea><p class="oc674-sub">ไม่แสดงชื่อแก่สมาชิก แต่ระบบเก็บรหัสบัญชีภายในเพื่อป้องกัน Spam · ห้ามเผยแพร่ข้อมูลส่วนบุคคลหรือข้อความคุกคาม</p><button class="primary" id="oc674NoteSend" type="submit">แปะ Post-it</button></form><div id="oc674NoteDetail" hidden><div id="oc674FullNote" class="oc674-full-note"></div><button id="oc674NoteDelete" type="button" hidden>ลบใบนี้ (Admin)</button></div><div class="oc674-actions"><button id="oc674NoteBack" type="button" hidden>‹ กลับกระดาน</button><button id="oc674NoteAdd" class="primary" type="button">+ เขียน Post-it</button><button id="oc674NoteReset" type="button" hidden>รีเซ็ตทั้งหมด</button></div><p id="oc674NoteError" class="cloud-error" role="alert"></p></dialog><dialog id="oc674Wheel" class="feature-dialog cloud-dialog oc674-dialog oc674-wheel" aria-labelledby="oc674WheelTitle"><div class="oc670-modal-head oc674-head"><div><small>MY OFFICE · FOOD PICKER</small><h2 id="oc674WheelTitle">วันนี้กินอะไรดี?</h2></div><button id="oc674WheelClose" type="button" aria-label="ปิด">×</button></div><div class="oc674-wheel-layout"><section class="oc674-spin-area"><div class="oc674-wheel-frame"><canvas id="oc674WheelCanvas" width="680" height="680" aria-label="วงล้อเมนูอาหาร"></canvas><div class="oc674-pointer" aria-hidden="true"></div></div><div id="oc674Result" role="status" aria-live="polite"></div><div class="oc674-actions"><button id="oc674Spin" class="primary" type="button">หมุนวงล้อ</button><button id="oc674WheelRefresh" type="button" title="รีเฟรชรายการและประวัติ">↻</button></div></section><aside class="oc674-history"><h3>ผลสุ่ม 5 ครั้งล่าสุด</h3><div id="oc674History"></div></aside></div><p id="oc674WheelError" class="cloud-error" role="alert"></p></dialog><dialog id="oc674MenuEdit" class="feature-dialog cloud-dialog oc674-dialog" aria-labelledby="oc674MenuTitle"><div class="oc670-modal-head oc674-head"><div><small>ADMIN · FOOD PICKER</small><h2 id="oc674MenuTitle">จัดการเมนูอาหาร</h2></div><button id="oc674FoodClose" type="button" aria-label="ปิด">×</button></div><p class="oc674-sub">ชื่ออาหาร 2–15 รายการ · สูงสุด 40 ตัวอักษรต่อรายการ · ไม่ซ้ำกัน</p><div id="oc674FoodList"></div><div class="oc674-nav"><button id="oc674FoodPrev" type="button">‹</button><span id="oc674FoodPage"></span><button id="oc674FoodNext" type="button">›</button></div><div class="oc674-actions"><button id="oc674FoodAdd" type="button">+ เพิ่มเมนู</button><button id="oc674FoodSave" class="primary" type="button">บันทึกออนไลน์</button></div><p id="oc674FoodError" class="cloud-error" role="alert"></p></dialog>`);
  $('oc674NotesClose').onclick=()=>$('oc674Notes').close();$('oc674NoteAdd').onclick=()=>noteMode('compose');$('oc674NoteBack').onclick=()=>noteMode('pile');$('oc674NoteCompose').onsubmit=e=>{e.preventDefault();void noteWrite('post');};$('oc674NoteDelete').onclick=()=>void noteWrite('delete');$('oc674NoteReset').onclick=()=>void noteWrite('reset');$('oc674NotePrev').onclick=()=>void loadNotes(nPage-1);$('oc674NoteNext').onclick=()=>void loadNotes(nPage+1);$('oc674NoteRefresh').onclick=()=>void loadNotes(nPage);
- $('oc674WheelClose').onclick=()=>$('oc674Wheel').close();$('oc674Spin').onclick=()=>void spin();$('oc674WheelRefresh').onclick=()=>void loadWheel();$('oc674Wheel').addEventListener('close',()=>{if(spinTimer){clearTimeout(spinTimer);spinTimer=0;wBusy=false;}wheelControls();});$('oc674FoodClose').onclick=()=>$('oc674MenuEdit').close();$('oc674FoodAdd').onclick=()=>{if(menuDraft.length<15){menuDraft.push('');menuPage=Math.floor((menuDraft.length-1)/5);drawMenu();}};$('oc674FoodPrev').onclick=()=>{menuPage--;drawMenu();};$('oc674FoodNext').onclick=()=>{menuPage++;drawMenu();};$('oc674FoodSave').onclick=()=>void saveMenu();$('oc674FoodAdmin').onclick=()=>void openMenuEdit();$('oc674NotesAdmin').onclick=()=>{if(admin())void open('notes');};
+ $('oc674WheelClose').onclick=()=>$('oc674Wheel').close();$('oc674Spin').onclick=()=>void spin();$('oc674WheelRefresh').onclick=()=>void loadWheel();$('oc674Wheel').addEventListener('close',()=>{if(spinTimer){clearTimeout(spinTimer);spinTimer=0;wBusy=false;}wheelControls();});$('oc674FoodClose').onclick=()=>$('oc674MenuEdit').close();$('oc674FoodAdd').onclick=()=>{if(menuDraft.length<15){menuDraft.push('');menuPage=Math.floor((menuDraft.length-1)/5);drawMenu();}};$('oc674FoodPrev').onclick=()=>{menuPage--;drawMenu();};$('oc674FoodNext').onclick=()=>{menuPage++;drawMenu();};$('oc674FoodSave').onclick=()=>void saveMenu();$('oc674FoodAdmin').onclick=()=>void openMenuEdit();$('oc674NotesAdmin').onclick=()=>{if(admin())void showBoard('notes');};
 }
-window.OC674={boards,findBoards,fallback,open,resetSession,noteStyle,rotationTarget,openMenuEdit};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+window.OC674={boards,findBoards,fallback,open,resetSession,noteStyle,rotationTarget,openMenuEdit,travel,cancelTravel};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
