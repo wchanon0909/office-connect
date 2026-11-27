@@ -7,7 +7,7 @@ window.OC61_WORLD=(()=>{
  const definitions=Object.freeze({
   coffee:{name:'เครื่องชงกาแฟ',action:'ไปชงกาแฟ'},water:{name:'ตู้น้ำ',action:'ไปดื่มน้ำ'},printer:{name:'เครื่องปริ้น',action:'ไปที่เครื่องปริ้น'},fridge:{name:'ตู้เย็นและขนม',action:'ไปหยิบขนม'},cabinet:{name:'ตู้เก็บเอกสาร',action:'ไปที่ตู้เอกสาร'},sofa:{name:'มุมโซฟา',action:'ไปยืนพักที่โซฟา'},plants:{name:'มุมต้นไม้',action:'ไปดูต้นไม้'},books:{name:'ชั้นหนังสือ',action:null},window:{name:'หน้าต่างกระจก',action:null}
  });
- function objects(p){if(!p?.cells)return [];return Object.entries(p.cells).filter(([,c])=>Object.hasOwn(definitions,c.type)).map(([key,c])=>{const [x,y]=key.split(',').map(Number),angle=-(c.rotation||0)*Math.PI/180;const front=[Math.round(Math.sin(angle)),Math.round(Math.cos(angle))],directions=[front,[front[1],-front[0]],[-front[1],front[0]],[-front[0],-front[1]]];const shift=window.OC612_STUDIO.offset(p,x,y,c);let target=Math.hypot(...shift)>1.4?key:directions.map(([dx,dy])=>[x+dx,y+dy]).filter(([xx,yy])=>xx>=0&&yy>=0&&xx<p.cols&&yy<p.rows).map(([xx,yy])=>`${xx},${yy}`).find(k=>(p.cells[k]?.type||'aisle')==='aisle')||null;if(['printer','fridge'].includes(c.type)){const [xx,yy]=[x+front[0],y+front[1]],k=`${xx},${yy}`;target=xx>=0&&yy>=0&&xx<p.cols&&yy<p.rows&&(p.cells[k]?.type||'aisle')==='aisle'&&!window.OC612_STUDIO.edgeBetween(p,x,y,xx,yy)?k:null;if(Math.hypot(...shift)>1.4)target=key;}return {...definitions[c.type],id:key,kind:c.type,key,target:!definitions[c.type].action?null:['water','coffee'].includes(c.type)?key:target,x:(x-(p.cols-1)/2)*CELL+shift[0],z:(y-(p.rows-1)/2)*CELL+shift[1],angle,approach:['printer','fridge'].includes(c.type)&&target!==key?{sx:-front[0],sy:-front[1]}:{sx:0,sy:0}};});}
+ function objects(p){if(!p?.cells)return [];return Object.entries(p.cells).filter(([,c])=>Object.hasOwn(definitions,c.type)).map(([key,c])=>{const [x,y]=key.split(',').map(Number),angle=-(c.rotation||0)*Math.PI/180;const front=[Math.round(Math.sin(angle)),Math.round(Math.cos(angle))],directions=[front,[front[1],-front[0]],[-front[1],front[0]],[-front[0],-front[1]]];const shift=window.OC612_STUDIO.offset(p,x,y,c);const target=Math.hypot(...shift)>1.4?key:directions.map(([dx,dy])=>[x+dx,y+dy]).filter(([xx,yy])=>xx>=0&&yy>=0&&xx<p.cols&&yy<p.rows).map(([xx,yy])=>`${xx},${yy}`).find(k=>(p.cells[k]?.type||'aisle')==='aisle')||null;return {...definitions[c.type],id:key,kind:c.type,key,target:!definitions[c.type].action?null:['water','coffee','printer','fridge'].includes(c.type)?key:target,x:(x-(p.cols-1)/2)*CELL+shift[0],z:(y-(p.rows-1)/2)*CELL+shift[1],angle};});}
  // Explicit drink visits use a shared slot and arrival timestamp. Free walking never starts a drink.
  function drinkState(o,m,r,t,reduced=false){
   if(!o||!['water','coffee'].includes(o.kind)||!m||!r||m.moving||m.returning||m.pose!=='stand'||m.gesture!=null||m.activity!=='walk'||r.returning||!Array.isArray(r.route)||!r.route.length||!r.slot?.startsWith(`drink:${o.key}:`)||!Number.isFinite(r.pose_angle)||!Number.isFinite(r.pose_x)||!Number.isFinite(r.pose_y))return null;
@@ -24,20 +24,20 @@ window.OC61_WORLD=(()=>{
   const wrist=[.223-yy*Math.sin(side),1.08+Math.cos(shoulder)*y1-Math.sin(shoulder)*zz,Math.sin(shoulder)*y1+Math.cos(shoulder)*zz];
   return {shoulder,side,elbow,tilt,head,drop,lean,wrist,cup:[wrist[0],wrist[1]+.025,wrist[2]-.025],stage:ms<1500?'fill':ms<3550?'sip':'lower'};
  }
- // Explicit, local-only visits for appliances without a server action slot.
- // A record fingerprint ensures that ordinary walking never triggers a prop.
- function recordKey(r){return r&&JSON.stringify([r.started_ms,r.route,r.pose_x,r.pose_y,r.pose_angle,r.activity,r.returning,r.slot]);}
- function applianceState(o,p,m,r,intent,t,reduced=false){
-  if(!o||!['printer','fridge'].includes(o.kind)||!intent||intent.key!==o.key||intent.target!==o.target||intent.record!==recordKey(r)||!m||m.moving||m.returning||m.activity!=='walk'||m.pose!=='stand'||m.gesture!=null||!Array.isArray(r?.route)||r.route.at(-1)!==o.target)return null;
-  const x=(m.x-(p.cols-1)/2)*CELL-o.x,z=(m.y-(p.rows-1)/2)*CELL-o.z,front=x*Math.sin(o.angle)+z*Math.cos(o.angle),side=x*Math.cos(o.angle)-z*Math.sin(o.angle);if(!Number.isFinite(front)||front<.23||front>2.9||Math.abs(side)>.80)return null;
-  const ms=t-intent.start,duration=o.kind==='printer'?4200:4800;if(ms<0||ms>=duration)return null;
-  const angle=Math.atan2(x,z),neutral=[0,0,0,0,0,0,0],reach=[.82,-.06,.35,.045,.025,-.055,0],read=[.51,-.12,1.14,.19,0,0,.17],grab=[.86,-.16,.66,.10,.12,-.12,0],snack=[.66,-.68,1.30,.05,0,0,.10];
+ // Shared visit slot is server-authoritative. Never animate merely passing an appliance.
+ function applianceState(o,p,m,r,t,reduced=false){
+  if(!o||!['printer','fridge'].includes(o.kind)||!r?.slot?.startsWith(`appliance:${o.key}:`)||!m||m.moving||m.returning||r.returning||m.activity!=='walk'||m.pose!=='stand'||m.gesture!=null||!Array.isArray(r.route)||!r.route.length||![r.pose_x,r.pose_y,r.pose_angle].every(Number.isFinite))return null;
+  if(Math.abs(Math.atan2(Math.sin(m.angle-o.angle),Math.cos(m.angle-o.angle)))>.06)return null;
+  const x=(m.x-(p.cols-1)/2)*CELL-o.x,z=(m.y-(p.rows-1)/2)*CELL-o.z,front=x*Math.sin(o.angle)+z*Math.cos(o.angle),side=x*Math.cos(o.angle)-z*Math.sin(o.angle),expectedSide=o.kind==='fridge'?-.32:0;
+  if(!Number.isFinite(front)||front<.80||front>.90||Math.abs(side-expectedSide)>.08)return null;
+  const ms=t-r.started_ms-(r.route.length-1)*850-420,duration=o.kind==='printer'?4200:4800;if(ms<0||ms>=duration)return null;
+  const angle=o.angle,neutral=[0,0,0,0,0,0,0],reach=[.94,-.06,.52,.045,.025,-Math.min(.105,Math.max(.06,front-.75)),0],read=[.51,-.12,1.14,.19,0,0,.17],grab=[.72,-.12,.40,.12,.20,-.09,0],snack=[.66,-.68,1.30,.05,0,0,.10];
   const frames=o.kind==='printer'?[[0,neutral],[700,reach],[1400,reach],[2100,read],[3100,read],[4000,neutral],[4200,neutral]]:[[0,neutral],[720,reach],[1400,grab],[2200,grab],[2900,snack],[3700,snack],[4600,neutral],[4800,neutral]];
   let i=1;while(i<frames.length-1&&ms>frames[i][0])i++;const [a,A]=frames[i-1],[b,B]=frames[i];let f=Math.max(0,Math.min(1,(ms-a)/(b-a)));f=f*f*(3-2*f);let pose=reduced?(o.kind==='printer'?read:snack):A.map((v,j)=>v+(B[j]-v)*f);const [shoulder,sideAngle,elbow,head,drop,lean,paperTilt]=pose;
   const ease=v=>{v=Math.max(0,Math.min(1,v));return v*v*(3-2*v);};
   return {kind:o.kind,angle,shoulder,side:sideAngle,elbow,head,drop,lean,paperTilt,holding:o.kind==='printer'?ms>=1400&&ms<4000:ms>=1900&&ms<4600,door:o.kind==='fridge'&&!reduced?ease((ms-400)/650)*(1-ease((ms-2100)/850)):0,sheet:o.kind==='printer'&&!reduced?ease((ms-400)/850)*(1-ease((ms-1400)/180)):0};
  }
- function applianceVisual(decor,key,state){const v=decor?.appliances?.get(key);if(!v)return;if(v.hinge)v.hinge.rotation.y=state?.door?-1.03*state.door:0;if(v.sheet){v.sheet.position.z=.38+(state?.sheet||0)*.17;v.sheet.visible=!(state?.holding);}}
+ function applianceVisual(decor,key,state){const v=decor?.appliances?.get(key);if(!v)return;if(v.hinge)v.hinge.rotation.y=state?.door?-.55*state.door:0;if(v.sheet){v.sheet.position.z=.38+(state?.sheet||0)*.17;v.sheet.visible=!(state?.holding);}}
  function at(p,key){return objects(p).find(o=>o.key===key)||null;}
  function lighting(date=new Date()){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(date),h=Number(parts.find(x=>x.type==='hour').value)+Number(parts.find(x=>x.type==='minute').value)/60;
   if(h<6||h>=19)return {phase:'night',label:'กลางคืน',sky:0x17243e,hemi:1.65,sun:1.15,fill:1.15,sunColor:0xb0c6ff,glass:0x52729e,city:0x344564};
@@ -68,7 +68,7 @@ window.OC61_WORLD=(()=>{
   return {pickables:out,allObjects,edgeObjects,vista,glass,cityMat,glow,appliances};
  }
  function applyLighting(T,scene,hemi,sun,fill,decor,date){const base=lighting(date),l=window.OC63_THEME?.lighting(base)||base;scene.background=new T.Color(l.sky);hemi.intensity=l.hemi;sun.intensity=l.sun;sun.color=new T.Color(l.sunColor);fill.intensity=l.fill;if(decor){decor.glass.color=new T.Color(l.glass);decor.cityMat.color=new T.Color(l.city);decor.glow.emissiveIntensity=l.phase==='night'?1.2:l.phase==='sunset'?.65:.08;}return l;}
- return {scenes,activeScene:'main-office',definitions,objects,at,drinkState,recordKey,applianceState,applianceVisual,lighting,decorate,applyLighting};
+ return {scenes,activeScene:'main-office',definitions,objects,at,drinkState,applianceState,applianceVisual,lighting,decorate,applyLighting};
 })();
 // Original procedural ambient motif, opt-in only. No recording or external audio dependency.
 window.OC61_AMBIENT=(()=>{
