@@ -1,8 +1,22 @@
-# GFE & GOE Office — V6.4 FIX1
+# GFE & GOE Office — V6.6.5
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## V6.6.5 — Backend performance / private notifications
+
+- Production baseline V6.6.4 FIX1, GitHub Pages on `main`. No changes to renderer, CSS, model geometry, animation quality, layout, furniture, shop, Coin or quest definitions. V6.7 work is not included.
+- SQL 31 adds private per-account Realtime invalidation hints for chat, workspace and social cards. Existing authorized data RPCs and original global Office signals stay intact. No chat content in hints. Client retains original fast polling if the private transport is not available, with 5s/12s reconciliation when subscribed (15s hidden).
+- One serial RPC queue preserves ordering of mutations; pending user tasks take priority over background jobs, with fairness. Global snapshots coalesce with a trailing refresh and retain the existing 25s heartbeat / 3s member polling fallback. No speculative character movement. Quest pulse stays at 30s (server's 75s continuity limit).
+- Workspace no longer refreshes on unrelated Office snapshots when private notifications work. Manual reads remain immediate. Quest invalidations coalesce when its dialog is closed. Admin can inspect local 120s diagnostics via `console.table(OC41.performanceReport()?.stats)` (no telemetry or extra server calls).
+- Deploy: back up; run `setup/31-check-only.txt` (PASS only), `31-install.txt` (PASS), `31-verify.txt` (PASS); upload `site/` files to GitHub `main`, including this README; refresh all active tabs. Do not rerun SQL 29 or reset anything. Test a private message, poke, group invite/join, desk note, Quest and movement with two accounts. Rollback: revert the V6.6.5 commit (or restore the six original files from `rollback-site/` if the baseline is unchanged), deploy, refresh all clients, then run `setup/31-rollback.txt`. See `START-HERE.txt`. Older clients keep their old polling until refreshed.
+- Local QA uses mocked HTTP and WebSocket events; SQL preflight checks the actual project schema. No live production load test or live Realtime authorization test has been performed here. Actual load improvement depends on active clients and event rate.
+
+## V6.6.4 / V6.6.3 — Desk Studio & Shop
+
+- 55 catalog items (36 free office supplies, 19 Coin decorations, 8 animated decorations); free placement, floor equipment, 3D camera controls, existing shared Coin wallet; Member Shop switch in admin panel. SQL 29 reset is a historical one-time migration; SQL 30 FIX1 extends it without a reset. Keep all existing shop and inventory data.
+- V6.5 / V6.6: looping social actions and flower/heart interactions, 3D desk placement, legacy model aliases, free-position inventory.
 
 ## V6.4 FIX1 — Quest Center & Social Cards
 
