@@ -1,3 +1,34 @@
+# GFE & GOE Office - V6.7.2 (UI & Destination Fix)
+
+## Installation
+
+Requires V6.7.1 and SQL 34 / 35. Back up the current shared layout and retain the current GitHub commit. Do not rerun earlier reset migrations.
+
+1. Run `setup/36-check-only.sql`, `36-install.sql`, `36-verify.sql` in that order in Supabase SQL Editor. Each should return PASS; stop on a real error. Check-only rolls back. SQL 36 replaces only the known layout validator and V6.7 snapshot function; it preserves access rules, does not write or reset the saved plan, and refuses unexpected function bodies.
+2. Copy the release `site/` files to the GitHub repository root, commit to `main`, and hard refresh after GitHub Pages deploys.
+3. For exact poster / room positions: ADMIN > Edit Floor Plan > Select. Select a free floor block, open **กำหนดจุดเข้าห้อง / โปสเตอร์**, choose the room, then press the mark button. For the poster select a free block immediately beside the desired wall (orange marked position), choose Poster and its wall side N/E/S/W. The automatic board prefers the wall right of the upper water dispenser. Preview in 3D and save online. Clear the mark to return to automatic placement. SQL 36 is required for saving marks.
+4. For stairs: inspect the Draft counter. If no switchback hall exists, click the existing marked-position preset; if the current plan differs, select its upper-left cell and use manual placement. Ensure the counter shows one hall and verify the 3D preview before saving online. No downstairs access is enabled. No layout is replaced automatically by this patch.
+
+## Changes
+
+- Room buttons work from a normal seated or standing state, without requiring walk mode first. The server remains authoritative. Admin room marks override auto-discovery. Movement still requires permitted personal status and no pending movement / huddle.
+- Rest menu ranks matching appliances and submits the best candidate even if a local reachability estimate is uncertain. Tries up to three candidates only after explicit blocked/no-route errors. Never retries network/permission/timeouts. Existing appliance RPCs and their animations are unchanged.
+- Public chat includes status and an emoji palette; account and idea controls are icon-only; messages contains the existing work/announcements entry and a separate unread dot. Profile accordion retains one open section and compact landscape view. Admin label is ADMIN.
+- Visible wall poster and stair edge/rail details, with board preview in Draft 3D. Existing 3D objects, graphics quality, and shadow settings retained. No new background polling.
+
+## Tests and limits
+
+- 21 floor-shape + 24 grid-edge/status + 13 room/stair + 7 new logic regression groups passed. Browser mock tests passed 3 viewports (1000x700, 390x844, 844x390) including seated/standing room navigation, appliance retry, markers, UI, action pagination and stairs. 29 JS syntax checks passed.
+- Test fixture is the previously exported 10x35 plan, 78 desks. Current production coordinates may differ; use manual marks. Browser tests use mock RPC and 2D fallback, not a live multi-user Supabase or WebGL rendering test. SQL has not been executed on a real PostgreSQL instance in this environment.
+- A full free grid aisle is supported. The existing server route protocol still uses integer block centers; a physically clear gap between objects inside occupied blocks is NOT yet guaranteed passable. Do not reduce collision globally or allow wall crossing. Full sub-tile routing requires a separate authoritative movement migration.
+- Long chat logs, inventories, and very small screens may still need scrolling for accessibility. No forced clipping of essential controls.
+
+## Rollback
+
+Export the current layout including marks before rolling back. Restore files in `rollback-site/` over repository root (new unreferenced UI files can remain). Run `36-rollback.sql` only if the SQL 36 changes must be reverted. It restores the known earlier definitions; it does not delete stored markers. Older editor versions do not preserve the new marks when saving. Restore the backed-up plan only if required, after checking desk ownership and changes made since backup.
+
+---
+
 # GFE & GOE Office - V6.7.1 (UI, Rooms & Switchback Stairs)
 
 ## V6.7.1 installation

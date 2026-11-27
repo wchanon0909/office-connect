@@ -51,7 +51,7 @@
   for(const [k,c] of Object.entries(p.cells)){const [x,y]=point(k);next.cells[key(x+dx,y+dy)]=clone(c);}
   for(const [k,c] of Object.entries(p.edges||{})){const [s,i]=k.split(':');if(s===side){removed.push(k);continue;}next.edges[`${s}:${Number(i)+('NS'.includes(s)?dx:dy)}`]=clone(c);}
   if(root.OC612_STUDIO.edgeMode(p)){next.wallEdges={};for(const [k,c] of Object.entries(p.wallEdges)){const [a,xy]=k.split(':'),[x,y]=point(xy);next.wallEdges[`${a}:${x+dx},${y+dy}`]=clone(c);}}
-  return{plan:next,removed,dx,dy,added:cols*rows-p.cols*p.rows};
+  if(next.roomTargets)for(const [kind,k] of Object.entries(next.roomTargets)){const a=point(k);if(a)next.roomTargets[kind]=key(a[0]+dx,a[1]+dy);}if(next.personalityBoard){const m=next.personalityBoard,a=point(m.cell),[axis,xy]=m.edge.split(':'),b=point(xy);if(a&&b)next.personalityBoard={cell:key(a[0]+dx,a[1]+dy),edge:`${axis}:${key(b[0]+dx,b[1]+dy)}`};}return{plan:next,removed,dx,dy,added:cols*rows-p.cols*p.rows};
  }
  function missingOwned(p,ids){const present=new Set(Object.values(p.cells).filter(c=>c.type==='desk').map(c=>c.id));return [...ids].filter(id=>!present.has(id));}
  // Edge editing is deliberately separate from cell editing. Rectangles use
