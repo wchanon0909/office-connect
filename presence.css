@@ -11,3 +11,15 @@
 /* V4.3: icons for live desks; muted non-connected workstation sprites. */
 body:not(.admin-mode):not(.editor-mode) .cell.desk:not([data-connection=online]) .sprite{filter:grayscale(1) saturate(0) contrast(.72) brightness(1.12);opacity:.8}
 .presence-dot:is([data-state=busy],[data-state=meeting],[data-state=break],[data-state=away],[data-state=dnd]){width:19px;height:19px;display:inline-grid;place-items:center;color:#172238;box-shadow:0 0 0 1px #eff5ff55}.presence-dot svg{width:75%;height:75%;display:block;flex:none}.cell .presence-dot:is([data-state=busy],[data-state=meeting],[data-state=break],[data-state=away],[data-state=dnd]){width:16px;height:16px;top:3px;right:3px}.status-quick .presence-dot:is([data-state=busy],[data-state=meeting],[data-state=break],[data-state=away],[data-state=dnd]){width:20px;height:20px}.status-option .presence-dot:is([data-state=busy],[data-state=meeting],[data-state=break],[data-state=away],[data-state=dnd]){width:22px;height:22px}
+
+/* V6.4.2: status visibility is a local preference inside the status dialog. */
+#personalCorner #myStatus span{display:inline!important}
+#statusDialog .status-display-setting{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;margin:15px 0 4px;border:1px solid #455977;border-radius:12px;background:#172238}
+#statusDialog .status-display-setting>div{min-width:0;flex:1}
+#statusDialog .status-display-setting strong{display:block;font-size:13px;line-height:1.4;color:#f1f3ff}
+#statusDialog .status-display-setting small{display:block;margin-top:4px;font-size:11px;line-height:1.5;color:#aebed6}
+#statusDialog #statusBubbles{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;min-height:38px;padding:8px 10px;border:1px solid #586c90;border-radius:9px;background:#2b3b58;color:#e1eaff;font-size:12px;font-weight:700;white-space:nowrap}
+#statusDialog #statusBubbles svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;flex:none}
+#statusDialog #statusBubbles[aria-pressed=true]{background:#3b4778;border-color:#aaa6ff;color:#e4dfff}
+#statusDialog #statusBubbles:disabled{opacity:.6;cursor:not-allowed}
+@media(max-width:380px){#statusDialog .status-display-setting{align-items:flex-start;flex-direction:column}#statusDialog #statusBubbles{width:100%}}
