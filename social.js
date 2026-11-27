@@ -2,7 +2,7 @@
 'use strict';
 window.OC52_SOCIAL=(()=>{
  const $=id=>document.getElementById(id),dialog=$('socialDialog');
- const labels={wave:'โบกมือ',wai:'ไหว้',cheer:'เย้!',clap:'ปรบมือ',dance:'เต้น',highfive:'High Five!'};
+ const labels={wave:'โบกมือ',wai:'ไหว้',cheer:'เย้!',clap:'ปรบมือ',dance:'เต้น',highfive:'High Five!',workout:'ออกกำลังกาย',idle:'ผ่อนคลาย',stretch:'ยืดเส้น',flower:'ให้ดอกไม้',heart:'มินิฮาร์ท',received_flower:'ได้รับดอกไม้',received_heart:'ได้รับมินิฮาร์ท'};
  const glyphs={wave:'M5 12 3 9m6 0L7 4m6 4V3m4 6 2-4m-1 9 3-3M5 12l5 8h7l3-6-4-5-3 3-3-3Z',wai:'m4 19 4-7 4-8v12l-3 5m11-2-4-7-4-8v12l3 5M8 22h8',cheer:'m4 4 5 9-2 8m13-17-5 9 2 8M9 13h6M12 2v3',clap:'m3 8 5 5 4-6 3 2-4 8 4 4m6-13-5 5m-2-8 1-3m4 5 3-1',dance:'M12 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4M5 8l6 4 7-5m-7 5 2 4-6 5m6-5 7 4',highfive:'M5 12V6m4 5V3m4 8V4m4 9V8m-12 4 2 7 7 2 6-7'};
  let user=null,installed=false,events=new Map(),busy=false,gen=0,meetingRevision=null,patch=false,requests=[],pairBusy=false,shownRequest=null;
  const now=()=>window.OC50?.now()||Date.now();
@@ -14,7 +14,7 @@ window.OC52_SOCIAL=(()=>{
  function meetingHere(){const {m}=pose();return member()&&inOffice()&&m?.activity==='meeting'&&!m.moving&&!m.returning&&['seat','lean'].includes(m.pose);}
  function stand(id,t=now()){const m=window.OC50?.motion(id,t);return m&&!m.moving&&!m.returning&&m.pose==='stand'&&m.gesture==null&&['walk','huddle','poke'].includes(m.activity)?m:null;}
  function near(id,peer,t=now()){const a=stand(id,t),b=stand(peer,t);if(!a||!b||id===peer)return false;const d=Math.hypot(a.x-b.x,a.y-b.y);return d>=.30-1e-8&&d<=.52+1e-8;}
- function event(id,t=now()){const e=events.get(id);if(!member()||!e||e.started_ms>t||t>=e.expires_ms)return null;if(e.kind==='highfive'){const other=events.get(e.partner_desk);if(!other||other.kind!=='highfive'||other.partner_desk!==id||other.started_ms!==e.started_ms||t>=other.expires_ms||[id,e.partner_desk].some(k=>(window.OC50.motionRecord(k)?.started_ms??Infinity)>e.started_ms-2000)||!near(id,e.partner_desk,t))return null;}return e;}
+ function event(id,t=now()){const e=events.get(id);if(!member())return null;if(!e||e.started_ms>t||t>=e.expires_ms)return window.OC65_SOCIAL?.event(id,t)||null;if(e.kind==='highfive'){const other=events.get(e.partner_desk);if(!other||other.kind!=='highfive'||other.partner_desk!==id||other.started_ms!==e.started_ms||t>=other.expires_ms||[id,e.partner_desk].some(k=>(window.OC50.motionRecord(k)?.started_ms??Infinity)>e.started_ms-2000)||!near(id,e.partner_desk,t))return null;}return e;}
  function pairReady(){return member()&&patch&&inOffice();}
  function refreshPairButtons(){for(const b of document.querySelectorAll('button[data-peer-desk]')){const ok=pairReady()&&near(window.OC50.meDesk(),b.dataset.peerDesk)&&!pairBusy;b.disabled=!ok;const label=ok?'High Five ✋':'High Five · ยืนใกล้ก่อน';if(b.textContent!==label)b.textContent=label;b.title=ok?'ส่งคำชวน High Five':'เดินมายืนใกล้เพื่อนก่อน (1 ช่องกระเบื้องย่อย)';}}
  function pairMessage(e){return /Stand close|arrived/i.test(e.message)?'ทั้งสองคนต้องยืนใกล้กันก่อนนะ':/expired|unavailable/i.test(e.message)?'คำชวนหมดอายุแล้ว':/wait before|in progress/i.test(e.message)?'รอสักครู่ก่อนส่ง Action อีกครั้งนะ':'ทำรายการไม่สำเร็จ: '+e.message;}
