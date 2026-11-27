@@ -144,6 +144,46 @@ window.OC66_3D=(()=>{
    case 'photo_frame': b(.40,.045,.19,0,.023,0,P.wood,.015);b(.36,.32,.06,0,.20,-.025,P.lav,.02,[-8,0,0]);b(.29,.25,.014,0,.20,.012,P.cream,.008,[-8,0,0]);for(const x of [-.068,.068]){s(.047,.047,.013,x,.242,.03,'#d8ab8b');b(.09,.075,.015,x,.155,.028,x<0?P.blue:P.rose,.015);}break;
    case 'capybara':s(.25,.15,.145,0,.16,0,'#ad8058');s(.15,.135,.13,.15,.30,0,'#bb8d64');s(.10,.075,.10,.245,.26,.01,'#d3a37b');for(const z of [-.08,.08]){s(.044,.048,.036,.08,.42,z,'#ad8058');s(.020,.020,.015,.218,.32,z*1.25,P.ink);}s(.07,.07,.07,.12,.47,0,'#f4a654');s(.035,.018,.018,.12,.54,0,P.green);break;
    case 'hourglass': for(const y of [.035,.49])c(.15,.15,.065,0,y,0,P.wood);for(const x of [-.13,.13])c(.018,.018,.45,x,.26,0,P.gold);c(.12,.025,.20,0,.15,0,'#a6d1de');c(.025,.12,.20,0,.36,0,'#a6d1de');c(.083,.01,.11,0,.105,0,P.gold);c(.024,.085,.09,0,.405,0,P.gold);break;
+   case 'life_tiny_cat':s(.27,.13,.21,0,.15,0,'#d4a786');s(.16,.14,.14,-.13,.26,.12,'#e8be9e');for(const x of [-.21,-.06])c(.065,.008,.12,x,.41,.12,'#d4a786');t(.14,.04,.16,.15,0,'#be896a',[90,0,0]);for(const x of [-.18,-.07])b(.06,.009,.012,x,.27,.25,P.ink);break;
+   case 'life_frog_figure':s(.23,.17,.20,0,.18,0,'#6ebc7d');for(const x of [-.145,.145]){s(.095,.10,.085,x,.35,.05,'#80ce8c');s(.048,.056,.025,x,.36,.124,P.white);s(.024,.031,.012,x,.36,.149,P.ink);s(.12,.065,.15,x,.065,.09,'#509b66');}break;
+   case 'life_koala':s(.20,.23,.16,0,.24,0,'#9298a4');s(.22,.18,.17,0,.51,0,'#b4b9c5');for(const x of [-.21,.21]){s(.11,.12,.08,x,.55,0,'#8e95a1');s(.069,.078,.05,x,.55,.055,'#dec0c2');s(.025,.03,.02,x*.45,.52,.15,P.ink);}s(.055,.081,.051,0,.47,.162,P.ink);break;
+   case 'life_octopus':s(.22,.22,.20,0,.28,0,'#af90d1');for(let i=0;i<8;i++){let a=rad(i*45);s(.10,.075,.17,Math.sin(a)*.19,.085,Math.cos(a)*.19,'#c6a8e0',[0,i*45,0]);}for(const x of [-.07,.07])s(.026,.035,.018,x,.31,.186,P.ink);break;
+   case 'life_whale':s(.28,.17,.19,0,.21,0,'#80b2d0');for(const z of [-.105,.105])s(.12,.055,.09,-.30,.24,z,'#78a9c7',[0,0,15]);for(const z of [-.16,.16])s(.022,.024,.015,.15,.23,z,P.ink);for(const x of [-.065,.065])s(.026,.12,.026,x,.45,0,'#b8e7ef',[0,0,x*280]);break;
+   case 'life_bee':s(.20,.18,.24,0,.27,0,P.gold);for(const z of [-.09,.07])c(.16,.16,.08,0,.27,z,P.ink,[90,0,0]);for(const x of [-.16,.16])s(.13,.035,.14,x,.44,0,'#cde4eb',[0,0,x*90]);for(const x of [-.07,.07])s(.025,.03,.014,x,.30,.219,P.ink);break;
+   case 'life_mushroom_house':c(.19,.13,.40,0,.20,0,'#edd9bc');s(.32,.12,.32,0,.43,0,'#cc6b67');for(const x of [-.17,0,.17])s(.055,.023,.052,x,.53,.07,P.white);b(.105,.18,.025,0,.12,.18,P.edge,.012);break;
+   case 'life_toy_train':b(.72,.10,.36,0,.15,0,'#789fb6');c(.135,.135,.38,.11,.32,0,P.rose,[0,0,90]);b(.24,.34,.34,-.20,.35,0,P.mint);c(.055,.07,.15,.24,.52,0,P.ink);for(const x of [-.25,0,.25])for(const z of [-.19,.19])c(.095,.095,.045,x,.10,z,P.ink,[90,0,0]);break;
+   case 'life_dollhouse':b(.45,.37,.37,0,.19,0,'#e8d8c0');for(const x of [-.12,.12])b(.32,.055,.43,x,.43,0,'#bd8270',.01,[0,0,x>0?-35:35]);b(.095,.19,.025,-.09,.10,.195,P.edge);b(.14,.14,.024,.11,.25,.197,P.blue);break;
+   case 'life_trophy':c(.17,.18,.075,0,.04,0,P.ink);c(.045,.04,.23,0,.19,0,P.gold);c(.105,.22,.23,0,.39,0,'#e7be60');for(const x of [-.22,.22])t(.095,.025,x,.40,0,'#e7be60');break;
+   case 'life_bonsai':b(.48,.14,.32,0,.07,0,'#747c86');b(.42,.02,.26,0,.15,0,P.edge);c(.048,.027,.37,0,.32,0,P.edge,[0,0,-12]);for(const [x,y,w] of [[-.14,.40,.17],[.16,.49,.16],[.015,.61,.17]])s(w,.105,.14,x,y,0,'#699d6b');break;
+   case 'life_zen_garden':b(.64,.10,.46,0,.05,0,P.edge);b(.57,.022,.39,0,.112,0,'#e9dfcb');for(let i=0;i<6;i++)b(.50,.006,.009,0,.127,-.16+i*.06,'#c0b6a2');for(const [x,y,z] of [[-.14,.16,.02],[.04,.18,.08],[.17,.15,-.12]])s(.075,.058,.05,x,y,z,'#8d9998');break;
+   case 'life_terrarium':c(.22,.24,.08,0,.04,0,P.edge);c(.23,.23,.39,0,.275,0,'#a4d2cb');c(.20,.20,.05,0,.50,0,P.gold);for(const x of [-.10,.10])s(.075,.13,.08,x,.27,.20,P.green,[0,0,x*220]);break;
+   case 'life_sunflower':c(.12,.16,.21,0,.105,0,P.edge);c(.025,.018,.32,0,.36,0,P.green);for(let i=0;i<10;i++){let a=rad(i*36);s(.051,.087,.026,.12*Math.sin(a),.54+.12*Math.cos(a),0,P.gold,[0,0,-i*36]);}s(.09,.09,.045,0,.54,.025,'#805d44');break;
+   case 'life_lotus':c(.22,.24,.08,0,.04,0,P.blue);for(let i=0;i<9;i++){let a=rad(i*40);s(.07,.11,.04,Math.sin(a)*.10,.17,Math.cos(a)*.10,P.pink,[0,i*40,32]);}s(.065,.08,.065,0,.22,0,P.gold);break;
+   case 'life_crystal':b(.43,.065,.32,0,.033,0,P.ink);for(const [x,h,r,z] of [[-.11,.36,.073,.02],[.03,.55,.085,0],[.14,.30,.062,.02]]){c(r,r,h,x,h/2+.07,z,'#9c9dde');c(r,0,.13,x,h+.13,z,'#c6b8ec');}break;
+   case 'life_rainbow':b(.55,.07,.20,0,.035,0,P.cream);for(let i=0;i<5;i++)for(let k=0;k<=12;k++){let a=k*Math.PI/12,r=.22-i*.032;s(.033,.034,.04,Math.cos(a)*r,.11+Math.sin(a)*r,0,[P.rose,P.gold,P.mint,P.blue,P.lav][i]);}break;
+   case 'life_neon_star':c(.16,.16,.055,0,.028,0,P.ink);b(.04,.24,.04,0,.15,0,P.ink);for(let i=0;i<10;i++){let a=rad(i*36),r=i%2?.085:.18;s(.046,.046,.033,Math.sin(a)*r,.43+Math.cos(a)*r,0,P.gold);}s(.10,.10,.035,0,.43,0,P.gold);break;
+   case 'life_retro_console':b(.30,.45,.09,0,.23,0,P.lav,.035);b(.24,.18,.025,0,.32,.053,P.ink);b(.20,.135,.009,0,.32,.069,P.mint);b(.10,.03,.015,-.064,.14,.055,P.ink);b(.03,.10,.015,-.064,.14,.055,P.ink);for(const y of [.12,.17])s(.029,.029,.012,.085,y,.061,P.rose);break;
+   case 'life_arcade':b(.43,.66,.37,0,.33,0,P.ink);b(.38,.10,.42,0,.62,0,P.rose);b(.32,.28,.02,0,.43,.195,P.blue);b(.42,.11,.45,0,.24,.08,P.lav);c(.019,.019,.075,-.12,.335,.19,P.ink);s(.033,.033,.033,-.12,.38,.19,P.rose);for(const x of [.06,.14])s(.031,.012,.031,x,.302,.18,P.gold);break;
+   case 'life_rgb_keyboard':b(.91,.055,.33,0,.028,0,P.ink);for(let i=0;i<11;i++)for(let k=0;k<4;k++)b(.068,.027,.066,-.39+i*.078,.07,-.12+k*.078,[P.rose,P.gold,P.mint,P.blue,P.lav][Math.floor(i/2)%5],.006);break;
+   case 'life_gamepad':b(.50,.13,.28,0,.09,0,P.lav,.06);for(const x of [-.19,.19])s(.09,.08,.15,x,.08,.07,P.lav,[0,0,x*50]);b(.12,.022,.03,-.13,.163,-.025,P.ink);b(.03,.022,.12,-.13,.163,-.025,P.ink);for(let i=0;i<4;i++){let a=rad(i*90);s(.021,.014,.021,.14+Math.sin(a)*.045,.164,-.02+Math.cos(a)*.045,P.rose);}break;
+   case 'life_vinyl_player':b(.52,.10,.43,0,.05,0,P.wood);c(.18,.18,.026,-.055,.116,0,P.ink);c(.054,.054,.006,-.055,.132,0,P.rose);b(.035,.025,.27,.19,.15,0,P.lav,.01,[0,25,0]);break;
+   case 'life_guitar':b(.22,.055,.23,0,.028,0,P.ink);s(.16,.18,.055,0,.23,0,P.wood);s(.12,.14,.05,0,.38,0,P.wood);b(.065,.39,.052,0,.56,0,P.edge);b(.09,.12,.055,0,.80,0,P.edge);c(.057,.057,.01,0,.32,.06,P.ink,[90,0,0]);for(const x of [-.019,0,.019])b(.005,.59,.005,x,.52,.062,P.white);break;
+   case 'life_camera_retro':b(.41,.27,.17,0,.15,0,P.ink,.025);b(.41,.055,.17,0,.28,0,'#d4dbe0');c(.125,.125,.15,0,.15,.11,P.ink,[90,0,0]);c(.085,.085,.025,0,.15,.198,P.blue,[90,0,0]);b(.09,.055,.085,.12,.33,0,P.rose);break;
+   case 'life_globe':c(.16,.16,.055,0,.028,0,P.wood);b(.04,.22,.04,0,.14,0,P.ink);s(.22,.22,.22,0,.39,0,'#6fa3c4');for(const [x,y,z] of [[.11,.44,.16],[-.12,.34,.14],[.04,.54,-.10]])s(.095,.072,.055,x,y,z,P.green);t(.24,.016,0,.39,0,P.gold,[0,0,20]);break;
+   case 'life_telescope':for(let i=0;i<3;i++){let a=rad(i*120);b(.035,.39,.035,Math.sin(a)*.12,.20,Math.cos(a)*.12,P.ink,.008,[Math.cos(a)*-25,0,Math.sin(a)*25]);}c(.075,.095,.49,0,.43,0,P.cream,[0,0,65]);c(.10,.10,.05,.24,.54,0,P.blue,[0,0,65]);break;
+   case 'life_ufo':s(.30,.075,.30,0,.20,0,'#a6b7c2');s(.14,.14,.14,0,.26,0,'#a1d6dd');for(let i=0;i<8;i++){let a=rad(i*45);s(.026,.025,.026,Math.sin(a)*.24,.21,Math.cos(a)*.24,P.gold);}c(.09,.13,.13,0,.065,0,P.lav);break;
+   case 'life_astronaut':s(.17,.20,.14,0,.24,0,P.white);s(.18,.17,.17,0,.51,0,P.white);s(.135,.105,.06,0,.52,.145,P.blue);for(const x of [-.18,.18])s(.065,.15,.065,x,.27,0,P.white,[0,0,x*125]);for(const x of [-.085,.085])b(.11,.09,.18,x,.06,.03,P.lav);b(.10,.08,.02,0,.27,.141,P.rose);break;
+   case 'life_lighthouse':for(let i=0;i<5;i++)c(.13-i*.008,.122-i*.008,.105,0,.052+i*.105,0,i%2?P.rose:P.white);c(.14,.14,.07,0,.56,0,P.ink);c(.095,.095,.11,0,.65,0,P.gold);c(.15,0,.11,0,.76,0,P.rose);break;
+   case 'life_cake':c(.24,.24,.04,0,.02,0,P.cream);c(.20,.20,.20,0,.14,0,'#dba78d');c(.205,.205,.055,0,.27,0,P.pink);for(let i=0;i<5;i++){let a=rad(i*72),x=.13*Math.sin(a),z=.13*Math.cos(a);c(.013,.013,.10,x,.35,z,P.lav);s(.02,.041,.02,x,.42,z,P.gold);}break;
+   case 'life_ramen':c(.14,.25,.20,0,.10,0,P.ink);c(.23,.23,.022,0,.21,0,'#d2a66e');for(let i=0;i<7;i++)t(.046,.012,Math.sin(i)*.11,.23,Math.cos(i)*.11,P.gold,[90,0,0]);s(.07,.025,.055,.10,.246,0,P.white);s(.035,.014,.028,.10,.27,0,P.gold);for(const x of [-.12,-.08])b(.018,.018,.49,x,.28,0,P.wood,.002,[0,22,0]);break;
+   case 'life_croissant':c(.23,.23,.032,0,.016,0,P.white);for(let i=0;i<9;i++){let a=rad(-95+i*24),r=.12;s(.055+.027*Math.sin(i*Math.PI/8),.065,.06,Math.sin(a)*r,.075,Math.cos(a)*r,'#d8a15c',[0,-i*24,0]);}break;
+   case 'life_boba':c(.12,.17,.38,0,.19,0,'#c8a183');c(.18,.18,.03,0,.40,0,P.cream);b(.032,.19,.032,.05,.49,0,P.rose,.006,[0,0,-8]);for(let i=0;i<9;i++){let a=rad(i*40);s(.026,.026,.026,.12*Math.sin(a),.09,.12*Math.cos(a),P.ink);}break;
+   case 'life_tree_xmas':c(.13,.13,.10,0,.05,0,P.edge);for(let i=0;i<3;i++)c(.27-i*.07,.02,.30,0,.23+i*.17,0,P.green);for(let i=0;i<8;i++){let a=rad(i*45),r=.20-i%2*.07;s(.034,.034,.034,Math.sin(a)*r,.19+(i%2)*.18,Math.cos(a)*r,[P.rose,P.gold,P.lav][i%3]);}s(.055,.055,.055,0,.75,0,P.gold);break;
+   case 'life_pumpkin':for(let i=0;i<8;i++){let a=rad(i*45);s(.10,.17,.10,Math.sin(a)*.10,.18,Math.cos(a)*.10,'#dd8f46');}c(.038,.028,.10,0,.36,0,P.green);for(const x of [-.07,.07])s(.032,.034,.012,x,.21,.185,P.ink);b(.12,.025,.017,0,.12,.19,P.ink);break;
+   case 'life_lantern':c(.105,.105,.055,0,.03,0,P.gold);b(.04,.12,.04,0,.12,0,P.gold);s(.18,.18,.18,0,.33,0,P.rose);for(let i=0;i<8;i++){let a=rad(i*45);s(.018,.16,.018,.17*Math.sin(a),.33,.17*Math.cos(a),P.gold);}c(.10,.10,.045,0,.51,0,P.gold);break;
+   case 'life_gift_stack':for(const [w,y,col] of [[.35,.13,P.rose],[.25,.34,P.mint],[.17,.50,P.lav]]){b(w,w*.72,w,0,y,0,col);b(w*.15,w*.72+.008,w+.007,0,y,0,P.gold);b(w+.008,w*.72+.012,w*.15,0,y,0,P.gold);}break;
+   case 'life_pendulum':b(.55,.07,.28,0,.035,0,P.wood);for(const x of [-.24,.24])b(.045,.46,.045,x,.27,0,P.ink);b(.52,.045,.045,0,.51,0,P.ink);b(.018,.32,.018,0,.34,0,P.gold,.003,[0,0,0],'life_pendulum');s(.065,.065,.065,0,.17,0,P.gold,[0,0,0],'life_pendulum');break;
+   case 'life_windmill':c(.19,.13,.45,0,.225,0,P.cream);c(.17,0,.16,0,.53,0,P.rose);for(let i=0;i<4;i++){let a=rad(i*90);b(.10,.20,.026,Math.sin(a)*.12,.42+Math.cos(a)*.12,.17,P.wood,.006,[0,0,-i*90],'life_windmill');}s(.045,.045,.03,0,.42,.19,P.gold);break;
    default:b(.34,.18,.34,0,.09,0,'#f3ead8',.03);b(.30,.22,.30,0,.28,0,'#ffffff',.04);b(.28,.015,.28,0,.39,0,P.wood,.006);b(.05,.18,.05,0,.20,0,P.gold,.01);break;
   }
   // Derive tight axis-aligned local bounds from transformed vertices.
@@ -152,7 +192,7 @@ window.OC66_3D=(()=>{
   const shift=mat([-(lo[0]+hi[0])/2,-lo[1],-(lo[2]+hi[2])/2]);a=a.map(o=>({...o,m:mm(shift,o.m)}));const result={a,w:hi[0]-lo[0],h:hi[1]-lo[1],d:hi[2]-lo[2],shift:[shift[12],shift[13],shift[14]]};models.set(id,result);return result;
  }
 
- const animatedIds=new Set(['lucky_cat','bobble_penguin','dancing_flower','mini_robot','space_planet','snow_globe','lava_lamp','sleepy_fox','fish_bowl','music_box']);
+ const animatedIds=new Set(['lucky_cat','bobble_penguin','dancing_flower','mini_robot','space_planet','snow_globe','lava_lamp','sleepy_fox','fish_bowl','music_box','life_pendulum','life_windmill']);
  const moving=id=>animatedIds.has(resolveItemId(id));
  function motionMatrix(o,model,time){let pivot,rot=[0,0,0],offset=[0,0,0],t=time/1000,k=o.tag;
   if(k==='cat_arm'){pivot=[.22,.44,.055];rot[2]=27*Math.sin(t*5);}
@@ -164,6 +204,8 @@ window.OC66_3D=(()=>{
   else if(k.startsWith('lava_')){let n=Number(k.slice(5));offset=[.022*Math.cos(t*1.6+n),.075*Math.sin(t*1.8+n*2),0];}
   else if(k==='fish_swim'){offset=[.055*Math.sin(t*1.8),.022*Math.cos(t*1.8),0];}
   else if(k==='music_spin'){pivot=[0,.18,0];rot[1]=t*45%360;}
+  else if(k==='life_pendulum'){pivot=[0,.50,0];rot[2]=25*Math.sin(t*3);}
+  else if(k==='life_windmill'){pivot=[0,.42,.17];rot[2]=t*60%360;}
   else if(k==='fox_breath'){offset=[0,.017*(1+Math.sin(t*2.3)),0];}
   else return o.m;
   if(pivot){let p=add(pivot,model.shift);return mm(mm(mm(mat(p),mat(offset,rot)),mat(mul(p,-1))),o.m);}

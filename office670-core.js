@@ -2,6 +2,7 @@
 'use strict';
 window.OC670_CORE=(()=>{
  const loops={"dance": "เต้น", "workout": "ออกกำลังกาย", "stretch": "ยืดเส้น", "idle": "ผ่อนคลาย", "sway": "เต้นโยกตัว", "jog": "วิ่งอยู่กับที่", "jumping_jacks": "กระโดดตบ", "squat": "สควอต", "neck_roll": "ผ่อนคลายคอ", "breathe": "ฝึกหายใจ", "read": "อ่านหนังสือ", "type": "พิมพ์งาน", "phone": "คุยโทรศัพท์", "meditate": "สมาธิ"},standing=new Set(["dance", "workout", "stretch", "sway", "jog", "jumping_jacks", "squat", "meditate"]),ones={"salute": "วันทยหัตถ์", "thumbs": "เยี่ยมเลย", "nod": "พยักหน้า", "laugh": "หัวเราะ", "point": "ชี้ชวน", "bow": "โค้งทักทาย", "cheer_friend": "ส่งกำลังใจ", "thank_friend": "ขอบคุณ", "gift_friend": "ส่งของขวัญเสมือน", "received_cheer_friend": "ได้รับกำลังใจ", "received_thank_friend": "ได้รับคำขอบคุณ", "received_gift_friend": "ได้รับของขวัญ"};
+ for(const a of window.OC100_CORE?.actions||[]){ones[a.kind]=a.label;ones['received_'+a.kind]='เพื่อนส่ง '+a.label;}
  const kinds=new Set(['speech',...Object.keys(ones).filter(k=>!k.startsWith('received_'))]);
  const safeDesk=k=>typeof k==='string'&&/^D-\d+$/i.test(k),clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
  function personality(answers){if(!Array.isArray(answers)||answers.length!==16||!answers.every(a=>[-1,0,1].includes(a)))return null;return Array.from({length:4},(_,i)=>answers.slice(i*4,i*4+4).reduce((s,n)=>s+n,0)>=0?'ESTJ'[i]:'INFP'[i]).join('');}
@@ -30,6 +31,11 @@ window.OC670_CORE=(()=>{
    case 'meditate':both(.22,.25);r.elbows=[.82,.82];r.head[0]=-.11;r.body[2]=.015*slow;break;
    case 'salute':A(1,seated?1.1:1.85,.15,.18);r.elbows[1]=1.2;r.head[0]=-.07;break;
    case 'thumbs':case 'cheer_friend':case 'thank_friend':case 'gift_friend':A(1,seated?.65:1.0,0,.2);r.elbows[1]=.85;r.head[0]=.07*f;break;
+   case 'friend_wave_friend':A(1,1.45+.18*f,.1,.35+.2*q);r.elbows[1]=.85;r.head[1]=.10*f;break;
+   case 'friend_salute_friend':A(1,1.85,.15,.18);r.elbows[1]=1.2;r.body[0]=-.12*w;break;
+   case 'friend_heart_friend':both(1.7,.36);r.elbows=[1.15,1.15];r.head[2]=.1*slow;break;
+   case 'friend_dance_friend':A(0,1.2+.7*f,0,-.4);A(1,1.2-.7*f,0,.4);r.body[2]=.16*f;r.legs=[.2*f,-.2*f];r.bob=seated?0:.06*Math.abs(f);break;
+   case 'friend_star_friend':both(2.2,.55+.14*f);r.elbows=[.2,.2];r.head[0]=.12*q;r.bob=seated?0:.12*Math.abs(f);break;
    case 'nod':r.head[0]=.22*f;break;
    case 'laugh':both(.25,.12);r.elbows=[.6,.6];r.head[0]=.12*f;r.body[0]=.08*f;r.bob=seated?0:.022*Math.abs(f);break;
    case 'point':A(1,seated?.3:1.38,0,.06);r.elbows[1]=.05;r.head[1]=.12;break;
