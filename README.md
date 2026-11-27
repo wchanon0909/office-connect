@@ -1,8 +1,18 @@
-# GFE & GOE Office — V6.6.5
+# GFE & GOE Office — V6.6.6
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## V6.6.6 — Floor Plan Editor
+
+- Frontend-only admin draft editor update on the V6.6.5 baseline. GitHub Pages / `main`; no SQL migration. The published layout format remains version 1. The main-office renderer, movement, networking, quests, shop, inventory and graphics quality are unchanged. V6.7 work is not included.
+- Edit Floor Plan starts in the 2D top view. Build / furniture tool groups, zoom +/−, fit, pan, and existing 3D view are available. Wall and desk tools default to axis-aligned line placement; aisle and eraser default to rectangular placement. Other objects default to single placement. Choose single / line / rectangle to override; desk spacing 1–3 cells. Bulk desk placement leaves existing desks unchanged. Green preview = changes, red = obstruction, blue = unchanged, gold = new door. Drag cancellation does not mutate the draft. One drag is one undo transaction.
+- Room tool: drag a minimum 3×3 rectangle; only its perimeter is built, with an optional doorway on a side facing existing floor where possible. An obstructed perimeter cancels the entire room. Door tool converts an existing wall without requiring an erase. Existing doorways are preserved when placing wall lines.
+- Expand the rectangular floor by 1–10 cells on any side, up to existing bounds of 80 columns × 50 rows. All desk IDs/labels and furniture move together when adding north/west strips; windows on other edges are reindexed. Windows on the expanded edge cease to be exterior windows and are removed after confirmation. Undo restores dimensions and edges. Irregular floor footprints and new levels are not supported by the current schema. Legacy geometry/navigation has some original-map-specific offsets; inspect placement and walking paths after resizing before publishing.
+- Draft safeguards: protected desk IDs captured at edit start; erase, shrink, clear and import cannot remove those occupied desks. Move preserves ID. Existing server revision and ownership validation are still authoritative, especially if a desk is assigned by another user during editing. No background RPC is added. Export current JSON before structural changes.
+- Keyboard shortcuts (inside editor, outside form fields): V select, H pan, M move, W wall, D desk, F aisle, B room, E eraser, R rotate, Ctrl+Z undo / Ctrl+Shift+Z redo. Escape cancels an active drag. The original selected-object rotate, align, edge-window and file tools remain available.
+- Deploy: upload the five files in `site/` to repository root, commit to `main`, wait for GitHub Pages and hard refresh. No SQL. Rollback by reverting the deployment commit. QA: pure geometry and draft tests plus real Chromium Desktop/Mobile UI tests with mocked cloud and a simulated renderer interface. No live Supabase write, multi-user test or WebGL preview render was performed here.
 
 ## V6.6.5 — Backend performance / private notifications
 
