@@ -560,3 +560,12 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 - Standing places are reserved by the backend. V5.4 reduces overlap in open corridors but does not guarantee collision-free walking, especially near doors, crowded groups, and shared goals. The original backend route and desk anchor are preserved; the full seat-to-aisle route is not simulated. Visual offsets may differ temporarily across clients with delayed snapshots. 2D fallback uses the original discrete markers.
 - V6.1.1 manually placed props have no dedicated seat/queue reservation; visiting the same point can overlap avatars. The sofa is a standing lounge stop. Glass windows are placeable panels, not automatic city scenery. Fine-grid movement requires a reachable clear coarse-cell center and a clear final segment, not every physically empty sliver around furniture. Manual placement does not automatically guarantee every desk or meeting path remains reachable; avoid blocking aisles.
 - Test the deployed app against your own Supabase project before broad rollout. V6.1 was tested with Chromium, mock Supabase and Three.js API double; migration 19 needs the Supabase dry run and live install. Actual WebGL appearance and audio audibility have not been verified on the deployed site.
+
+
+## v1.0 — Hall-zone Hotfix (SQL 41)
+
+- Temporary conversations reserve one six-person, two-cell group zone within the four marked areas (main corridor, stair lobby, kitchen and lower lobby). The closest walkable free zone is selected using the current server motion or desk access cell. Existing groups retain their own reserved locations.
+- Chat opens only once the local motion arrives, and the server's existing conversation authorization also checks the arrival timestamp. The scene marker uses actual arrived characters, including in 2D.
+- No new background polling or renderer changes. The version shown in the app remains v1.0.
+- Install SQL 40 FIX2 first if not installed, then 41-check-only, 41-install, 41-verify. Replace the four files in this patch's site/ after SQL passes. If the preflight detects differing live function definitions or the marked areas have changed, export 41-inspect-read-only.sql rather than bypassing guards. Close temporary hall groups before install or rollback.
+- Grid coordinates were conservatively estimated from the marked screenshot; SQL checks the current plan for real free positions in every area. No automatic floor-plan edits.
