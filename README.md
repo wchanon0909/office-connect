@@ -1,8 +1,28 @@
-# GFE & GOE Office — V6.6.6.3 Preview
+# GFE & GOE Office — V6.6.6.4 Preview
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## V6.6.6.4 — Double glass doors, stair block, round table, appliance animation (PREVIEW ONLY)
+
+**Do not deploy `site/` or publish any edge draft to the live database.** This is a cumulative extension of the V6.6.6.3 local prototype; the server schema inspection is still required. There is no new migration, no change to the live layout or data, and no reduction in graphics quality. GitHub Pages / `main` remains the eventual deployment target.
+
+### Editor
+- In edge mode, select **ประตูกระจกคู่**, then click the first grid edge. The two consecutive segments extend right (H) or down (V). Both halves share a continuous opening, with outer jambs and opposite outer hinges. No centre wall pillar. The draft route-to-door mapping opens both hinges for a crossing; real server routing is not validated. A perpendicular wall at the seam is rejected. Erasing either half clears the pair; replacing either half with a single door removes the other half. Undo restores the pair.
+- **บันไดลง 3 × 2**: click the top-left cell of a clear 3×2 footprint. Right-side descending flight, ten steps, guard rail; no floor transition. This preview allows one stairwell (the existing six-cell legacy marker). To relocate it, erase any cell of the old stair block, then place the new block. No desk may be overwritten; interior walls are rejected. The whole footprint stays blocked for local walking.
+- **โต๊ะกลม 2 × 2**: click the top-left cell of a clear 2×2 area. A single round tabletop and four chairs, with four reserved floor cells (`roundTable`, part 0–3). Erasing or moving any part acts on the whole table. For moving, select a part then click the new top-left cell. Shrink removes whole intersected blocks/pairs after the existing confirmation. Interior wall edges are rejected; perimeter walls remain independent. Chairs are decorative, not yet reservable meeting seats.
+- `layout/edge-draft-double-doors-10x29.json` keeps the converted 78 desk records, and changes the two previously marked adjacent glass-door pairs into true double-door pairs. Existing stairwell is retained. `layout/demo-new-tools.json` is an isolated example, not a replacement for the user's shared floor plan.
+
+### Interaction animation audit
+- Coffee/water already have an explicit server `drink:` slot and a fill/sip sequence. Keep `oc613_visit_drink`; tighten stationary/stand/gesture checks, and give appliance animation priority over continuous social loops. Server reward logic is unchanged.
+- Printer/fridge previously inferred an action from the target cell, leading to poses while simply walking past and conflicting target selection. New code uses the front approach and one acknowledged existing `oc611_walk` request, captures the exact motion record, interpolates a finite 4.2s paper-collection/read sequence or 4.8s fridge/snack sequence, and restores machine parts, hand prop and avatar head/arms afterward. No extra RPC or interval. Ordinary walking does not start it. A changed route, return, blocked status, account change, revision, or one-shot emote cancels the local intent; reduced motion is respected. Facing follows the object in all four orientations. Front clearance can still be rejected by the authoritative server; no claim of live compatibility.
+- Printer/fridge activity intent is local to the initiating browser because no shared appliance action slot is available in the inspected source. Others see the normal walking/standing state, not the new local prop/door choreography. Coffee/water still use the shared slot. New shared interaction RPCs and quest changes are deferred until the schema is reviewed.
+
+### Testing / next step
+- 17/17 existing edge checks; 27/27 extension checks (including actual mesh-function recording and all four appliance orientations); 8/8 mocked acknowledged-visit and door-signal checks; 60/60 Chromium editor checks at desktop and mobile viewport sizes. These are local logic and mocked UI tests, not real WebGL visual inspection, live database checks or multiplayer load tests. The offline preview is 2D only; its sample tools do not execute the live interaction animations. Existing production remains untouched.
+- Open `preview.html` locally. Convert the existing plan using the button, or load the paired-door sample / isolated tool demo. Export JSON only for draft preservation. Do not upload it to production.
+- Run `setup/32-inspect-layout-backend.txt` in Supabase SQL Editor (read-only metadata query); export the results as CSV and review/redact hardcoded secrets first. This is the same pending inspection from V6.6.6.3. No install/verify migration in this release. Future Check-only / Install / Verify results will use PASS on success, real errors otherwise.
 
 ## V6.6.6.3 — True wall-edge draft (PREVIEW ONLY)
 

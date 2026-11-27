@@ -70,3 +70,14 @@
 .edge-draft-banner{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0;font-size:12px;color:#f2cb85}.edge-draft-banner button{background:#244b52;border-color:#4f8e91}.edge-draft-preview{background:#36c596!important;z-index:15!important;box-shadow:0 0 0 1px #118866}.edge-draft-remove{background:#eb6975!important}.edge-draft-banner [hidden]{display:none!important}
 
 #save[aria-disabled="true"]{background:#455367!important;border-color:#67768a!important;color:#d9e0e8!important;cursor:not-allowed}
+/* V6.6.6.4 preview: paired glass edge segments and four-cell table. */
+#grid .floor-double-glass.wall-side-N,#grid .floor-double-glass.wall-side-S{background:linear-gradient(90deg,#506879 0 7%,#6ec5d7 7% 93%,#506879 93% 100%)}
+#grid .floor-double-glass.wall-side-E,#grid .floor-double-glass.wall-side-W{background:linear-gradient(180deg,#506879 0 7%,#6ec5d7 7% 93%,#506879 93% 100%)}
+#grid .floor-double-glass{z-index:8;box-shadow:inset 0 0 0 1px #315f72}
+#grid .round-table-part{overflow:visible;position:relative;background:#d6e0df;}
+.round-table-art{position:absolute;inset:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Crect x='79' y='10' width='42' height='36' rx='9' fill='%23546c78'/%3E%3Crect x='79' y='154' width='42' height='36' rx='9' fill='%23546c78'/%3E%3Crect x='10' y='79' width='36' height='42' rx='9' fill='%23546c78'/%3E%3Crect x='154' y='79' width='36' height='42' rx='9' fill='%23546c78'/%3E%3Ccircle cx='100' cy='103' r='57' fill='%23967d5d'/%3E%3Ccircle cx='100' cy='98' r='55' fill='%23ddc49f' stroke='%23b79b72' stroke-width='2'/%3E%3Crect x='80' y='81' width='20' height='15' rx='1' fill='%23f6f4e9' transform='rotate(-10 90 89)'/%3E%3C/svg%3E");background-size:200% 200%;background-repeat:no-repeat;z-index:2;}
+.round-part-0 .round-table-art{background-position:0 0}.round-part-1 .round-table-art{background-position:100% 0}.round-part-2 .round-table-art{background-position:0 100%}.round-part-3 .round-table-art{background-position:100% 100%}
+#grid .floor-double-glass.double-start.wall-side-N,#grid .floor-double-glass.double-start.wall-side-S{background:linear-gradient(90deg,#506879 0 8%,#6ec5d7 8% 100%)}
+#grid .floor-double-glass.double-end.wall-side-N,#grid .floor-double-glass.double-end.wall-side-S{background:linear-gradient(90deg,#6ec5d7 0 92%,#506879 92% 100%)}
+#grid .floor-double-glass.double-start.wall-side-W,#grid .floor-double-glass.double-start.wall-side-E{background:linear-gradient(180deg,#506879 0 8%,#6ec5d7 8% 100%)}
+#grid .floor-double-glass.double-end.wall-side-W,#grid .floor-double-glass.double-end.wall-side-E{background:linear-gradient(180deg,#6ec5d7 0 92%,#506879 92% 100%)}

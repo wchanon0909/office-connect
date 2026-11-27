@@ -28,6 +28,7 @@ window.OC54_MOTION=(()=>{
     add(x,y,rot,0,exec?.60:.54,exec?.82:.68,exec?.77:.65);
    }else if(c.type==='plant'){
     const [dx,dz]=plantOffset(plan,x,y);add(x+dx/CELL,y+dz/CELL,0,0,0,.83,.83);
+   }else if(c.type==='roundTable'){add(x,y,0,0,0,CELL,CELL);
    }else if(c.type==='meeting'){
     add(x,y,rot,0,0,1.5,.85);for(const z of [-.66,.66])add(x,y,rot,0,z,.48,.46);
    }else if(['coffee','water','printer','fridge','cabinet','sofa','plants','books','window'].includes(c.type)){const [dx,dz]=window.OC612_STUDIO?.offset(plan,x,y,c)||[0,0];add(x+dx/CELL,y+dz/CELL,rot,0,c.type==='water'?.035:0,c.type==='water'?.65:1.66,c.type==='water'?.65:c.type==='window'?.20:1.08);
