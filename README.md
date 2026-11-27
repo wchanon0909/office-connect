@@ -1,8 +1,18 @@
-# GFE & GOE Office - V6.6.7 (Floor Shapes)
+# GFE & GOE Office - V6.6.8 (Grid Edges & Travel Status)
 
 Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
 
 [เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## V6.6.8 - Grid Edges & Travel Status
+
+- Independent `wallEdges` stores wall, wood door, single/double glass door and window on `H:x,y` / `V:x,y` grid segments. Cells remain available to place furniture. Solid edges block traversal; doors permit traversal and animate from existing shared motion. Stairs and composite furniture remain atomic cell footprints.
+- Admin can explicitly convert the current shared layout to edge mode in an unsaved draft. Existing desk IDs, cell coordinates and cutouts are preserved. The supplied revision-30 fixture (10 x 35) converts 46 former architecture cells into usable space with 48 edge segments, retaining 78 desks. No automatic layout update.
+- Travel-only labels for water, coffee, printer and fridge derive from the existing confirmed motion slot, including the final approach. On arrival, the current saved status text is shown again. No profile update or new periodic RPC. Other generic floor-move props are unchanged. Printer/fridge require the existing 32A RPC.
+- SQL 34 updates nine known function definitions and introduces four private helpers. It checks definition fingerprints before changes, preserves legacy plans and permissions, validates edges/paired doors/footprints, and applies edge collision to existing route calculations. SQL 34 does not update the saved plan. Existing special meeting-room layout recognition is retained; arbitrary meeting-room reservation layouts are not introduced.
+- Installation (quiet time, with all active browsers refreshed before conversion): export current shared JSON and retain it; run setup/34-check-only.sql as one query, then 34-install.sql and 34-verify.sql (each must show PASS). Stop on real SQL errors. Publish all files in site/ together to main. Refresh, then Admin > Edit floor plan > Convert walls to grid lines. Review 2D/3D and exits; Save online only when satisfied. Test both directions, both door halves, stairs and drink/appliance interactions from two accounts. No SQL 29-33 rerun, no data reset, no graphics-quality change.
+- Rollback: if an edge plan has been saved, use the NEW editor to import the previously exported legacy plan and save it first (preserve assigned desks); verify it is active, then run 34-rollback.sql. If no edge plan has been saved, no import is necessary. Restore rollback-site files together and refresh clients. SQL rollback refuses an active edge plan or unexpected function bodies. Do not restore older unrelated SQL versions.
+- QA: 21 original floor-shape regression groups, 24 grid-edge/travel-status groups; Chromium desktop/mobile 2D editor with mock backend (conversion, independent desk placement, save gate). SQL migrations generated from supplied function exports and inspected, but not executed on PostgreSQL in this environment; the check-only run on your actual Supabase is required. WebGL rendering and actual authenticated save/multiplayer remain production acceptance tests.
 
 ## V6.6.7 - Floor Shapes
 
