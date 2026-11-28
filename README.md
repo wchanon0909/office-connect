@@ -569,3 +569,10 @@ Virtual Social Office สำหรับนั่งเล่น เม้าท
 - No new background polling or renderer changes. The version shown in the app remains v1.0.
 - Install SQL 40 FIX2 first if not installed, then 41-check-only, 41-install, 41-verify. Replace the four files in this patch's site/ after SQL passes. If the preflight detects differing live function definitions or the marked areas have changed, export 41-inspect-read-only.sql rather than bypassing guards. Close temporary hall groups before install or rollback.
 - Grid coordinates were conservatively estimated from the marked screenshot; SQL checks the current plan for real free positions in every area. No automatic floor-plan edits.
+
+
+## v1.0 — Login & Chat Dock UI Hotfix
+
+- Guest HUD shows a labelled Login button at bottom right, and hides the message and idea launchers. The existing employee login dialog and account logic are reused. Signed-in users retain the gear, message and idea buttons; the existing MENU visibility toggle remains unchanged.
+- Public speech dock aligns its bottom edge with the map and personal controls when the centred available width is at least 280px. Narrow windows stack the dock above those controls. The existing resize/measurement pass also observes the map button. No new polling, RPC, migrations, or renderer changes.
+- Apply to v1.0 with Hall Chat Hotfix: replace the six files in site/. No SQL or layout import. Cache query strings changed only for modified scripts/styles. Rollback: restore the same six files from rollback-site/ if needed.

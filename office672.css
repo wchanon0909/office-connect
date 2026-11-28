@@ -14,3 +14,17 @@
 
 @media(max-height:450px){#profileDialog:has(details.oc672-profile-section[open]) .dialog-heading,#profileDialog:has(details.oc672-profile-section[open]) #profileBody>.profile-box,#profileDialog:has(details.oc672-profile-section[open]) details.oc672-profile-section:not([open]){display:none}#profileDialog:has(details.oc672-profile-section[open]) .oc633-form input{min-height:28px;height:32px}#profileDialog:has(details.oc672-profile-section[open]) .oc633-form textarea{min-height:42px;max-height:68px}}
 .topbar #adminLink{width:auto!important;min-width:64px;padding:7px 10px!important}.topbar #adminLink span{display:inline!important;font-size:11px}.topbar #adminLink svg{display:none!important}
+
+
+/* v1.0 login visibility and responsive bottom-row alignment (UI only). */
+body[data-oc100-auth="guest"] #communicationCorner,
+body[data-oc100-auth="guest"] #personalCorner #ideaHub,
+body[data-oc100-auth="guest"] #oc670Dock,
+body[data-oc100-auth="guest"] #myDesk .oc100-account-gear,
+body[data-oc100-auth="signed-in"] #myDesk .oc100-account-login{display:none!important}
+body[data-oc100-auth="guest"] #personalCorner #myDesk{width:auto;min-width:100px;min-height:37px;padding:7px 13px;gap:7px;background:#266c60;border-color:#7dd7bb;color:#f3fff9;font-size:13px;font-weight:700}
+body[data-oc100-auth="guest"] #personalCorner #myDesk span{display:inline!important}
+body[data-oc100-auth="guest"] #personalCorner #myDesk svg{width:19px;height:19px}
+body[data-oc100-auth="guest"] #personalCorner #myDesk:hover{background:#317e70}
+body[data-oc100-auth="guest"] #personalCorner #myDesk:focus-visible{outline:2px solid #a8f1d7;outline-offset:2px}
+#viewport #oc670Dock{bottom:var(--oc100-chat-bottom,calc(var(--oc632-personal-space,64px) + 8px));width:var(--oc100-chat-width,min(430px,calc(100% - 16px)));box-sizing:border-box}
