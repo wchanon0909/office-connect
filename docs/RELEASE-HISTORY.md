@@ -1,0 +1,578 @@
+# My Office v1.0 — Personalization & Friendship
+
+Release candidate based on the locally retained V6.7.5 site and the supplied database definitions. GitHub main / Supabase production were not reachable for independent verification. This is a single combined update, not a new project or database reset.
+
+## Installation (requires V6.7.5 / SQL 39)
+
+1. Save your current GitHub commit and export the current shared layout. Ensure SQL 39 is installed. Prefer a database copy/staging project for the first SQL run. On production use a quiet period: migration acquires table/DDL locks. The check-only intentionally exercises two existing enabled accounts, with all changes rolled back. Do not run only a selected part of the file.
+2. Optional baseline: `setup/40-audit-read-only.sql` and `40-economy-audit-read-only.sql` return aggregate stats without message text or individual balances. Save the CSVs to compare later.
+3. Run `40-check-only.sql`, then `40-install.sql`, then `40-verify.sql`. Each should report PASS. If any error occurs, stop, do not upload the site patch and send the complete error. No database data reset, no wallet reset, no floor plan import. Install changes prices only for existing paid items; it adds 40 new items and 8 quests. It does not grant or spend coins.
+4. Replace/add the files in `site/` at the existing GitHub main root. Do not delete existing site files. Wait for Pages deployment. Refresh all clients, including tabs that were open earlier. The header/footer display v1.0. No change to config/API key.
+5. Real production acceptance tests using two consenting accounts: tutorial skip/login; save new hair, clothes, favorite; open profile/peer badge; DM in both directions; verify EXP and action lock/unlock; check opt-out, purchase paid item, place it, revisit; confirm previous board, seat, room, chat, quests, admin grant and layout work. Test FPS and API p95 at similar online counts. Do not assume simulated QA proves production stability.
+
+## Release contents
+
+- Tutorial: 12 scenes; new and existing accounts see it once after v1.0. Skip is persisted per account; opening the guide manually is always allowed. New achievement/quest earned only if completed. Actual control hints/highlights where available; no forced movement or gameplay.
+- Character: original ID values preserved, 17 clothing styles, 7 bottoms, 14 hair styles, 14 accessory choices (including none), expanded color palettes, 10 presets, 5 saved outfits. New geometry differs by style; previous presets remain readable. SVG fallback and an on-demand rotatable 3D preview when WebGL is available. No continuous preview render loop; close frees preview context. Outfit options remain free.
+- Store: 40 new paid decor items, including kinetic items, 20–95 Coin (rounded in 5-Coin steps); existing paid prices rounded to the nearest 5 with minimum 10. Free items stay free. Inventory, balances and paid purchase history stay intact. Existing shop permissions remain unchanged. Cards and thumbnails are generated only for the current page (4–8 per page) and cached. New items use existing buy/place APIs and original desk-only limits. Main Office still only shows simplified decor of online owners, capped at six placed items.
+- Friendship: a mutual value per unordered pair of account IDs, independent of gender/desk. Starting from zero after this release (no scan or backfill of private messages). 1/2/3/4/5 hearts at 10/40/100/180/300 EXP; labels รู้จัก / คุ้นเคย / สนิทสนม / เพื่อนคู่ใจ / คนรู้ใจ. Reciprocal direct chat +2, at most every 60 sec; directed validated interaction +2, accepted high-five +3, shared 20-sec social cooldown; combined cap 12 EXP per pair per Bangkok calendar day. No EXP decay. One-sided repeated chat does not earn XP. Existing one-way social events can earn XP subject to cap; both users may disable accumulation and pair display. Opt-out does not erase prior XP or earned badges. Pair XP is only visible to the two parties. No public ranking. Only actual committed server events grant XP; no new client endpoint for arbitrary XP. New five heart-gated directed animations run on sender only and notify recipient, do not force peer avatar movement. Existing mutually accepted High Five preserved. New interactions use existing private Realtime channel and existing server checks; mixed old clients may not render the new emotes.
+- Achievement: 13 original badge definitions, private personal collection plus earned badge display on peer card; hovering, focus or tapping shows conditions. Existing collection, placement, claims, visit and shared-personality achievements may be recovered on opening own profile. Photo, spin and friendship counts start with v1.0. Badges are durable; no public anonymous-note badge. 8 new optional quests (3 daily, 2 weekly, 3 explorer); preserve original 61 and prior claims. Friendship event quests count qualifying XP grants, not unverified button clicks. No Office Activities & Events expansion.
+- Performance: no additional background API polling or channel; pair/badge data fetched only on explicit profile opening, saved outfit data on avatar opening, writes only on actions. Snapshot adds only availability + tutorial flag, not relationship graph. Indexed recipient lookup for ephemeral bubbles, indexed desk occupancy mapping in viewPlan; shop thumbnail work bounded per page. Pair lookup indexed by sorted UUID pair; counters bounded; achievement event triggers on selected writes only, not heartbeat or animation frame. Existing V6.6.5 transport optimization retained. New write triggers add some DB work and require real load measurements. Full delta snapshot, PostgreSQL query-plan tuning and sub-grid pathfinding are NOT changed by this candidate: cannot safely redesign those from older schema/export without current production metrics and regression testing.
+
+## QA
+
+Local JS syntax checks: 33 files (see exact log). 51 existing regression groups (floor shapes, rooms/stairs, destination, board). 40 distinct model proxy geometries, 2,020 animation samples (standing/seated/reduced-motion), heart threshold and badge ID checks. Chromium mocked backend on 1000x700, 390x844 and 844x390; tutorial, action locking, sender/receiver bubble, profile opt-out, badge details, preset save/restore, shop page/search, session loss and repeated snapshots without new RPC. These are local tests, not live concurrent tests. SQL 40 check-only contains DB-side assertions for permissions, quest count, free items, pair reciprocal/cooldown/day cap, level locks, avatar persistence, saved outfits, tutorial, opt-out, and guest denial. Not executed here: no PostgreSQL server. Main scene WebGL not executed here: test ran with 2D fallback, model primitives verified numerically. Browser screenshots are synthetic fixture/mock data. Real prices are preliminary, not calibrated to actual production median earnings; optional economy audit can inform later changes.
+
+## Rollback and data safety
+
+Restore original changed files from `rollback-site/` to main and remove `office100-core.js`, `office100.js`, `office100.css` only after restoring original index.html. SQL 40 is mostly additive; old website may still see new catalog/quests but cannot render new models/clothing correctly. For emergency, restore the website first, then run `40-disable-social.sql` to disable new XP/badge/count triggers and restore the previous action function. This is a partial feature disable, NOT a full database reversal. It preserves new inventory, balances, prices, quests/claims and earned XP/badges; does not restore prices or remove owned items. For full database rollback, use a tested backup and reconcile any purchases/claims written since install; do not blindly roll back production data. Reinstall 40 to re-enable triggers. Use version 1.0 only after the real acceptance tests pass.
+
+## QA reproduction
+
+From a full local website directory run `node path/to/qa/v1-models.cjs` and the regression scripts with the included fixture JSON. Browser test requires Python Playwright and Chromium, with network disabled and mocked RPCs; see the source in `qa/`. Test fixture is the earlier layout, not a live production export.
+
+---
+
+## Previous version history
+
+# GFE & GOE Office - V6.7.5 (Board Interaction Hotfix)
+
+## Install (requires V6.7.4 and SQL 38)
+
+1. Run `setup/39-check-only.sql` on Supabase. It installs the replacement function only inside a transaction, tests authorized reset (including the populated board) and rejected guest/member access, and rolls all changes back. A nested subtransaction also rolls back all temporary test rows and deletes. Run the complete script in one operation. Result: PASS, or a real SQL error. If an error occurs, stop before installing.
+2. Run `39-install.sql`, then `39-verify.sql`. Both should show PASS. Installation only replaces the reset function, and never actually deletes notes. Existing data and permissions are retained.
+3. Replace the five files in `site/` on GitHub main, commit, wait for Pages deploy and refresh. The patch version is V6.7.5. No layout import or additional database migration required.
+
+## Changes
+
+- Post-it reset: explicitly qualifies the DELETE with `WHERE id IS NOT NULL` (id is the primary key). Compatible with the observed safe-update guard requiring a WHERE clause. Admin check, advisory lock, count of deleted notes and confirmation dialogs remain intact. No guard is disabled. The reset still deletes every note when an Admin actually confirms it.
+- Wheel placement: identify the kitchen's actual room boundary and a single door near its fridge, then choose a solid wall segment on the inside, preferring the side toward the stairwell. No longer requires water, fridge and coffee to be in one row. On the previously exported layout, mount V:6,23, facing kitchen floor 6,23. No changes to saved layout. If the actual kitchen boundary, fridge, door or clear adjacent floor is missing, no unrelated mounting surface is guessed. Actual live layout may differ; export shared JSON if positioning remains wrong.
+- All four boards (Photo Album, Post-it, Food Wheel, Personality) use one shared arrival controller. Clicking from afar requests the existing `OC50.walkToFeature()` movement. It waits for the server-confirmed motion record and a standing, stationary avatar within 0.48 grid cells of the board's approach cell. The same check opens immediately if already at the board. A failed movement, replaced motion, changed board position, logout or connection loss cancels the pending interaction. Only one journey can be pending at a time. No pop-up or board data request before arrival. No new background RPC/polling; local timer only while a board journey is pending. Admin moderation and food menu editing from ADMIN remain accessible without walking. The proximity rule is a game UI interaction rule, not new RPC-level authorization.
+- Renderer, models, collision, server movement logic, quests and wallet unchanged.
+
+## QA and limitations
+
+- 31 JS syntax checks; 65 existing layout/motion regression groups; 10 board logic groups (including appliance rearrangement, room-facing position, missing/overlapping edges, wheel math and mesh cleanup).
+- Chromium mock backend: three viewports (1000x700, 390x844, 844x390), reset UI, permissions, arrival gating, simultaneous clicks, failed/replaced paths, session loss, all existing board actions; no idle board RPCs. Additional four interaction checks ran actual `living.js` walkToFeature and motion sampling with simulated server responses.
+- PostgreSQL server and live WebGL/Supabase access unavailable in this test environment. SQL was reviewed and a real database smoke test is included in Check-only; it has not been executed here. The board positions were checked against the previously supplied fixture, not the current production plan. Test on your live site after installation.
+
+## Rollback
+
+Restore the five previous website files from `rollback-site/` to GitHub main, commit and refresh. SQL 39 is backward compatible with V6.7.4 and should remain installed; no database rollback needed. Rolling back the UI does not undo or reset user data.
+
+---
+
+## Previous version history
+
+# GFE & GOE Office - V6.7.4 (Post-it & Food Wheel)
+
+## Installation
+
+Requires V6.7.3 with SQL 37 FIX1 installed and verified. Back up current GitHub commit. Export shared JSON as usual; no plan import is required.
+
+1. Supabase SQL Editor: run `setup/38-check-only.sql`, then `38-install.sql`, then `38-verify.sql`. Each successful script returns PASS. Check-only runs within a transaction and rolls back all writes. On a fresh board, it also exercises actual authenticated RPCs with temporary test data and verifies admin-only operations if a regular member exists. On an already populated board, it skips the data-mutating smoke checks. Stop on any error; do not run Install if Check-only fails.
+2. Replace/add only the seven files from `site/` in the GitHub `main` root, commit, wait for Pages deployment, then hard refresh. Map and footer display V6.7.4.
+3. Click the blue Post-it board by the upper glass door and stairwell; click the red Food Wheel in the kitchen. Test posting, reading, spinning, shared history and Admin settings with two accounts. No other migration or reset needed.
+
+## Changes
+
+- Post-it board: solid wall-mounted clickable sign, blue frame. Opens a centered dialog. All notes persist until an Admin deletes or resets them. Pages of six overlapping, colored notes with stable randomized tilt and offsets; click a note to read the full text. Maximum 200 characters, 20-second per-account cooldown. Only signed-in members with desk assignments may use the board. Author account ID is stored in the private DB solely for rate limiting and internal administration, never returned to board readers, including Admin; no name/time is displayed. This is anonymous to other users, not to database operators. No automated profanity filter; Admin can delete individual inappropriate notes or reset all notes with two confirmations. Use respectfully and avoid confidential or personal information. Server validates limits, and UI renders user text as text, not HTML.
+- Food Wheel: solid wall-mounted clickable sign, red frame. A personal spinning animation; results are chosen on the server with equal probability per menu item and a fixed pointer. Global latest five results display nickname, food and time. Wheel history refreshed when opened, manually refreshed or after a spin, not automatically while other users spin. 5-second server cooldown, 3.2-second animation (instant if reduced motion is enabled). Stable request ID supports safe retries after uncertain network responses, without a second result while the receipt is retained. Only enabled members can spin; no coins involved. Latest five entries plus up to seven days of retry history are stored; cleanup on new spin. Admin > จัดการเมนูอาหารสุ่ม: add/edit/delete 2-15 unique food names (1-40 characters); defaults are ten Thai food choices, and reinstall preserves saved choices. Optimistic revision check protects concurrent edits. History preserves the selected menu text even after Admin changes names.
+- Admin > จัดการกระดาน Post-it: open the same board and moderate individual notes or reset the board.
+- Both boards derive position from the saved grid-edge layout. In the previously exported fixture: blue V:4,19 (floor 4,19) beside the stairwell and glass double door; red V:6,23 (floor 6,23) beside the kitchen door, facing the kitchen. No floor plan mutation, no collision or pathfinding change. If the corresponding solid wall or clear adjacent floor is missing, the sign is not shown; the Admin menus remain available. No automatic placement on unrelated walls. Actual current production geometry must be confirmed after deploy.
+- Two static sign models with cached canvas textures (four additional meshes total if both signs appear), disposed when the scene rebuilds. 2D fallback uses clickable wall labels. No reduction in graphical quality. No change to snapshot payload, no new background polling, no new Realtime channel. RPCs run on open, explicit refresh/page, write or spin only. Existing auth, wallet, shop, quest, movement and album are unchanged.
+
+## QA / limits
+
+- JavaScript syntax: 31 files checked. Existing regression groups: 21 floor shapes + 24 grid edge/status + 13 room/stair + 7 destination = 65 passed. Seven new board logic groups passed (including fixture placement, no plan changes, missing wall/overlap guard, every wheel sector for 2-15 entries, stable note style, mocked Three.js mesh reuse/disposal).
+- Chromium browser tests with the V6.7.3 local source and a mock backend: 1000x700, 390x844, 844x390. Open by board click, pages, plain-text/XSS safety, post, delete/reset, spin and retry, latest five history, edit menu, member restrictions, no idle board RPC, close buttons and no full-dialog scrollbar with test content. Screenshots are from that mock environment, not live WebGL. Extremely long/line-broken notes and unusually short viewports may need scroll; top-right close available.
+- SQL has NOT been executed on a real PostgreSQL instance in this environment. `38-check-only.sql` is designed to compile the migration and exercise database functions in your actual schema with rollback. Real Supabase authentication, concurrent requests and WebGL wall appearance remain to be validated. The source base is the previously delivered V6.7.3, not a newly retrieved main commit.
+
+## Rollback
+
+Restore all five files from `rollback-site/`. New unreferenced `office674.js` and `office674.css` can remain. Commit and refresh. If necessary run `38-rollback.sql` to revoke access to the seven new endpoints only; board data remains private and intact. Reinstall SQL 38 to restore access. No other data or migrations are reset.
+
+---
+
+## Previous version history
+
+# GFE & GOE Office - V6.7.3 (Shared Moments & Admin Events)
+
+## Installation
+
+Requires V6.7.2 and SQL 34, 35 and 36 installed. Back up the current GitHub commit and Export shared JSON first. Do not run earlier reset migrations.
+
+1. In Supabase SQL Editor run `setup/37-check-only.sql`, `37-install.sql`, then `37-verify.sql`. Each ends with PASS. Check-only rolls back. Stop on any actual error. SQL 37 refuses an unknown V6.7 snapshot definition. It adds new private tables and RPCs; no existing wallet, inventory, quest, desk or floor-plan reset.
+2. Upload all `site/` files to the root of GitHub `main`, commit and hard refresh after Pages deploys. No layout import is needed. The map version is V6.7.3.
+3. With two test accounts, verify speech names, MENU, photo board, and shared seating. Confirm online-only grant with a small test amount and verify the wallet ledger before awarding a large amount.
+
+## Changes
+
+- Five-second public speech: small nickname tab attached to the upper-left corner. Retains the existing authenticated speech and expiry rules.
+- Personal desk previews: only online, non-visual-only desks are eligible. SQL 37 omits offline previews from the shared snapshot; the renderer also filters them and restores the ordinary desktop model. Base furniture and rendering quality are retained. No user inventory is removed.
+- Round / long multi-block tables: click any part of the table in normal view to request one accessible free chair. 6 / 4 modeled seats, respectively. The server validates revision, presence, status, footprint, nearby anchor, wall collision, route and concurrent seat reservation under the existing layout transaction lock. Move or return to desk to release the seat. If all reachable seats are occupied, the request is rejected. Existing meeting-table activity is not replaced. Existing coarse-grid pathfinding and avatar approach limitations remain.
+- Header: theme quick button hidden, not deleted from Admin tools. Online count and MENU remain; ADMIN is visible for administrators. MENU hides/restores office HUD controls, not the 3D scene, character labels, header or editor save controls. New session starts with menus shown.
+- Close controls: top-right X or sticky close rail delegates to original close handler; preserves busy/cancellation logic. Employee management displays 1-3 staff rows per page based on height. Long lists / logs and very short screens can still scroll; no content is forcibly clipped.
+- Admin coin event: Admin > แจก Coin ให้คนออนไลน์. 1-100,000 coins per online desk-assigned account, including the Admin if online. The presence definition is the existing authoritative active-user view (last seen within 90 seconds). Recipient set determined at execution, with one ledger reference per account per request. The transaction is atomic; retries with the same ID are idempotent. Pending request ID retained in sessionStorage when available. Never start a new grant after an uncertain response without checking the first one. Admin event banner replaces the ordinary action hint for 10 seconds, including announcements created through the existing workspace UI. Existing private Realtime channel; no new polling.
+- Photo Album: fixed-size wall board on a suitable solid wall to the right of the Personality poster (test fixture H:6,3, next to H:5,3). Automatically follows the saved Personality mark; searches up to three edges. If no valid wall is found the board is not rendered. Clicking opens a centered modal (not a camera move). Members may upload a raster image that their browser can decode (source <=20 MB); JPEG re-encoding removes the original metadata, scales longest side to <=960 px, limits output to 160,000 bytes. Caption <=160 characters; author nickname recorded by the server, not provided by client. Fixed frame with contain fit. Latest ten photos, newest first; older photos displaced when a new one exceeds the cap. Expired images are excluded from reading and viewing after 24 hours; physical cleanup occurs on subsequent upload (or owner/admin deletion). Private Postgres bytea storage, at most 1.6 MB of live raw JPEG data plus row/DB overhead, not public bucket. Read metadata only when the board is open; read one photo at a time. Album-change broadcast refreshes open boards only. A member can delete their own photo; Admin can delete any photo. Do not share confidential, personal or unapproved pictures. Upload rate limit 30 seconds per author while prior photo remains in album. No extra background API polling, no photo bytes in Office snapshots.
+
+## QA / limits
+
+- JavaScript syntax: 30 files passed. Regression: 21 floor shapes, 13 room/stair, 7 destination logic groups passed. Seat geometry: 8 table/orientation combinations and 1 enclosed-table case passed using a JS mirror of SQL geometry and client clearance. Browser: 3 mock-backend viewports (1000x700, 390x844, 844x390), tested menu toggle, speech nickname, wall placement, lazy album reads, image compression, pagination, upload/delete, retry nonce, role gating, sticky close, seat request/pose. The PNG screenshots show simulated 2D fallback, not deployed 3D. Tests use V6.7.2 local source and earlier exported 78-desk fixture, not the latest live GitHub/database.
+- SQL has NOT been run on a real PostgreSQL instance here. Check-only runs the geometry and privilege checks against your installed schema. The live seating concurrency, Realtime broadcast, photo storage, current plan wall selection and visual WebGL fit remain to be verified after deploy. Some older or custom layouts may not have a suitable album wall. Long menus may scroll, but their close controls stay reachable.
+- Existing physical sub-tile pathfinding limitation remains. Older clients can ignore the new chair pose and events; refresh all active tabs.
+
+## Rollback
+
+Restore `rollback-site/` first and commit; new unreferenced files can remain. Run `37-rollback.sql` only if backend removal is needed. It removes the new public RPCs and releases temporary shared-seat motion records, but preserves album photos and admin event/coin ledger records. It does not reverse coins that have already been granted. No plan overwrite.
+
+---
+
+# GFE & GOE Office - V6.7.2 (UI & Destination Fix)
+
+## Installation
+
+Requires V6.7.1 and SQL 34 / 35. Back up the current shared layout and retain the current GitHub commit. Do not rerun earlier reset migrations.
+
+1. Run `setup/36-check-only.sql`, `36-install.sql`, `36-verify.sql` in that order in Supabase SQL Editor. Each should return PASS; stop on a real error. Check-only rolls back. SQL 36 replaces only the known layout validator and V6.7 snapshot function; it preserves access rules, does not write or reset the saved plan, and refuses unexpected function bodies.
+2. Copy the release `site/` files to the GitHub repository root, commit to `main`, and hard refresh after GitHub Pages deploys.
+3. For exact poster / room positions: ADMIN > Edit Floor Plan > Select. Select a free floor block, open **กำหนดจุดเข้าห้อง / โปสเตอร์**, choose the room, then press the mark button. For the poster select a free block immediately beside the desired wall (orange marked position), choose Poster and its wall side N/E/S/W. The automatic board prefers the wall right of the upper water dispenser. Preview in 3D and save online. Clear the mark to return to automatic placement. SQL 36 is required for saving marks.
+4. For stairs: inspect the Draft counter. If no switchback hall exists, click the existing marked-position preset; if the current plan differs, select its upper-left cell and use manual placement. Ensure the counter shows one hall and verify the 3D preview before saving online. No downstairs access is enabled. No layout is replaced automatically by this patch.
+
+## Changes
+
+- Room buttons work from a normal seated or standing state, without requiring walk mode first. The server remains authoritative. Admin room marks override auto-discovery. Movement still requires permitted personal status and no pending movement / huddle.
+- Rest menu ranks matching appliances and submits the best candidate even if a local reachability estimate is uncertain. Tries up to three candidates only after explicit blocked/no-route errors. Never retries network/permission/timeouts. Existing appliance RPCs and their animations are unchanged.
+- Public chat includes status and an emoji palette; account and idea controls are icon-only; messages contains the existing work/announcements entry and a separate unread dot. Profile accordion retains one open section and compact landscape view. Admin label is ADMIN.
+- Visible wall poster and stair edge/rail details, with board preview in Draft 3D. Existing 3D objects, graphics quality, and shadow settings retained. No new background polling.
+
+## Tests and limits
+
+- 21 floor-shape + 24 grid-edge/status + 13 room/stair + 7 new logic regression groups passed. Browser mock tests passed 3 viewports (1000x700, 390x844, 844x390) including seated/standing room navigation, appliance retry, markers, UI, action pagination and stairs. 29 JS syntax checks passed.
+- Test fixture is the previously exported 10x35 plan, 78 desks. Current production coordinates may differ; use manual marks. Browser tests use mock RPC and 2D fallback, not a live multi-user Supabase or WebGL rendering test. SQL has not been executed on a real PostgreSQL instance in this environment.
+- A full free grid aisle is supported. The existing server route protocol still uses integer block centers; a physically clear gap between objects inside occupied blocks is NOT yet guaranteed passable. Do not reduce collision globally or allow wall crossing. Full sub-tile routing requires a separate authoritative movement migration.
+- Long chat logs, inventories, and very small screens may still need scrolling for accessibility. No forced clipping of essential controls.
+
+## Rollback
+
+Export the current layout including marks before rolling back. Restore files in `rollback-site/` over repository root (new unreferenced UI files can remain). Run `36-rollback.sql` only if the SQL 36 changes must be reverted. It restores the known earlier definitions; it does not delete stored markers. Older editor versions do not preserve the new marks when saving. Restore the backed-up plan only if required, after checking desk ownership and changes made since backup.
+
+---
+
+# GFE & GOE Office - V6.7.1 (UI, Rooms & Switchback Stairs)
+
+## V6.7.1 installation
+
+Patch for **V6.7.0** with SQL 34 and 35 already installed. GitHub Pages / `main` only. No new SQL migration. Do not rerun older reset migrations. Export the current shared floor plan and keep the previous GitHub commit before deployment.
+
+1. Copy every file in the release `site/` folder into the repository root (replace existing files; add new ones). Commit to `main` and hard refresh after GitHub Pages deploys.
+2. In the office, check the map menu for `V6.7.1`, the chat dock, Action picker, break activities, and the four room destinations.
+3. To add the staircase, open Admin > Edit Floor Plan on an already converted grid-edge layout. Press **เพิ่มโถงบันไดตามตำแหน่ง (4 × 3)**. The preset matches the marked corridor opposite the printer/cabinets and beside the double glass doorway. If the current plan has changed, select its intended upper-left floor cell and press **วางโถงจากช่องที่เลือก**. Occupied cells, cutouts, internal walls, and out-of-bounds positions are rejected. Review the 2D / 3D preview, check the corridor, then Save online. The deployed patch does not change the shared plan automatically. Keep the existing export for rollback.
+
+## V6.7.1 changes
+
+- Public speech input stays above the responsive bottom controls; draft text is retained when hidden behind other open panels. Guide is in Map, and quiz entry is by the wall poster only. Personality badge removal remains available in the profile.
+- Personality poster on the wall to the right of the upper water dispenser (known converted-plan fixture: edge H:5,3, approach cell 5,3). Locates a nearby qualifying wall from the current floor plan; if no qualifying wall exists it is not shown.
+- Action dialog: top-right close, icons, short / loop tabs, page controls on small displays. Removed visible redundant speech form; existing actions, eligibility checks, and RPCs are preserved. Stop is always available on the loop tab when an action is running.
+- Break menu: one button per activity, pick a reachable appliance by local route distance / approach. The server continues to validate movement, occupancy and activity. If an appliance's front is obstructed, another reachable appliance may be chosen instead. No extra polling.
+- Room dropdown: executive, large meeting, small meeting, kitchen. Classifies enclosed areas using existing grid-edge walls/doors and furniture; unavailable destinations disabled. Keeps the existing meeting-seat behavior in the original big meeting room when its layout still matches.
+- Map connection badge shows V6.7.1.
+- A 4 x 3 switchback stairwell has two 12-step descending flights, left landing and closed guardrails. Saved as two standard rotated 2 x 3 stair objects, compatible with the existing SQL 34 format. The adjacent 90/270 pair is treated as a single visual object; a merged hall can be moved or deleted as one, but not rotated. Standard individual stairs remain available. The stair footprint remains unwalkable. The 3D static parts are batched by material and shadow flag. No new backend service, polling, or change to rendering quality.
+
+## V6.7.1 QA and limits
+
+- Source reconstructed from supplied GitHub archive plus V6.6.8 and V6.7.0 patches; not independently verified against the current live GitHub commit or database.
+- 28 JS syntax checks; 21 floor shape + 24 grid edge/travel status regression groups; 13 new logic/geometry groups. Chromium mock-backend checks at 1000 x 700, 390 x 844 and 844 x 390. Live WebGL, two-user Realtime, server routes and saving on the current Supabase database still require production verification. The browser test uses offline HTML/CSS/JS and 2D fallback; the stair mesh and instancing construction are tested separately with stubs. The marked preset was tested on the previous converted 10 x 35 fixture with 78 desks.
+- Rollback: copy `rollback-site/` into the repository root and commit; newly added JS/CSS files will be unused after the original index is restored. If the new stair draft has been saved, restore your previously exported shared plan separately if needed. No SQL rollback for this patch.
+
+---
+
+# GFE & GOE Office - V6.7.0 (Social Life & Personalization)
+
+## V6.7.0 - Installation / upgrade
+
+**Requires V6.6.8, including installed SQL 34 and the preceding Desk Studio, Quest, social and appliance migrations.** This is a patch, not a fresh installation. No layout conversion is required if you have already converted it. No Coin, Inventory, employee, quest history or floor plan reset.
+
+1. Export the current shared JSON from Admin and retain a copy of the existing website files. Use a quiet deployment window.
+2. Run the whole `setup/35-check-only.sql` in Supabase SQL Editor. The only success result is `PASS`. On any SQL error or missing prerequisite, STOP; send the exact error. It rolls back the migration and its smoke test. Do not run installation until the check passes.
+3. Run `35-install.sql`, then `35-verify.sql`; both must show `PASS`. Do not rerun old reset migrations.
+4. Upload every file inside `site/` together to the existing GitHub `main` root. Retain all other files, notably `online-config.js`, assets and current layout. Do not publish setup, qa or rollback-site. After GitHub Pages deployment, refresh all active clients.
+5. Verify with two enabled, seated/assigned member accounts: tutorial first display, skip/replay; walk to the board, take quiz and choose share/remove; speech appears on both clients and disappears after 5 s; new loops stop upon walking/returning/status change; shop and visit, quest progression, old chat, water/printer, wall-edge movement. Confirm actual WebGL visuals and Realtime status. A guest must not see private profile/decor/events. Compare API load and frame rate during a normal busy period.
+
+## Changes
+
+- Seven-scene first-use tutorial with Next, Back, Skip and a permanent manual Guide button. Completion/skip saved per account; one Explorer quest rewards finishing, not skipping. Existing users see the tutorial once after deployment.
+- Personality Board placed against a reachable wall beside the largest connected open-floor region, without occupying a floor cell. Click board in 3D or press Personality to walk there and open the 16-question quiz on arrival. No eligible wall means no board; no layout mutation. Result is an informal MBTI-style preference quiz, not the official MBTI assessment; do not use it for staff evaluation. Ties select E/S/T/J. Only the four-letter result is optionally saved/shared with signed-in members on Character Card; individual answers are not retained in the new profile table. Unshare from own profile at any time.
+- Twelve added paid Desk Studio items, including animated fish bowl and music box in the personal 3D studio. Existing catalog and owned items preserved. Search inventory/shop; category filtering; visit with peer picker/previous/next and visible placed-item list only. Shop permissions remain as configured by Admin. Preview in the main 3D office uses up to six placed desktop items per occupied desk; important computer items first, small static instanced models (up to five parts each). Floor accessories/chairs are not replaced. Existing floor plan, avatars, and render quality settings unchanged. Visitors see updated placements on regular shared snapshots, not necessarily instantly.
+- Ten new persistent loops (14 including old): sway, jog, jumping jacks, squat, neck roll, breathing, reading, typing, phone, meditate. Six new personal one-shots: salute, thumbs, nod, laugh, point, bow. Three new directed social actions: encouragement, thanks, virtual gift (visual, no coin transfer). Movement and incompatible status cancel loops on the server. Actions use existing character orientation and local rig interpolation; public action captions end at 5 seconds without terminating a valid loop. Some standing/seated pose restrictions apply.
+- Public, ephemeral speech (1-120 chars, minimum 2 s between sends) displayed above sender for 5 seconds. Separate from saved status and private chat. Server emits validated events to a member-only private Broadcast channel. Only latest event in each slot per account is stored; expired text is not included in snapshots or displayed. This is not a private or end-to-end encrypted chat; do not send confidential messages. If private Realtime is not connected, other users may miss a 5-second message; the existing snapshot schedule is not accelerated to replay expired messages.
+- Twelve new optional quests (3 Daily, 3 Weekly, 6 Explorer), appended to the existing catalog. Events counted by the existing day/lifetime mark mechanism. Weekly targets are distinct days; no auto-grant or reset of old progress. New quest rewards from 5 to 30 Coin.
+- No new recurring network poll. New speech/social sends use one RPC and Broadcast; snapshot reuses current heartbeat and adds only bounded desktop preview rows, opted-in tags, and unexpired events. New action/visit/place events can update the existing quest mark mechanism. The extra SQL work and payload, WebSocket messages and device frame rate must still be measured in real deployment. Do not assume a speedup or free scaling.
+
+## Rollback / pause new features
+
+If V6.7 causes a problem after a successful install, run `setup/35-disable.sql` (PASS) to switch off new features, remove new temporary events/loops and cancellation triggers, and hide new quests from the catalog. It deliberately retains earned coins, purchased items, new profiles and quest marks. Existing SQL 34 and the current plan remain in place. Refresh all clients. If necessary restore all files under `rollback-site/` (the preceding V6.6.8 versions of changed files) together, keeping the rest of the website. The three new office670 files can remain unused. Do not downgrade the floor-plan schema or reset users. Newly purchased item IDs may be unknown to the old 3D renderer, so prefer disabling the new feature set while retaining the newer studio when possible. Rerun SQL 35 check/install/verify to re-enable after the issue is fixed.
+
+## Test evidence / limitations
+
+- JavaScript syntax checked for all 26 site JS files.
+- 60 pure JS tests: personality combinations, exact 5-second expiry, malformed payloads, bounded pose targets and simplified geometry, board selection on both layout formats.
+- 21 floor shape and 24 grid edge/status regression groups.
+- 10 Chromium browser smoke groups (five each at 1440x900 and 390x844) with mocked backend: tutorial skip/replay, public text/expiry, board navigation and 16 questions/consent, friend actions/tag/decor payload, member logout/privacy. Screenshots reflect mocked frontend, not live production.
+- SQL35 was generated and inspected against the prior SQL definitions and provided export, not executed against PostgreSQL or your Supabase project here. The dry-run includes catalog/permission checks and rollback tests for tour and personality. Actual Realtime two-client delivery, main-office WebGL preview, motion/pose integration and real quest/wallet behavior remain deployment acceptance tests. No guarantee of no bugs or reduced server workload until measured.
+
+---
+
+# GFE & GOE Office - V6.6.8 (Grid Edges & Travel Status)
+
+Virtual Social Office สำหรับนั่งเล่น เม้าท์มอย และเจอเพื่อนร่วมงาน: ผังออฟฟิศ 3D แบบ Orthographic, ตัวละคร, สถานะออนไลน์ และแชทแบบส่วนตัว พร้อมกลุ่มยืนคุยกลางโถงที่เชื่อมกับการเคลื่อนไหวของตัวละคร
+
+[เปิด GFE & GOE Office](https://wchanon0909.github.io/office-connect/)
+
+## V6.6.8 - Grid Edges & Travel Status
+
+- Independent `wallEdges` stores wall, wood door, single/double glass door and window on `H:x,y` / `V:x,y` grid segments. Cells remain available to place furniture. Solid edges block traversal; doors permit traversal and animate from existing shared motion. Stairs and composite furniture remain atomic cell footprints.
+- Admin can explicitly convert the current shared layout to edge mode in an unsaved draft. Existing desk IDs, cell coordinates and cutouts are preserved. The supplied revision-30 fixture (10 x 35) converts 46 former architecture cells into usable space with 48 edge segments, retaining 78 desks. No automatic layout update.
+- Travel-only labels for water, coffee, printer and fridge derive from the existing confirmed motion slot, including the final approach. On arrival, the current saved status text is shown again. No profile update or new periodic RPC. Other generic floor-move props are unchanged. Printer/fridge require the existing 32A RPC.
+- SQL 34 updates nine known function definitions and introduces four private helpers. It checks definition fingerprints before changes, preserves legacy plans and permissions, validates edges/paired doors/footprints, and applies edge collision to existing route calculations. SQL 34 does not update the saved plan. Existing special meeting-room layout recognition is retained; arbitrary meeting-room reservation layouts are not introduced.
+- Installation (quiet time, with all active browsers refreshed before conversion): export current shared JSON and retain it; run setup/34-check-only.sql as one query, then 34-install.sql and 34-verify.sql (each must show PASS). Stop on real SQL errors. Publish all files in site/ together to main. Refresh, then Admin > Edit floor plan > Convert walls to grid lines. Review 2D/3D and exits; Save online only when satisfied. Test both directions, both door halves, stairs and drink/appliance interactions from two accounts. No SQL 29-33 rerun, no data reset, no graphics-quality change.
+- Rollback: if an edge plan has been saved, use the NEW editor to import the previously exported legacy plan and save it first (preserve assigned desks); verify it is active, then run 34-rollback.sql. If no edge plan has been saved, no import is necessary. Restore rollback-site files together and refresh clients. SQL rollback refuses an active edge plan or unexpected function bodies. Do not restore older unrelated SQL versions.
+- QA: 21 original floor-shape regression groups, 24 grid-edge/travel-status groups; Chromium desktop/mobile 2D editor with mock backend (conversion, independent desk placement, save gate). SQL migrations generated from supplied function exports and inspected, but not executed on PostgreSQL in this environment; the check-only run on your actual Supabase is required. WebGL rendering and actual authenticated save/multiplayer remain production acceptance tests.
+
+## V6.6.7 - Floor Shapes
+
+- Admin → Edit floor plan: **ตัดพื้นที่พื้น** removes empty floor cells with click/drag, creating holes or an irregular outline. **คืนพื้นที่พื้น** restores them. The object eraser removes furniture; it retains cutouts. Remove furniture before cutting its cells. Occupied desks remain protected. Undo/Redo covers each operation.
+- **โต๊ะกลม 2 × 2**, **โต๊ะยาว 2 × 1**, **โถงบันไดลง 3 × 2**, and **ประตูกระจกบานคู่ 2 × 1** are saved composite objects. Click their top-left footprint corner to place; R rotates before placement. Select any part to move, rotate, or delete the entire object. Round tables have no directional rotation. Tables are furnishing models, without new meeting-seat reservations.
+- Double glass doors span two cells with their centre seam between them and outer frame posts. They can replace two wall/door cells and open together for a route crossing either half. The staircase remains fenced and cannot be entered. Cutouts have no floor slab, tiles, or walking route; new boundaries receive perimeter trim.
+- Uses the existing v1 plan and save RPC, with validated `void`, `roundTable`, `longTable`, `stairs`, and `doubleDoor` cells. SQL 33 updates validation, movement clearance, and capability reporting. Admin/revision/assigned-desk protections and existing account data are retained. New tools stay disabled until the backend capability is available. Experimental `wallEdges` plans remain unsupported.
+- Deployment: run `setup/33-floor-shapes-check.sql` (transaction rolled back), then `33-floor-shapes-install.sql`. Publish the changed site files together, including the new `floor-shapes.js`. Refresh active clients before saving a plan containing new objects. No automatic change is made to the current saved layout.
+- Verification: 21 Node regression groups covering all rotations, atomic footprints, cut/restore, collision, move/delete, slab area and expansion. Browser QA covers 2D tools, 3D models, rotation, whole-object delete and a mock save/reload. The live PostgreSQL check tests the actual save RPC and its admin/revision guards inside a rolled-back subtransaction. Install preserves the existing layout and revision. Run `node qa/floor-shapes.test.cjs` from the project root for local geometry tests.
+
+## V6.6.6.6 - Startup Hotfix
+
+- Fixes a blank office on the production page: `app.js` still bound the optional `edgeDraftConvert` button after the preview controls were removed from `index.html`. The exception stopped initialization before `officeAPI` was assigned, causing follow-on cloud and renderer errors.
+- Bind and refresh the experimental controls only when present. The production page keeps its current layout tools; no preview controls are added. Bump the app asset version so returning browsers fetch the fix.
+- Deploy `app.js`, `index.html`, and this README together. No SQL, account reset, or layout import is required.
+
+## V6.6.6.5 - Appliance Interaction Hotfix (published V6.6.6.2 baseline)
+
+- Fixes the excessive printer standing distance: click sends a single explicit `oc666_visit_appliance` RPC. The server finds a clear final pose 0.84–0.88 world units from the model centre, facing its front; it validates the final segment and the existing coarse route. For the exported 10x29 plan, the previous printer destination `(6,20)` was 2.19 units from the rendered centre; the new tested model target is `(6,19.25824)`, 0.84 units from the centre (0.46 units from the front of its base). Values are scene units, not metres.
+- Printer and fridge share a distinct authoritative `appliance:` motion slot and arrival timestamp. The paper/door/hand animation is driven by the existing snapshot for all refreshed clients. It is not triggered by passing by an appliance. Starting another movement or manually rotating clears the interaction; a new appliance command removes the caller's old social loop. Coffee and water retain `oc613_visit_drink` and their existing rewards. No new periodic RPC, telemetry or change to graphics settings.
+- Migration 32A only corrects server geometry offsets for printer/fridge, adds private target helpers and a member-only RPC, and clears its slot when manually rotating. It guards the two replaced function bodies against the supplied SQL schema export. No inventory, Coin, desk, layout, shop or quest reset. Existing wall-cell navigation and saved plan are retained.
+- This is an independent production hotfix, **not** the V6.6.6.3 / V6.6.6.4 wall-edge/new-object preview migration. Do not mix those preview files with this patch. The supplied CSV confirms `clean_plan`, `oc51_path`, `oc611_clear`, `oc612_offset`, and meeting/huddle assumptions need coordinated changes before a wall-edge plan can be saved. Keep new-object previews offline for now.
+- Installation: export shared JSON; run `setup/32A-check-only.txt` in one query (ordinary `PASS`, no persistent writes), then `32A-install.txt`, then `32A-verify.txt` (each `PASS`). Stop on real errors. Upload the six files in `site/` to GitHub `main` only after SQL passes, then refresh all clients. No SQL 29/30/31 rerun. No layout import required. Rollback: revert the website patch first, refresh clients, then run `32A-rollback.txt` if needed; do not roll back after unrelated backend changes.
+- QA: 37/37 local Node tests (geometry, four directions, exact exported layout, paper reach, shared record, mock movement lifecycle); JS syntax checks. `qa/reference/` contains unchanged geometry code for the tests only. No PostgreSQL server or WebGL test environment was available locally; the SQL dry run and live two-account test are required before claiming production validation. Normal server limitations (coarse route, existing wall-cell geometry, possible overlap with people not reserved by appliance slots) remain.
+
+
+## V6.6.6.2 — Grid-edge walls & office layout
+
+- This release builds on V6.6.6.1. Deploy the nine `site/` files to GitHub Pages `main` first; do not overwrite other files. Then in Admin → Edit floor plan → ขนาดผัง / จัดการไฟล์และหมายเลขโต๊ะ → Import JSON, choose `layout/office-floor-plan-v6.6.6.2.json`. Confirm the draft, inspect the 3D view and press บันทึกออนไลน์. Refresh active clients before publishing the changed plan. The original export is also included as `layout/original-backup.json`. Save remains guarded by existing admin, revision and desk-ownership checks. No additional SQL, no data reset.
+- User-supplied plan 10×35 cropped to 10×29 (removed only six wholly empty trailing rows); all 78 desk IDs, labels, coordinates, rotations and nextId are identical. Seven utility objects have the existing `align: wall` setting (printer and cabinets at x6–9/y20; dispenser, coffee machine and fridge at x7–9/y24, zero-based). Existing props and desk IDs remain unchanged. Water/coffee retain the established interaction footprint for compatibility, with a small visual clearance.
+- Wall centrelines now snap to exact grid boundaries (`CELL/2 = 0.91` world units, rather than the previous 0.78); corner cells add connecting perpendicular edge segments. Wall/door types and the v1 server-blocked cell model are unchanged. Horizontal runs use the north edge; vertical lines use the west edge by default (rotation 90° uses the east edge); old 0/180 wall orientations are inferred from neighbours. Select and rotate a wall to adjust the side. Door conversion preserves the wall's rotation. Room tools encode left/right edges automatically. 2D wall lines and 3D clearance use the same geometry. This is NOT a new independently stored edge-wall schema: a wall's logical cell is still reserved, and a separate arbitrary south-edge tool is not included.
+- Paired doors on the same continuous wall run use transparent glass and dark frames; single doors remain wood. Four marked doors (4,19; 5,19; 4,26; 5,26) become glass while retaining their original door type, hinge and route trigger. Existing door opening width remains 0.84 world units. This is a style convention, not a new stored glass-door type.
+- Stairwell is a temporary, visually recessed 3×2 opening (x0–2/y21–22), with ten descending steps along the right/east side and a closed guard/landing. It is represented by six ordinary wall cells with a documented alternating rotation marker `[90,270,90] / [270,90,270]`, so the server still treats the footprint as blocked. Client rejects direct walk clicks and clearance excludes the whole footprint; there is no downstairs scene/transition or new RPC. The marker follows expansion and is independent of desks. If incomplete or duplicated, the client renders ordinary walls rather than exposing a hole. Erase removes the whole group in one undo transaction. Not a general stair placement tool. Refresh old clients first because they render the reservation as ordinary walls. To move or add a different staircase later, use a dedicated schema/tool in a future release.
+- QA: 36/36 named geometry/layout/clearance checks, including 2,048 local neighbourhood variants and actual wall/stair mesh-function recording, 38/38 existing editor browser regression checks and 30/30 imported-plan Desktop/Mobile checks (mock cloud, including one simulated occupied desk and clean save payload). Real WebGL and live Supabase were not available; verify door walking and drink interactions in production before broad use. The original authoritative server path algorithm is unchanged. No new background API, no graphics resolution or shadow setting changes. Only static architecture geometry changes.
+- Rollback: before restoring old site files, import and publish the original backup plan using the current editor (or export a newer plan first if there were later edits). Then revert this patch commit and refresh clients. Do not reset the database. See `START-HERE.txt`.
+
+## V6.6.6.1 — Wall junction fix
+
+- Frontend-only correction for gaps at orthogonal wall junctions (L / T / cross). Straight wall planes, original door leaf, hinge and opening stay in the same place. Vertical wall spans now meet the real faces of horizontal neighbours; solid right-hand corners end at the adjoining plane rather than overhanging. No automatic wall creation across empty grid cells or between parallel horizontal rows.
+- Shared `OC612_STUDIO.wallGeometry` drives both 3D wall meshes and visual motion clearance, preserving the existing grid, layout schema and authoritative routes. No new RPC, no change to shaders, shadows, frame rate, desk IDs, user data or shop/quest systems. Existing saved plans receive the visual fix automatically; no re-save or SQL required.
+- Upload all five `site/` files together to `main` on GitHub Pages. Refresh active clients after deployment to avoid mixed asset versions. Export the current plan before making further edits. Rollback by reverting this patch commit. Geometry fixtures and regression tests are included in `qa/`. This does not fix cells that are genuinely empty in the saved plan, nor does it change ambiguous parallel-wall topology in the original grid format.
+
+- QA: 54/54 geometry and motion checks, including 2,048 wall/door neighbourhood variants and actual renderer wall-function mesh recording; 38/38 Chromium editor UI regression checks on desktop/mobile with mock cloud and renderer interface. Full WebGL render and the production saved layout were not available for validation.
+
+## V6.6.6 — Floor Plan Editor
+
+- Frontend-only admin draft editor update on the V6.6.5 baseline. GitHub Pages / `main`; no SQL migration. The published layout format remains version 1. The main-office renderer, movement, networking, quests, shop, inventory and graphics quality are unchanged. V6.7 work is not included.
+- Edit Floor Plan starts in the 2D top view. Build / furniture tool groups, zoom +/−, fit, pan, and existing 3D view are available. Wall and desk tools default to axis-aligned line placement; aisle and eraser default to rectangular placement. Other objects default to single placement. Choose single / line / rectangle to override; desk spacing 1–3 cells. Bulk desk placement leaves existing desks unchanged. Green preview = changes, red = obstruction, blue = unchanged, gold = new door. Drag cancellation does not mutate the draft. One drag is one undo transaction.
+- Room tool: drag a minimum 3×3 rectangle; only its perimeter is built, with an optional doorway on a side facing existing floor where possible. An obstructed perimeter cancels the entire room. Door tool converts an existing wall without requiring an erase. Existing doorways are preserved when placing wall lines.
+- Expand the rectangular floor by 1–10 cells on any side, up to existing bounds of 80 columns × 50 rows. All desk IDs/labels and furniture move together when adding north/west strips; windows on other edges are reindexed. Windows on the expanded edge cease to be exterior windows and are removed after confirmation. Undo restores dimensions and edges. Irregular floor footprints and new levels are not supported by the current schema. Legacy geometry/navigation has some original-map-specific offsets; inspect placement and walking paths after resizing before publishing.
+- Draft safeguards: protected desk IDs captured at edit start; erase, shrink, clear and import cannot remove those occupied desks. Move preserves ID. Existing server revision and ownership validation are still authoritative, especially if a desk is assigned by another user during editing. No background RPC is added. Export current JSON before structural changes.
+- Keyboard shortcuts (inside editor, outside form fields): V select, H pan, M move, W wall, D desk, F aisle, B room, E eraser, R rotate, Ctrl+Z undo / Ctrl+Shift+Z redo. Escape cancels an active drag. The original selected-object rotate, align, edge-window and file tools remain available.
+- Deploy: upload the five files in `site/` to repository root, commit to `main`, wait for GitHub Pages and hard refresh. No SQL. Rollback by reverting the deployment commit. QA: pure geometry and draft tests plus real Chromium Desktop/Mobile UI tests with mocked cloud and a simulated renderer interface. No live Supabase write, multi-user test or WebGL preview render was performed here.
+
+## V6.6.5 — Backend performance / private notifications
+
+- Production baseline V6.6.4 FIX1, GitHub Pages on `main`. No changes to renderer, CSS, model geometry, animation quality, layout, furniture, shop, Coin or quest definitions. V6.7 work is not included.
+- SQL 31 adds private per-account Realtime invalidation hints for chat, workspace and social cards. Existing authorized data RPCs and original global Office signals stay intact. No chat content in hints. Client retains original fast polling if the private transport is not available, with 5s/12s reconciliation when subscribed (15s hidden).
+- One serial RPC queue preserves ordering of mutations; pending user tasks take priority over background jobs, with fairness. Global snapshots coalesce with a trailing refresh and retain the existing 25s heartbeat / 3s member polling fallback. No speculative character movement. Quest pulse stays at 30s (server's 75s continuity limit).
+- Workspace no longer refreshes on unrelated Office snapshots when private notifications work. Manual reads remain immediate. Quest invalidations coalesce when its dialog is closed. Admin can inspect local 120s diagnostics via `console.table(OC41.performanceReport()?.stats)` (no telemetry or extra server calls).
+- Deploy: back up; run `setup/31-check-only.txt` (PASS only), `31-install.txt` (PASS), `31-verify.txt` (PASS); upload `site/` files to GitHub `main`, including this README; refresh all active tabs. Do not rerun SQL 29 or reset anything. Test a private message, poke, group invite/join, desk note, Quest and movement with two accounts. Rollback: revert the V6.6.5 commit (or restore the six original files from `rollback-site/` if the baseline is unchanged), deploy, refresh all clients, then run `setup/31-rollback.txt`. See `START-HERE.txt`. Older clients keep their old polling until refreshed.
+- Local QA uses mocked HTTP and WebSocket events; SQL preflight checks the actual project schema. No live production load test or live Realtime authorization test has been performed here. Actual load improvement depends on active clients and event rate.
+
+## V6.6.4 / V6.6.3 — Desk Studio & Shop
+
+- 55 catalog items (36 free office supplies, 19 Coin decorations, 8 animated decorations); free placement, floor equipment, 3D camera controls, existing shared Coin wallet; Member Shop switch in admin panel. SQL 29 reset is a historical one-time migration; SQL 30 FIX1 extends it without a reset. Keep all existing shop and inventory data.
+- V6.5 / V6.6: looping social actions and flower/heart interactions, 3D desk placement, legacy model aliases, free-position inventory.
+
+## V6.4 FIX1 — Quest Center & Social Cards
+
+- 49 optional quests (11 daily, 11 weekly, 27 lifetime Explorer). Bangkok midnight / Monday resets. Claim before reset; Explorer persists per account.
+- Uses `oc41_private.oc64_wallet`, `oc64_ledger` and `oc64_credit` from the existing database. New RPCs use `ocq_*`; private quest tables use `ocq_*`. Existing Shop / Inventory / Desk RPCs are unchanged. This source baseline is V6.3.3, so it does not contain the Shop UI.
+- Existing daily visit, regular, drink, highfive and hall rewards reuse legacy ledger references. An old auto-paid reward is displayed as claimed, never paid again. Legacy pending rewards from before installation day are settled. New weekly claim milestones count manual daily claims only.
+- Online time is measured by the extended server-timed visible-page heartbeat with recent session validation; where legacy time exists, use the larger value (not the sum). Drink, High Five and hall progress use existing validated server records. Other movement quests count successful commands, not arrival. Tutorial menu events are client-reported.
+- Free Social Cards: cheer, virtual coffee and thanks. Max 5 distinct recipients/day, one per recipient. Persistent inbox.
+- Back up first. Run `setup/26-fix1-check-only.txt` in one query, verify no errors and rollback, then `setup/26-fix1-install.txt`. Upload only `site/` contents to `main`. This replaces the previous V6.4 Quest patch. Do not run the old migration 26.
+- Local browser tests use mock data; live PostgreSQL verification requires the check-only script on your project.
+
+## What's new — V6.3.3: Account profile & admin-only theme menu
+
+- Theme menu and theme-related controls in the rest dialog are hidden for members and guests. Only enabled admins can open the shared Theme Manager. Shared themes still render for everyone; existing local effect preferences and reduced-motion accessibility settings are preserved. Music remains opt-in.
+- Account dialog contains personal details (nickname and optional 160-character Caption), employee ID (read only), and a separate password change form. Wardrobe and personal status remain in the dedicated lower-right buttons. Caption is separate from overhead status and appears in the clicked Character Card for signed-in desk members, even if the subject is offline; guests cannot obtain captions from the new snapshot. Captions are text, not HTML.
+- Password change verifies the current password using the existing Supabase Auth account, then updates that user's password via Auth. Current password, new password and confirmation are cleared after submission/close; no password is stored in custom SQL tables. Supabase password requirements and security settings still apply.
+- Requires installed SQL 24. Run `setup/25-account-profile-check-only.txt` then `setup/25-account-profile-install.txt`. Upload all files in `site/`. Keep the existing layout, online configuration, assets, and all other site files. No reset or new account is needed.
+- Browser QA uses a mock Supabase/Auth backend; actual PostgreSQL/Auth must be verified on the deployed project.
+
+## What's new — V6.3.2: Four-corner control layout
+
+- Header: unchanged company logos/name; right side shows current theme, online count and Settings only for verified admins. Admin view also retains Back to office. Theme opens the shared Theme Manager for admins and local rest/music/effect settings for other users. Guests log in through the lower-right account button.
+- Top left: walk, meeting, return to desk, turn, Action and rest spots; top right: chat and announcements with existing unread counts. Bottom right: wardrobe, personal status, account and idea board.
+- Bottom left: collapsed map drawer, containing zoom, fit/reset, camera angle, status visibility, fullscreen and connection indicator. Expanding or collapsing does not modify avatar activity. Camera controls remain available in Layout Studio. Fullscreen now includes the whole application so relocated menus and chat remain accessible. Chat minimize still preserves group membership.
+- Frontend-only patch over V6.3.1: upload `index.html`, `app.js`, `cloud.js`, `living.js`, `theme.js`, `corners.js`, `corners.css`, `README.md`. No new SQL. Do not replace the layout or online configuration.
+
+## What's new — V6.3.1: Gesture, keyboard and festival placement fixes
+
+- Wai and clap target the front of the avatar (-Z) with corrected arm yaw and pitch for seated and standing characters; standing arms also use elbow bending. Reset joint yaw when the gesture ends.
+- Enable เดินเล่น and use the arrow keys (tap or hold). Each server-confirmed grid step uses the existing `oc611_walk` RPC; the first key from a desk stands at a reachable aisle anchor. Direction follows the camera's nearest grid axis; in 2D it follows the floor grid. No key capture while typing, in a modal, in Layout Studio, or in a standing chat. A held key never queues a series of RPCs. Releasing stops after the current step. Keyboard movement advances by whole layout cells (crosses a door in one route) and waits for server-confirmed arrival; it is not continuous frame-by-frame WASD movement. Very quick taps during an active step or cooldown may be ignored. Mouse fine-grid movement remains unchanged.
+- Seasonal centerpiece uses a clear wall-cell strip between actual doors; if no safe gap exists, only the decorative perimeter lights/effects remain. No saved layout changes or new navigation blockers. The temporary centerpiece uses a reduced footprint and stays within the non-walkable wall cell.
+- Frontend-only patch over installed V6.3 (SQL 24). Upload `index.html`, `living.js`, `motion.js`, `renderer.js`, `theme.js`, `README.md` to the repository root. No new SQL. Keep existing layout, settings, logos and prior files.
+
+## What's new — V6.3: Theme Manager & corporate branding
+
+- Header: original GFE and GOE logo images and new name GFE & GOE Office. Existing URL, auth namespace and repository remain unchanged.
+- Admin → Theme Manager: shared preset (normal, Christmas, New Year, Songkran), simulated weather, intensity 0–100%, opt-in ambient/festive music, optional start/end in Bangkok time. Outside the scheduled interval the normal scene returns. Only one schedule is stored at a time. No real weather data.
+- Decorations are outside the floor footprint and use a separate noninteractive group; weather and confetti are lightweight screen-space effects. No changes to floor plan, desk ownership, chat, objects or navigation. The existing 3D Layout Studio remains available. Each user can turn effects off via มุมพัก & เพลง; reduced-motion settings suppress particles. Audio is original procedural music and does not autoplay.
+- Install SQL 23 first, then run `setup/24-theme-manager-check-only.txt`, followed by `setup/24-theme-manager-install.txt`. Upload the contents of `site/` including the two PNGs under `assets/`. Do not replace `online-config.js`, `layout.js`, `layout.json` or delete other assets. Refresh all clients. SQL 24 defaults to normal and preserves theme configuration on rerun.
+- Current tests use a mock backend; execute the PostgreSQL dry run before deploying. WebGL appearance must be confirmed in production.
+
+## What's new — V6.2: Social Experience
+
+- Action menu: improved wave and dance, including seated upper-body motion and standing full-body motion. Other greetings and office speech remain available.
+- High Five: stand next to a friend (one fine-grid step, straight or diagonal), select the avatar/profile, then request. The recipient must accept within 60 seconds. The server verifies both positions and the clear segment at request and acceptance; both avatars face one another visually and share an animation timestamp. No movement or chat membership is modified. Leaving the standing position cancels the paired rendering. It is an approximate animation, not physics-based hand contact.
+- Install committed migrations through 22 FIX1, then run `setup/23-social-experience-check-only.txt`; after success run `setup/23-social-experience-install.txt`. Upload the files in `site/` to the existing repository. Do not replace the layout, online config or earlier assets. Hard refresh all clients. Older clients can continue their old actions but will not render new ones.
+- New actions use a separate RLS-protected table and the existing Realtime signal; the fallback snapshot interval for signed-in members without Realtime is five seconds. Background browser throttling can delay the animation.
+
+## What's new — V6.1.4: Avatar profile portrait
+
+- Click a seated or walking colleague to see a full-body illustrated avatar in the existing lower-right profile panel. It uses the same saved outfit, hair, skin, and accessory palette as the wardrobe preview; it is not an actual 3D screenshot.
+- The portrait refreshes with the shared avatar snapshot, without saving the viewer's unsaved wardrobe changes or changing any desk/profile actions. Anonymous guests and empty desks retain the original placeholder; unavailable appearance data also falls back to initials.
+- Position the profile above the status, idea and rest corner buttons, so they do not obstruct profile actions on desktop or mobile.
+- Frontend-only patch: upload `index.html`, `app.js`, `living.js`, `living.css`, and `README.md` over V6.1.3. No new SQL. Keep existing migrations, including the corrected migration 22 FIX1, and existing layout/configuration.
+
+## What's new — V6.1.3: Water dispenser & drink animation
+
+- Click the water dispenser or coffee machine to walk to a collision-checked point directly in front of the actual placed model (including rotation and wall alignment). The server sets the facing direction. If there is no clear reachable point in front, it reports an error instead of approaching from the wrong side.
+- A shared visit marker and arrival time drive a finite fill / raise / sip / lower sequence. The cup remains in the hand and tilts toward the mouth. Ordinary walking or turning away does not trigger a drinking animation. Reduced-motion mode uses a static sip pose.
+- Bookshelf is decoration only: it stays in the Layout Studio palette but is excluded from the rest menu and interactive prop picking.
+- No plan placement, account, desk, chat or idea-board changes. Install migration 21 first, run `setup/22-drink-visit-check-only.txt` (expect `V6.1.3 CHECK PASSED - ROLLED BACK`), then `setup/22-drink-visit-install.txt` (expect `V6.1.3 READY`), then upload all seven `site/` files and refresh. The SQL checks geometry and privileges; full live multi-user testing remains necessary.
+- The standing point is shared, not a queue/reservation; simultaneous visitors can overlap. In constrained layouts the server tries slightly farther points in front, otherwise refuses the walk.
+
+## What's new — V6.1.2: 3D Layout Studio
+
+- Admin → Edit floor plan opens an interactive draft using the same orthographic Three.js scene and models as the live office. Pan by dragging, zoom, rotate the camera, use the 85° top view or switch to the 2D fallback. The original 2D JSON grid is still the underlying plan.
+- Click a palette item and a floor cell to place it. Select a model, then Move object and click an empty floor cell to move it; the desk ID and employee assignment remain unchanged. Rotate selected furniture, remove, undo/redo, export, import, and Save Online still work. Wall/door direction follows adjoining wall segments as before.
+- Existing special desk offsets are preserved. Existing/new eligible furniture in the main 10×19 office row just below the long partition (`y=4`, rotation 0) automatically aligns with the actual wall face. Use จัดชิดผนัง to align selected furniture/desk with an adjacent solid wall (rotates it to face away); use กลางช่อง to center non-legacy objects. Other rows are not moved automatically. A legacy desk can be relocated using Move without replacing its ID.
+- Select Glass window, then click a blue perimeter segment. A window is stored independently of floor cells in `edges` (`N:x`, `S:x`, `E:y`, `W:y`), can share a boundary cell with a desk, and does not consume a walkable tile. Select Remove edge window to remove a window. In the 2D fallback, select a boundary cell and click N/E/S/W. Existing old-style center-cell windows, if any, are retained; erase them manually and place an edge window instead. V6.1.2 supports exterior perimeter windows, not window cutouts in internal partitions.
+- All changes are draft-only until Save online & exit, with the same server revision conflict and assigned-desk protections. Migration 21 changes functions/validation, not the saved layout rows. This patch does not place any new furniture or windows automatically. Current geometry can show the scoped wall alignment even before a new draft is saved.
+- Install SQL 20 first. Run `setup/21-layout-studio-check-only.txt`; expect `V6.1.2 CHECK PASSED - ROLLED BACK`. Then run `setup/21-layout-studio-install.txt`; expect `V6.1.2 READY`, `precommit_checks=true`, `studio_ready=true`. Upload all 9 files in `site/` to repository root (including the two new layout-studio files and README). Preserve `online-config.js`, `layout.js`, `layout.json`, assets and unchanged modules. Refresh all clients before publishing plans with new edge metadata.
+- Limits: one main object per original floor cell, with wall alignment and perimeter fixtures as separate geometry; no arbitrary continuous free-placement or multiselect yet. Validate walking access and hall/meeting zones after rearrangement. Browser tests use a mock backend; renderer tests use a Three.js API double, not actual WebGL. SQL 21 must pass Supabase dry run.
+
+## What's new — V6.1.1: Free Grid & Manual Layout
+
+- ไม่มีการวางเฟอร์นิเจอร์หรือหน้าต่างอัตโนมัติอีกต่อไป ผังจริงยังเป็นผังที่ Admin บันทึกไว้เดิม; ไม่ต้อง Import หรือ Reset Layout
+- Admin → Edit floor plan: เลือก Coffee machine, Water dispenser, Printer, Fridge, Cabinet, Sofa, Plant corner, Bookshelf หรือ Glass window แล้วคลิกช่องที่ต้องการ (วิธีเดิมของ V6.1.1; V6.1.2 ใช้ขอบแยก) ใช้ Rotate R และ Save Online ตามเดิม; ไม่สามารถวางเฟอร์นิเจอร์ใหม่ทับโต๊ะโดยตรง ควรรักษาทางเดินและตำแหน่งกลุ่มกลางโถง
+- เดินเล่น: คลิกช่องกระเบื้องย่อย (3 × 3 ต่อหนึ่งช่อง Layout) ที่ว่างและเข้าถึงได้ ไม่บังคับนั่งประชุมจากการคลิกพื้น; ปุ่มห้องประชุมยังจองที่นั่งแบบเดิม ยืนค้างได้โดยไม่หมดอายุหลัง 10 นาทีขณะที่เชื่อมต่อ
+- ปุ่มหันซ้าย/หันขวา 90° ขณะยืน ส่งทิศทางจากฐานข้อมูลให้ทุก Browser เห็นตรงกัน ไม่ใช่การหมุนกล้อง; ไม่หมุนขณะเดินหรือนั่งโต๊ะ/นั่งประชุม
+- สะกิดเพื่อนที่ออนไลน์และอยู่โต๊ะจริงได้โดยเดินไปหาทุกสถานะ รวมถึงพักและห้ามรบกวน; หากเพื่อนไม่อยู่โต๊ะ ออฟไลน์ หรือผู้ส่งอยู่ในกิจกรรมที่ขัดกัน ใช้แจ้งเตือนตรงตามเดิม; กรณีผู้ส่งพักแล้วเลือกสะกิดแบบเดิน จะตื่นและเปลี่ยนเป็นว่างเมื่อเริ่มเดิน
+- การคลิกวัตถุที่ Admin วางแล้วจะเดินไปช่องว่างข้างวัตถุเมื่อมีทางไป แสงตามเวลา, เพลง และกระดานไอเดียจาก V6.1 ยังอยู่ครบ
+- ต้อง Run `20-free-grid-layout-check-only.txt` และ `20-free-grid-layout-install.txt` หลัง Migration 19 (Install) ก่อนอัปโหลดไฟล์เว็บ; ไม่แก้ข้อมูล Layout เดิม
+
+## What's new — V6.1: Living Environment & Idea Board (historical; fixed placement superseded by V6.1.1)
+
+- เพิ่มหน้าต่างกระจกและวิวเมืองแบบ low-poly ที่ขอบฉาก พร้อมแสงยามเช้า/กลางวัน/เย็น/กลางคืนตามเวลา Asia/Bangkok (ตรวจทุก 60 วินาทีและเมื่อกลับมาเปิดแท็บ)
+- เพิ่ม 8 จุดที่ริมผังเดิม: เครื่องชงกาแฟ ตู้น้ำ เครื่องปริ้น ตู้เย็น/ขนม ตู้เอกสาร มุมโซฟา มุมต้นไม้ และชั้นหนังสือ ไม่เปลี่ยนโต๊ะ 72 ตัว พื้นที่เดิน หรือฐานข้อมูล Layout; วัตถุอยู่นอกขอบ Grid และมีจุดยืนด้านในที่เข้าถึงได้ หากผังไม่ตรงหรือเส้นทางถูกแก้จะไม่วางจุดที่ใช้ไม่ได้
+- คลิกวัตถุในฉากหรือใช้ปุ่มมุมพัก & เพลง เพื่อเดินไปหาโดยใช้ RPC เดินเดิม เมื่อถึงจุดกาแฟ/น้ำ/ขนม/เครื่องปริ้นมีท่าถือแก้วหรือกระดาษจากตำแหน่งปลายทางร่วมกัน มุมโซฟายังเป็นจุดยืนพัก ไม่ใช่ระบบจองที่นั่ง; ยังไม่รองรับเดินไปพร้อมกันโดยไม่ซ้อนกันที่จุดเดียว
+- เพลง ambient สร้างจาก Web Audio API เป็นทำนองต้นฉบับ ไม่ดึงเสียงจากภายนอก เปิดเองเมื่อกดปุ่ม ปิดเมื่อสลับออกจากแท็บ ไม่เล่นอัตโนมัติ
+- กระดานเสนอไอเดียมุมขวาล่าง: สมาชิกที่มีบัญชีและโต๊ะโพสต์และอ่านได้ทุกคน แสดงชื่อ เวลา และข้อความ (สูงสุด 1,000 ตัวอักษร) เรียงจากใหม่ไปเก่า เก็บใน Supabase ไม่หมดอายุ โหลดครั้งละ 50 รายการและโหลดเก่ากว่าได้ ผู้โพสต์ลบของตัวเองได้ Admin ลบได้ทุกโพสต์; Guest ต้องเข้าสู่ระบบก่อนอ่าน เพื่อรักษาความเป็นส่วนตัวของสมาชิก
+- Auto refresh กระดานทุกประมาณ 15 วินาทีขณะเปิดหน้าล่าสุด (เมื่อโหลดหน้าประวัติย้อนไปหลายหน้าให้กดรีเฟรชเอง) ปุ่มรีเฟรชไม่ล้างร่างข้อความ
+- มีทะเบียน Scene เริ่มต้น `OC61_WORLD.scenes` สำหรับ `main-office` เท่านั้น เป็นฐานเตรียมโซนใหม่ ยังไม่มีการเดินทางข้ามฉากหรือ Theme Manager
+- Migration 19 เพิ่มเฉพาะกระดานไอเดียและ RPC ใหม่ ไม่แก้ข้อมูลบัญชี โต๊ะ แชท หรือระบบ V6.0; ต้องติดตั้ง SQL 18 แบบ Install ก่อน
+
+## What's new — V6.0: Office Productivity
+
+- สะกิดได้ทุกสถานะและฝากสะกิดให้คนออฟไลน์ได้ (เห็นเมื่อกลับมาออนไลน์) ไม่เปลี่ยนสถานะผู้รับและคง cooldown 30 วินาทีต่อคน / 10 ครั้งต่อนาที เมื่อผู้รับว่างหรือติดงานอยู่ที่โต๊ะและผู้ส่งเดินได้ จะเดินไปสะกิดเหมือนเดิม; กรณีอื่นแจ้งเตือนโดยตรง ไม่ดึงคนออกจากห้องประชุมหรือกลุ่มยืนคุย
+- กระดานประกาศ: สมาชิกที่เข้าสู่ระบบอ่านได้ ผู้ดูแลเผยแพร่และลบประกาศได้เท่านั้น
+- ฝากข้อความที่โต๊ะ: คลิกโต๊ะเพื่อน หรือเลือกผู้รับจากเมนูงานและประกาศ ส่งได้แม้เพื่อนไม่ออนไลน์ ข้อมูลผูกกับบัญชีผู้รับไม่ใช่โต๊ะ ผู้รับกดอ่านแล้วหรือเก็บออกจากกล่องได้ ผู้ส่งตรวจสถานะอ่านได้
+- แยกจากแชทเดิม; ไม่ส่งข้อความส่วนตัวผ่าน public snapshot หรือ Realtime signal; แสดงรายการประกาศล่าสุด 50 รายการ กล่องรับสูงสุด 100 รายการ (เลือกข้อความยังไม่อ่านก่อน) และกล่องส่งล่าสุด 50 รายการ
+- Run migration 18 check-only แล้ว install หลัง migration 16 และ 17 ที่ commit แล้ว; ไม่แก้ไขผัง บัญชี รหัสผ่าน หรือข้อมูลแชทเดิม
+
+## What's new — V5.4: Natural Movement
+
+- ปรับท่าเดินให้ขยับข้อเข่า ข้อศอก สลับแขนขา และลดจังหวะก้าวก่อนหยุด; เพิ่มการเอนตัวลงนั่งเมื่อถึงเก้าอี้ประชุมและกลับโต๊ะ
+- เลี้ยวแบบโค้งและหันตัวแบบค่อยเป็นค่อยไป ตรวจระยะจากเฟอร์นิเจอร์ ผนัง ต้นไม้ และขอบฉากก่อนปรับเส้นทางภาพ
+- เมื่อเดินสวนกันบนทางเดินที่มีพื้นที่เพียงพอ ตัวละครเบี่ยงหลบกันเล็กน้อย; งดเบี่ยงบริเวณประตู จุดหมายและพื้นที่แคบ (best effort, not a full collision engine)
+- การหลบเป็นการปรับภาพเฉพาะฝั่ง client ไม่เปลี่ยนเส้นทาง/เวลาถึง/การจองตำแหน่งจาก Supabase และไม่เขียนข้อมูลทุกเฟรม
+- ขณะเคลื่อนไหว Renderer พยายามอัปเดตสูงสุดประมาณ 30 FPS; เมื่อฉากนิ่งใช้รอบเดิม และเคารพการตั้งค่า reduced motion ของระบบ
+- ไม่ต้อง Run SQL ใหม่; ต้องติดตั้ง Migration 16 และ 17 จริงแล้วตามรุ่นก่อนหน้า
+
+## What's new — V5.3.4: Status & Live Sync
+
+- เปิดสถานะเหนือหัวเป็นค่าเริ่มต้น (เปิดให้ผู้ใช้เดิมครั้งแรกด้วย); ปิด/เปิดเองได้ที่มุมขวาล่าง และจำค่าหลังจากนั้น หากไม่มีข้อความจะแสดงเฉพาะไอคอน หากมีจะแสดงไอคอนและข้อความที่พิมพ์เอง Guest ไม่เห็นสถานะ
+- Realtime และ polling เดิมยังทำงาน เพิ่มการตรวจข้อมูลกลางและ Inbox ทุก 60 วินาทีโดยไม่ reload หน้าเว็บ; เมื่อกลับมาเปิดแท็บหรือออนไลน์ใหม่จะ sync ทันที
+- คลิกไอคอนกลุ่มจากโต๊ะเพื่อขอร่วมฟังได้โดยไม่ต้องเปิดแชทก่อน เมื่อสมาชิกอนุมัติจึงเข้ากลุ่ม เดินไปหา และเปิดแชท; ไม่เห็นข้อความเก่าก่อนเข้าร่วม
+- ไม่ต้องเพิ่ม SQL migration หากติดตั้ง Migration 17 (Install) สำเร็จแล้ว
+
+## What's new - V5.3.3: Hall activity messages
+
+- Hall chat displays centered system messages on successful join (including the creator) and leave, stored in the same ordered, private message stream. New members still see only events/messages after their join cutoff.
+- Minimize does not leave and does not produce an event. Failed/declined requests and repeated syncs do not produce events. No backfill.
+- Run migration 17 check-only and install after committed migration 16; see release instructions.
+
+## What's new — V5.3.2: Chat Dock & Notifications
+
+- ย่อหน้าต่างข้อความด้วยปุ่ม `−` และขยายกลับได้โดยไม่ออกจากกลุ่ม ไม่เปลี่ยนตำแหน่งตัวละคร และไม่ลบร่างข้อความ
+- คำเชิญเข้ากลุ่ม คำขอร่วมฟัง และการสะกิด แสดงเป็นการแจ้งเตือนกลางหน้าจอแบบคิว ไม่ซ้อนกัน และตอบรับ/ปฏิเสธได้จาก Pop-up
+- ตรวจเส้นทางการขอร่วมฟังกลุ่มกลางโถง: คลิกไอคอนกลุ่ม → ขอเข้าร่วม → สมาชิกคนใดคนหนึ่งอนุมัติ → เดินมารวมกลุ่มและเปิดแชท โดยไม่เห็นข้อความก่อนอนุมัติ
+- รายการข้อความแสดงเฉพาะบทสนทนา ไม่เติมรายชื่อพนักงานที่ยังไม่เคยเปิดแชทหรือนำแชทที่ลบกลับมาเป็นรายชื่อเพื่อน
+- ใช้ฐานข้อมูล Migration 16 ของ V5.3.1 ต่อได้ ไม่ต้องเพิ่ม Migration ใหม่
+
+## การใช้งาน
+
+| ฟังก์ชัน | วิธีใช้ |
+|---|---|
+| เข้าระบบ / จองโต๊ะ | เลือกโต๊ะว่าง ลงทะเบียนด้วย Employee ID และรหัสผ่าน |
+| กล้อง 3D | ลากเพื่อเลื่อน, Scroll เพื่อซูม, รีเซ็ตหรือเปลี่ยนมุมกล้อง |
+| สถานะ | ว่าง, ติดงาน, ห้ามรบกวน, ประชุม, พัก; ไม่อยู่ที่โต๊ะเป็นสถานะอัตโนมัติ |
+| ตัวละคร | แต่งตัว เปลี่ยนเพศ ทรงผมและชุด เดินกลับโต๊ะ ทักทายและพูดข้อความสั้น ๆ |
+| Private Message | คลิกโต๊ะของเพื่อน → ส่งข้อความ |
+| สะกิด | คลิกโต๊ะ → สะกิด ทุกสถานะ; ถ้าออฟไลน์จะได้รับเมื่อเข้าสู่ระบบ |
+| ประกาศ | งานและประกาศ → ประกาศ (Admin เผยแพร่/ลบได้) |
+| ฝากข้อความ | คลิกโต๊ะเพื่อน → ฝากข้อความที่โต๊ะ; ตรวจกล่องรับ/ที่ส่งไปในเมนูงานและประกาศ |
+| กลุ่มงาน | สร้างกลุ่มถาวรและเชิญเพื่อน ไม่บังคับให้ตัวละครเดิน |
+| กลุ่มยืนคุย | สร้างกลุ่ม / ตอบรับคำเชิญแล้วเดินมารวมกลุ่มกลางโถง |
+| ขอร่วมฟัง | คลิกไอคอนแชทเหนือกลุ่ม รอสมาชิกอนุญาต |
+| ย่อหน้าต่าง | `−` ย่อ, `▢` ขยาย; ยังอยู่ในกลุ่มและยังรับข้อความ |
+| ปิด / กลับโต๊ะ | `×` ปิดหน้าต่างกลุ่มยืนคุยแล้วออกจากกลุ่ม; กลับโต๊ะก็ออกจากกลุ่ม |
+| ลบแชท | `×` ในรายการแชท ล้างเฉพาะประวัติที่ตัวเองเห็น; กลุ่มยืนคุยจะออกและคืนตำแหน่ง |
+| มุมพัก & เพลง | คลิกวัตถุในฉากหรือปุ่มขวาล่างเพื่อเดินไปหา; เปิด/ปิดเพลง ambient ได้เอง |
+| เสนอไอเดีย | ปุ่มขวาล่าง → โพสต์และอ่านไอเดียของสมาชิก; โหลดข้อความเก่าได้ |
+| ตั้งค่า / Admin | รูปเฟือง → เข้าหลังบ้านเมื่อมีสิทธิ์ Admin |
+
+ผังกลางปัจจุบัน: 10 คอลัมน์ × 19 แถว, โต๊ะทำงาน 72 ตัว, ห้องประชุมมี 9 ที่นั่งที่เข้าถึงได้และ 5 จุดยืน; โถงกลางรองรับ 5 กลุ่ม กลุ่มละ 6 คน ตาม Layout ปัจจุบัน
+
+## Technology
+
+- Frontend: HTML, CSS, JavaScript, Three.js (Orthographic camera)
+- Hosting: GitHub Pages (branch `main`, root)
+- Backend: Supabase Auth, PostgreSQL, RPC, Realtime signals และ polling สำรอง
+- Chat: private account-based conversations; database membership checks and history cutoff
+- Presence: heartbeat; แยกสถานะออนไลน์จากการจองโต๊ะ
+
+## Deployment / Upgrade
+
+**V6.3.3 (current):** Install SQL 25 after SQL 24, then upload the site patch. Expected `V6.3.3 READY`, `profile_ready=true`.
+
+**V6.3.2:** Frontend-only control layout. No new migration.
+
+**V6.3.1:** Frontend-only patch over installed V6.3. No new migration.
+
+**V6.3:** Run SQL 24 check-only then install after committed migration 23. Expected `V6.3 READY`, `theme_ready=true`. Upload site patch, retaining all earlier files.
+
+**V6.1.2:** Run migration 21 check-only and install, then upload the 9 site files. See the current release notes above.
+
+**V6.1.1 (historical):** Install SQL 19 first. Run `setup/20-free-grid-layout-check-only.txt` and verify `V6.1.1 CHECK PASSED - ROLLED BACK`; then run `setup/20-free-grid-layout-install.txt` and verify `V6.1.1 READY`, `walk_ready=true`, `rotate_ready=true`. Upload the patch files and the nine new SVGs under `assets/`. Keep existing `layout.js`, `layout.json` and `online-config.js`. No reset. Have all users refresh to V6.1.1 before publishing a layout containing new furniture types (older clients cannot validate them).
+
+**V6.1 (historical):** Run `setup/19-idea-board-check-only.txt` and verify `V6.1 CHECK PASSED - ROLLED BACK`, then `setup/19-idea-board-install.txt` and verify `V6.1 READY`. The dry run validates grants/RLS and, when enabled desk owners are available, posting, shared visibility, unauthorized deletion, idempotent retry and owner/admin deletion in a rolled-back transaction. Then upload the 8 files inside `site/` to repository root. Keep all V6.0 files including `productivity.js`, `productivity.css`, `motion.js`, `online-config.js`, `layout.js`, and `layout.json`. Hard refresh after deploy. Do not upload `setup/` or `qa/`.
+
+**V6.0:** Run `setup/18-productivity-check-only.txt` and verify `V6.0 CHECK PASSED - ROLLED BACK`, then `setup/18-productivity-install.txt` and verify `V6.0 READY`. Dry run includes RPC/privacy smoke tests when two enabled desk owners are available; if only one exists the RLS and permission checks still run. Then upload `site/` to repository root, retaining all earlier files (including `motion.js`). Do not replace `online-config.js`, `layout.js`, or `layout.json`. Hard refresh after GitHub Pages deploys.
+
+**V5.4:** Frontend only. Upload the files in `site/` (including the new `motion.js`); no new SQL. Existing layouts, config, chat, and permissions stay unchanged. Requires V5.3.4 and its previously committed migrations.
+
+**V5.3.4:** Frontend only. Requires committed migration 17 for hall activity messages and migration 16 for hall requests. Upload the files in this release `site/`; no new SQL. If an earlier migration was only dry-run, install that migration before upgrading.
+
+**V5.3.3:** From V5.3.2 (including the password hotfix), run `17-hall-events-check-only.txt` then `17-hall-events-install.txt` from `setup/`. The SQL self-test requires two registered profiles and one free hall zone. It does not retain synthetic test rows; identity sequence gaps can occur. Upload the files in `site/` after install.
+
+**อัปเดตจาก V5.3.1:** ต้องติดตั้ง Migration 16 แบบ Install สำเร็จก่อน (Dry Run ไม่บันทึกฐานข้อมูล) ตรวจด้วยไฟล์ `setup/check-v532-database.txt` ที่มากับชุดอัปเดต หากได้ `V5.3.2 DATABASE READY` และ `database_ready = true` ไม่ต้อง Run SQL อีก หากไม่พร้อมให้ใช้ไฟล์ Migration 16 check-only และ install ตามคู่มือใน ZIP ก่อนอัปโหลดเว็บไซต์
+
+1. สำรอง Layout และ Source เดิมก่อนอัปเดต
+2. อัปโหลดไฟล์ในโฟลเดอร์ `site/` จาก ZIP ไปยัง root ของ repository ไม่ต้องอัปโหลดทั้งโฟลเดอร์
+3. Commit และรอ GitHub Pages deploy จาก `main / root`
+4. เปิดเว็บและกด Ctrl+F5 จากนั้นทดสอบอย่างน้อยสองบัญชี
+
+เก็บ `online-config.js`, `layout.js`, `layout.json`, assets และ CSS/JS อื่นที่ไม่ได้อยู่ในแพตช์เดิมไว้ ไม่อัปโหลดไฟล์ `setup/` หรือ `qa/` ขึ้น GitHub ไม่ต้องสร้างบัญชีใหม่
+
+**Fresh install:** ต้องมีไฟล์ Full Project และ SQL migrations ตามลำดับของรุ่นก่อนหน้า ไม่สามารถติดตั้งจากแพตช์นี้เพียงชุดเดียวได้ ตั้งค่า Supabase Project URL และ publishable key ใน `online-config.js` เท่านั้น ห้ามใส่ service_role key, secret key หรือ database password ใน repo. การลงทะเบียนเปิดแบบ Free Registration จึงไม่ยืนยันตัวตนพนักงานโดยบริษัท เหมาะกับกลุ่มที่ไว้ใจกันก่อน
+
+ตอนลงทะเบียน ให้ตั้งรหัสผ่านสำหรับบัญชีของคุณเองและจำไว้สำหรับเข้าสู่ระบบครั้งถัดไป ไม่ใช่รหัสกลางของออฟฟิศ
+
+รหัสผ่านขั้นต่ำขึ้นกับ Supabase Auth (อย่างน้อย 6 ตัวตามการตั้งค่าที่รองรับ) ไม่บังคับ 8 ตัวจากเว็บไซต์
+
+## Development history
+
+| Version | Feature |
+|---|---|
+| V3.0 | Three.js office, orthographic camera, layout editor |
+| V4.0 | Modern office interface |
+| V4.1 | Shared layout, employee accounts, desk assignment and Admin |
+| V4.2 | Online presence and personal status |
+| V4.3 | Direct messages, group chat, invitations, poke |
+| V5.0 | Avatars, customization, walking animation |
+| V5.1 | Walk-to-poke, door interaction, meeting seating |
+| V5.1.1 | Personal camera angle and optional status bubble |
+| V5.2 | Expanded avatar customization, emotes and speech bubbles |
+| V5.2.1 | Hall huddles |
+| V5.2.2 | Status actions, guest privacy and avatar save fix |
+| V5.3 | Hall chat requests and return-to-desk behavior |
+| V5.3.1 | Compact hall positions, chat deletion, SQL migration 16 |
+| V5.3.2 | Minimized chat dock, central notifications, room-only chat list, password wording hotfix |
+| V5.3.3 | Hall join/leave system messages (migration 17) |
+| V5.3.4 | Default head status, minute reconciliation, direct hall join request |
+| V5.4 | Articulated walking, rounded turns, local clearance-aware passing, sitting transitions |
+| V6.0 | All-status pokes, announcement board, private desk notes, read receipts |
+| V6.1 | Living Environment, interactive props, Bangkok lighting, ambient audio, persistent idea board (migration 19) |
+| V6.1.1 | Manual placement, persistent fine-grid standing, facing, physical desk visits (migration 20) |
+| V6.1.2 | 3D Layout Studio, wall alignment, edge windows (migration 21) |
+| V6.1.3 | Dispenser approach, drinking animation, decoration-only bookshelf (migration 22 FIX1) |
+| V6.1.4 | Avatar portrait in the profile panel |
+| V6.2 | Social Experience: dance, improved wave, consensual High Five (migration 23) |
+| V6.3 | Theme Manager, shared weather and seasonal effects, GFE & GOE branding (migration 24) |
+
+| **V6.3.1** | Forward-facing gestures, keyboard walk, between-door festival placement |
+| **V6.3.2** | Four-corner controls, collapsible map, admin-only Settings |
+| **V6.3.3** | Admin-only theme menu, nickname and caption, authenticated password change (migration 25) |
+
+## Roadmap — Virtual Social Office (reordered)
+
+- V6.2: Social Experience — wave, dance, High Five. Additional poses and social activities can follow as minor updates.
+- V6.3–V6.3.3 (current release): Theme Manager — Admin theme selection/scheduling, Christmas, New Year and Songkran presets, shared weather and visual-effect controls; no automatic replacement of the saved layout.
+- V6.4: Seasonal World — richer festival activities and temporary decorations, music, effects and interactive content based on the Theme Manager.
+- V6.5: World Expansion — multi-scene engine, Café, Rooftop Garden, Game Room; Admin-designed layouts for every zone.
+- V6.6: Play Together — mini-games, activities and Easter eggs.
+- V6.7: Personalization — desk decorations, outfits, collectibles and pets.
+- V7.0 (exploratory): Virtual Social World / opt-in proximity voice chat.
+
+## Current limitations
+
+- Requires a WebGL-capable browser and internet access for CDN modules; 2D fallback exists.
+- Chat notifications are in-app only. Inbox polling is approximately every 4 seconds when the page is active; browser throttling or offline devices may delay delivery.
+- Chat history is not end-to-end encrypted. Guest cannot read private conversations or member identities from the intended member-only snapshot.
+- Standing places are reserved by the backend. V5.4 reduces overlap in open corridors but does not guarantee collision-free walking, especially near doors, crowded groups, and shared goals. The original backend route and desk anchor are preserved; the full seat-to-aisle route is not simulated. Visual offsets may differ temporarily across clients with delayed snapshots. 2D fallback uses the original discrete markers.
+- V6.1.1 manually placed props have no dedicated seat/queue reservation; visiting the same point can overlap avatars. The sofa is a standing lounge stop. Glass windows are placeable panels, not automatic city scenery. Fine-grid movement requires a reachable clear coarse-cell center and a clear final segment, not every physically empty sliver around furniture. Manual placement does not automatically guarantee every desk or meeting path remains reachable; avoid blocking aisles.
+- Test the deployed app against your own Supabase project before broad rollout. V6.1 was tested with Chromium, mock Supabase and Three.js API double; migration 19 needs the Supabase dry run and live install. Actual WebGL appearance and audio audibility have not been verified on the deployed site.
+
+
+## v1.0 — Hall-zone Hotfix (SQL 41)
+
+- Temporary conversations reserve one six-person, two-cell group zone within the four marked areas (main corridor, stair lobby, kitchen and lower lobby). The closest walkable free zone is selected using the current server motion or desk access cell. Existing groups retain their own reserved locations.
+- Chat opens only once the local motion arrives, and the server's existing conversation authorization also checks the arrival timestamp. The scene marker uses actual arrived characters, including in 2D.
+- No new background polling or renderer changes. The version shown in the app remains v1.0.
+- Install SQL 40 FIX2 first if not installed, then 41-check-only, 41-install, 41-verify. Replace the four files in this patch's site/ after SQL passes. If the preflight detects differing live function definitions or the marked areas have changed, export 41-inspect-read-only.sql rather than bypassing guards. Close temporary hall groups before install or rollback.
+- Grid coordinates were conservatively estimated from the marked screenshot; SQL checks the current plan for real free positions in every area. No automatic floor-plan edits.
+
+
+## v1.0 — Login & Chat Dock UI Hotfix
+
+- Guest HUD shows a labelled Login button at bottom right, and hides the message and idea launchers. The existing employee login dialog and account logic are reused. Signed-in users retain the gear, message and idea buttons; the existing MENU visibility toggle remains unchanged.
+- Public speech dock aligns its bottom edge with the map and personal controls when the centred available width is at least 280px. Narrow windows stack the dock above those controls. The existing resize/measurement pass also observes the map button. No new polling, RPC, migrations, or renderer changes.
+- Apply to v1.0 with Hall Chat Hotfix: replace the six files in site/. No SQL or layout import. Cache query strings changed only for modified scripts/styles. Rollback: restore the same six files from rollback-site/ if needed.
