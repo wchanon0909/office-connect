@@ -2,7 +2,11 @@
 
 **Your workspace. Your people. Your little virtual world.**
 
+**พื้นที่ของคุณ เพื่อนร่วมงานของคุณ และโลกใบเล็ก ๆ ที่เราได้ใช้ร่วมกัน**
+
 My Office is a browser-based virtual social workspace for GFE & GOE. It brings colleagues together in a shared 3D office where everyday communication, presence and optional playful interactions feel more personal.
+
+My Office คือออฟฟิศเสมือนสำหรับ GFE & GOE ที่ใช้งานผ่านเว็บเบราว์เซอร์ ให้เพื่อนร่วมงานได้พบปะ พูดคุย สร้างตัวตน และสนุกกับกิจกรรมเล็ก ๆ ในพื้นที่ 3 มิติร่วมกัน เพื่อให้การติดต่อกันในแต่ละวันเป็นธรรมชาติและใกล้ชิดยิ่งขึ้น
 
 [Open My Office](https://wchanon0909.github.io/office-connect/) · [Changelog](CHANGELOG.md) · [Development](docs/DEVELOPMENT.md) · [Deployment](docs/DEPLOYMENT.md) · [Project Knowledge & AI Handover](docs/PROJECT-KNOWLEDGE.md)
 
@@ -20,7 +24,30 @@ My Office is a browser-based virtual social workspace for GFE & GOE. It brings c
 
 ## Design principles
 
-My Office is designed to make connection easy without turning social participation into an obligation. Personalization and quests are optional; the existing shared office remains the centre of the experience. Development is incremental, with backward compatibility and preservation of existing user data prioritized.
+### Connection — การเชื่อมโยงกัน
+
+Make everyday conversations and social interactions natural and accessible. My Office is a social space, not an employee productivity monitoring tool.
+
+สร้างพื้นที่ให้เพื่อนร่วมงานได้พบปะ พูดคุย และมีปฏิสัมพันธ์กันอย่างเป็นธรรมชาติ ไม่ใช่เครื่องมือสำหรับติดตามหรือประเมินการทำงานของพนักงาน
+
+### Personalization — การสร้างตัวตน
+
+Give users the freedom to express themselves through their avatars, desks and collections while keeping the shared office at the centre of the experience.
+
+เปิดโอกาสให้ทุกคนสร้างตัวตนผ่านตัวละคร โต๊ะทำงาน และของสะสมในแบบของตัวเอง โดยยังคงให้ออฟฟิศส่วนกลางเป็นหัวใจของประสบการณ์
+
+### Play at your own pace — สนุกได้ตามความสมัครใจ
+
+Quests, Coins, achievements and social activities are optional. Participation is never a requirement for ordinary office use.
+
+เควส เหรียญ ความสำเร็จ และกิจกรรมต่าง ๆ เป็นทางเลือกสำหรับคนที่สนใจ ทุกคนยังสามารถใช้งานออฟฟิศและพูดคุยกับเพื่อนได้ตามปกติ แม้ไม่เข้าร่วมกิจกรรมเหล่านี้
+
+### Performance and continuity — ประสิทธิภาพและความต่อเนื่อง
+
+Improve responsiveness without unnecessarily sacrificing visual quality. Develop incrementally, preserve existing workflows and user data, and validate changes before release.
+
+พัฒนาให้เว็บไซต์ตอบสนองได้ดีขึ้นโดยไม่ลดคุณภาพกราฟิกโดยไม่จำเป็น ต่อยอดระบบทีละส่วน รักษารูปแบบการใช้งานและข้อมูลเดิม พร้อมตรวจสอบการเปลี่ยนแปลงก่อนเผยแพร่
+
 
 ## Technology
 
@@ -57,7 +84,7 @@ No package installation or build step is required. From the repository root, run
 
 This repository organization update preserves the supplied v1.0 frontend, including the hall-zone and login/chat-dock hotfixes. No database migration, data reset or domain change is introduced by this refactor. The existing backend must already support the deployed frontend (historical notes reference SQL 40 FIX2 and SQL 41). SQL migration files are not included in the supplied snapshot; this is not a standalone backend installer.
 
-See [CHANGELOG.md](CHANGELOG.md) for the development milestones and [archived release notes](docs/RELEASE-HISTORY.md) for detailed historical instructions. Do not rerun historical SQL just to reorganize this repository.
+See [CHANGELOG.md](CHANGELOG.md) for development milestones, [archived release notes](docs/RELEASE-HISTORY.md) for historical instructions, and [Project Knowledge & AI Handover](docs/PROJECT-KNOWLEDGE.md) for requirements, architectural decisions, lessons learned and development continuity. Do not rerun historical SQL just to reorganize this repository.
 
 ## Limitations and privacy
 
