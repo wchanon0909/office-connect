@@ -4,7 +4,7 @@
 
 My Office is a browser-based virtual social workspace for GFE & GOE. It brings colleagues together in a shared 3D office where everyday communication, presence and optional playful interactions feel more personal.
 
-[Open My Office](https://wchanon0909.github.io/office-connect/) · [Changelog](CHANGELOG.md) · [Development](docs/DEVELOPMENT.md) · [Deployment](docs/DEPLOYMENT.md)
+[Open My Office](https://wchanon0909.github.io/office-connect/) · [Changelog](CHANGELOG.md) · [Development](docs/DEVELOPMENT.md) · [Deployment](docs/DEPLOYMENT.md) · [Project Knowledge & AI Handover](docs/PROJECT-KNOWLEDGE.md)
 
 ![Release](https://img.shields.io/badge/release-v1.0-2563eb) ![Frontend](https://img.shields.io/badge/frontend-HTML%20%2F%20CSS%20%2F%20JS-475569) ![Hosting](https://img.shields.io/badge/hosting-GitHub%20Pages-24292f)
 
